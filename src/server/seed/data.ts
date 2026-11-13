@@ -1,0 +1,1037 @@
+// Demo content for Just Once. Dates are offsets in days from the day the seed
+// runs, so the demo always looks current: re-seed shortly before presenting.
+
+import type { CategoryId, ConditionId } from "../../lib/catalogue";
+
+export const DEMO_PASSWORD = "justonce";
+
+export interface SeedUser {
+  id: string;
+  name: string;
+  email: string;
+  area: string;
+  avatar?: string;
+  verified: boolean;
+  joinedDaysAgo: number;
+  bio: string;
+}
+
+export const USERS: SeedUser[] = [
+  {
+    id: "sophie-clarke",
+    name: "Sophie Clarke",
+    email: "sophie@example.com",
+    area: "islington",
+    avatar: "/seed/avatars/sophie.jpg",
+    verified: true,
+    joinedDaysAgo: 300,
+    bio: "Product designer in Islington. I'd rather rent the fancy thing for a weekend than store it for a decade. Always on time with returns.",
+  },
+  {
+    id: "priya-shah",
+    name: "Priya Shah",
+    email: "priya@example.com",
+    area: "hackney",
+    avatar: "/seed/avatars/priya.jpg",
+    verified: true,
+    joinedDaysAgo: 420,
+    bio: "Photographer and recovering camera hoarder in Hackney. Everything I lend is cleaned, charged and ready to shoot, and I'm happy to run through the settings at pickup.",
+  },
+  {
+    id: "amara-okafor",
+    name: "Amara Okafor",
+    email: "amara@example.com",
+    area: "peckham",
+    avatar: "/seed/avatars/amara.jpg",
+    verified: true,
+    joinedDaysAgo: 380,
+    bio: "Events stylist in Peckham. I throw a lot of parties, so you get to borrow the props afterwards.",
+  },
+  {
+    id: "tom-hughes",
+    name: "Tom Hughes",
+    email: "tom@example.com",
+    area: "walthamstow",
+    avatar: "/seed/avatars/tom.jpg",
+    verified: true,
+    joinedDaysAgo: 500,
+    bio: "Weekend camper, weekday accountant. Everything I lend has been tested in actual British weather.",
+  },
+  {
+    id: "hannah-brooks",
+    name: "Hannah Brooks",
+    email: "hannah@example.com",
+    area: "clapham",
+    avatar: "/seed/avatars/hannah.jpg",
+    verified: true,
+    joinedDaysAgo: 260,
+    bio: "Wedding-season survivor. My wardrobe is better off out at parties than sitting in a cupboard.",
+  },
+  {
+    id: "leo-martins",
+    name: "Leo Martins",
+    email: "leo@example.com",
+    area: "brixton",
+    avatar: "/seed/avatars/leo.jpg",
+    verified: true,
+    joinedDaysAgo: 200,
+    bio: "Gig photographer from Brixton. I rent the big lenses and lend out the tipi.",
+  },
+  {
+    id: "callum-reid",
+    name: "Callum Reid",
+    email: "callum@example.com",
+    area: "greenwich",
+    avatar: "/seed/avatars/callum.jpg",
+    verified: true,
+    joinedDaysAgo: 330,
+    bio: "CAA-registered drone pilot, snowboarder and Greenwich local.",
+  },
+  {
+    id: "oliver-bennett",
+    name: "Oliver Bennett",
+    email: "oliver@example.com",
+    area: "shoreditch",
+    avatar: "/seed/avatars/oliver.jpg",
+    verified: true,
+    joinedDaysAgo: 240,
+    bio: "Freelance filmmaker in Shoreditch. I own two good suits and have strong opinions about lapels.",
+  },
+  {
+    id: "daniel-reyes",
+    name: "Daniel Reyes",
+    email: "daniel@example.com",
+    area: "camden",
+    avatar: "/seed/avatars/daniel.jpg",
+    verified: true,
+    joinedDaysAgo: 150,
+    bio: "Camden-based and always one wedding away from needing a suit.",
+  },
+  {
+    id: "zara-ahmed",
+    name: "Zara Ahmed",
+    email: "zara@example.com",
+    area: "wembley",
+    verified: true,
+    joinedDaysAgo: 280,
+    bio: "Good fabric, better occasions. I lend out the pieces I love most.",
+  },
+  {
+    id: "mei-chen",
+    name: "Mei Chen",
+    email: "mei@example.com",
+    area: "bethnal-green",
+    verified: true,
+    joinedDaysAgo: 310,
+    bio: "Street photographer in Bethnal Green. Fujifilm fan for life.",
+  },
+  {
+    id: "sam-taylor",
+    name: "Sam Taylor",
+    email: "sam@example.com",
+    area: "stratford",
+    verified: false,
+    joinedDaysAgo: 90,
+    bio: "Christmas enthusiast and festival veteran. My spare room is full of tinsel, so please rent it.",
+  },
+];
+
+export interface SeedListing {
+  id: string;
+  owner: string;
+  title: string;
+  category: CategoryId;
+  condition: ConditionId;
+  brand?: string;
+  size?: string;
+  /** Pounds per day */
+  price: number;
+  /** Pounds */
+  deposit: number;
+  area: string;
+  photos: string[];
+  featured?: boolean;
+  description: string;
+  pickupNotes: string;
+  /** Day offsets the owner has blocked out. */
+  blocked?: [number, number][];
+}
+
+const p = (slug: string, count = 1) => Array.from({ length: count }, (_, i) => `/seed/listings/${slug}-${i + 1}.jpg`);
+
+export const LISTINGS: SeedListing[] = [
+  // Formalwear
+  {
+    id: "black-tuxedo-satin-lapels",
+    owner: "oliver-bennett",
+    title: "Black tuxedo with satin lapels",
+    category: "FORMALWEAR",
+    condition: "LIKE_NEW",
+    brand: "Moss",
+    size: "40R jacket, 34R trousers",
+    price: 22,
+    deposit: 100,
+    area: "shoreditch",
+    photos: p("tuxedo"),
+    featured: true,
+    description:
+      "Classic single-breasted dinner suit with satin peak lapels and a slim, modern cut. Worn twice and professionally cleaned after every rental. Comes with a black silk bow tie and a garment bag, so it survives the Tube.",
+    pickupNotes: "Meet at Shoreditch High Street station (Braithwaite Street exit). Weekday evenings after 6.30pm or Saturday mornings.",
+    blocked: [[3, 4]],
+  },
+  {
+    id: "blue-check-three-piece-suit",
+    owner: "daniel-reyes",
+    title: "Blue check three-piece suit",
+    category: "FORMALWEAR",
+    condition: "LIKE_NEW",
+    brand: "Reiss",
+    size: "38R jacket, 32R trousers",
+    price: 18,
+    deposit: 80,
+    area: "camden",
+    photos: p("blue-check-suit"),
+    description:
+      "Wool-blend three-piece in a bold blue windowpane check, waistcoat included. Made for weddings and race days when you want to stand out a little. The trousers have room to let out if you need it.",
+    pickupNotes: "Camden Town station, Kentish Town Road exit. Evenings after 6pm and weekends.",
+  },
+  {
+    id: "navy-slim-fit-suit",
+    owner: "oliver-bennett",
+    title: "Navy slim-fit two-piece suit",
+    category: "FORMALWEAR",
+    condition: "GOOD",
+    brand: "Charles Tyrwhitt",
+    size: "40R jacket, 34R trousers",
+    price: 15,
+    deposit: 80,
+    area: "shoreditch",
+    photos: p("navy-suit", 2),
+    description:
+      "A versatile navy wool suit that works for interviews, weddings and christenings alike. Slim through the body with a little stretch, so you can actually sit down at dinner. Shirt and tie not included.",
+    pickupNotes: "Meet at Shoreditch High Street station (Braithwaite Street exit). Weekday evenings after 6.30pm or Saturday mornings.",
+  },
+  {
+    id: "plum-off-shoulder-gown",
+    owner: "amara-okafor",
+    title: "Plum off-the-shoulder evening gown",
+    category: "FORMALWEAR",
+    condition: "LIKE_NEW",
+    brand: "Coast",
+    size: "UK 10",
+    price: 16,
+    deposit: 80,
+    area: "peckham",
+    photos: p("plum-gown"),
+    description:
+      "Deep plum stretch crepe with an off-the-shoulder neckline and a floor-length skirt. Flattering, comfortable enough to dance in all night, and it doesn't crease in a bag. Fits a UK 10 and could work for a small 12.",
+    pickupNotes: "Peckham Rye station, by the main entrance. Most evenings and Sunday afternoons.",
+  },
+  {
+    id: "red-satin-ball-gown",
+    owner: "hannah-brooks",
+    title: "Red satin ball gown",
+    category: "FORMALWEAR",
+    condition: "LIKE_NEW",
+    brand: "Phase Eight",
+    size: "UK 8",
+    price: 18,
+    deposit: 100,
+    area: "clapham",
+    photos: p("red-ball-gown"),
+    description:
+      "A full, swishy satin skirt with a fitted halterneck bodice, made for galas, balls and twirling for photos. Concealed zip and fully lined. Steamed and bagged before every rental.",
+    pickupNotes: "Clapham Common station or my flat five minutes away. Weekday evenings and Saturdays.",
+  },
+  {
+    id: "scarlet-gown-with-train",
+    owner: "hannah-brooks",
+    title: "Scarlet gown with long train",
+    category: "FORMALWEAR",
+    condition: "LIKE_NEW",
+    size: "UK 10",
+    price: 25,
+    deposit: 150,
+    area: "clapham",
+    photos: p("scarlet-train-gown"),
+    featured: true,
+    description:
+      "Statement long-sleeve gown with a thigh split and a dramatic train. Bought for a shoot and worn once. Perfect for awards nights, prom or a very extra birthday.",
+    pickupNotes: "Clapham Common station or my flat five minutes away. Weekday evenings and Saturdays.",
+  },
+  {
+    id: "purple-gold-silk-saree",
+    owner: "zara-ahmed",
+    title: "Purple and gold silk saree",
+    category: "FORMALWEAR",
+    condition: "LIKE_NEW",
+    brand: "Handwoven Banarasi silk",
+    size: "Free size, blouse UK 8–10",
+    price: 20,
+    deposit: 120,
+    area: "wembley",
+    photos: p("silk-saree"),
+    description:
+      "Rich purple Banarasi silk with a heavy gold zari border and pallu. Comes with a matching stitched blouse (UK 8–10, adjustable) and petticoat. Happy to show you how to drape it at pickup.",
+    pickupNotes: "Wembley Park station, Olympic Way exit. Evenings and weekends.",
+  },
+  {
+    id: "quilted-leather-crossbody-bag",
+    owner: "zara-ahmed",
+    title: "Gucci GG Marmont quilted crossbody bag",
+    category: "FORMALWEAR",
+    condition: "LIKE_NEW",
+    brand: "Gucci",
+    size: "Small, 24 × 13 cm",
+    price: 20,
+    deposit: 300,
+    area: "wembley",
+    photos: p("designer-bag"),
+    description:
+      "Black chevron-quilted leather with the gold GG hardware and a sliding chain strap. Fits a phone, keys and a lipstick. Comes with its dust bag and authenticity card.",
+    pickupNotes: "Wembley Park station, Olympic Way exit. Evenings and weekends.",
+  },
+
+  // Cameras
+  {
+    id: "sony-a7-iii-28-70mm",
+    owner: "priya-shah",
+    title: "Sony A7 III with 28–70mm lens",
+    category: "CAMERAS",
+    condition: "GOOD",
+    brand: "Sony",
+    price: 35,
+    deposit: 400,
+    area: "hackney",
+    photos: p("sony-a7iii", 2),
+    featured: true,
+    description:
+      "Full-frame mirrorless camera that's brilliant in low light, with the 28–70mm kit lens. Includes two batteries, charger, a 64GB SD card and a padded bag. Shoots 4K video too, and I'm happy to run through the settings at pickup.",
+    pickupNotes: "Hackney Central station (Overground), Amhurst Road exit. Weekdays after 6pm, weekends any time.",
+    blocked: [[12, 14]],
+  },
+  {
+    id: "fujifilm-x100v",
+    owner: "mei-chen",
+    title: "Fujifilm X100V",
+    category: "CAMERAS",
+    condition: "LIKE_NEW",
+    brand: "Fujifilm",
+    price: 28,
+    deposit: 350,
+    area: "bethnal-green",
+    photos: p("fuji-x100v", 2),
+    featured: true,
+    description:
+      "The pocketable street-photography favourite, in silver. Fixed 23mm f/2 lens and Fujifilm's film simulations, so your photos look great straight out of the camera. Two batteries, charger, strap and lens hood included.",
+    pickupNotes: "Bethnal Green station (Central line), Museum exit. Weeknights after 7pm or weekend mornings.",
+  },
+  {
+    id: "canon-eos-80d-18-135mm",
+    owner: "daniel-reyes",
+    title: "Canon EOS 80D with 18–135mm lens",
+    category: "CAMERAS",
+    condition: "GOOD",
+    brand: "Canon",
+    price: 22,
+    deposit: 250,
+    area: "camden",
+    photos: p("canon-80d"),
+    description:
+      "Reliable DSLR with a flexible 18–135mm zoom. A great all-rounder for holidays, events and learning photography properly. Includes two batteries, charger and a 32GB card.",
+    pickupNotes: "Camden Town station, Kentish Town Road exit. Evenings after 6pm and weekends.",
+  },
+  {
+    id: "dji-mavic-air-2-drone",
+    owner: "callum-reid",
+    title: "DJI Mavic Air 2 drone (Fly More combo)",
+    category: "CAMERAS",
+    condition: "LIKE_NEW",
+    brand: "DJI",
+    price: 30,
+    deposit: 300,
+    area: "greenwich",
+    photos: p("mavic-air-2", 2),
+    featured: true,
+    description:
+      "Folding drone that shoots 4K at 60fps and 48MP stills. The Fly More combo includes three batteries, a charging hub, spare propellers and a shoulder bag. You'll need your own Flyer ID from the CAA: it's free and takes about 20 minutes online.",
+    pickupNotes: "Cutty Sark DLR station. Happy to give a quick flying lesson in Greenwich Park if the weather's kind.",
+  },
+  {
+    id: "polaroid-onestep-2",
+    owner: "priya-shah",
+    title: "Polaroid OneStep 2 instant camera",
+    category: "CAMERAS",
+    condition: "GOOD",
+    brand: "Polaroid",
+    price: 8,
+    deposit: 40,
+    area: "hackney",
+    photos: p("polaroid"),
+    description:
+      "Point, shoot, wait for the magic. Perfect for weddings, birthdays and guest books. Takes i-Type film, and I can sell you a pack at cost if you need one.",
+    pickupNotes: "Hackney Central station (Overground), Amhurst Road exit. Weekdays after 6pm, weekends any time.",
+  },
+  {
+    id: "fujifilm-x-t3-18-55mm",
+    owner: "mei-chen",
+    title: "Fujifilm X-T3 with 18–55mm lens",
+    category: "CAMERAS",
+    condition: "GOOD",
+    brand: "Fujifilm",
+    price: 25,
+    deposit: 300,
+    area: "bethnal-green",
+    photos: p("fuji-xt3"),
+    description:
+      "Retro-styled mirrorless with proper dials and a sharp 18–55mm f/2.8–4 lens. Great for travel and for video (4K at 60fps). Comes with three batteries, a charger and a 64GB card.",
+    pickupNotes: "Bethnal Green station (Central line), Museum exit. Weeknights after 7pm or weekend mornings.",
+  },
+  {
+    id: "nikon-d750-50mm",
+    owner: "leo-martins",
+    title: "Nikon D750 with 50mm f/1.8 lens",
+    category: "CAMERAS",
+    condition: "GOOD",
+    brand: "Nikon",
+    price: 24,
+    deposit: 300,
+    area: "brixton",
+    photos: p("nikon-d750", 2),
+    description:
+      "Full-frame DSLR with a creamy 50mm prime, ideal for portraits and gigs. Tilting screen and dual card slots. Includes battery, charger and strap.",
+    pickupNotes: "Brixton station, outside the Ritzy side. Most evenings.",
+  },
+  {
+    id: "content-creator-kit",
+    owner: "priya-shah",
+    title: "Content creator kit: mic, gimbal and lights",
+    category: "CAMERAS",
+    condition: "GOOD",
+    brand: "Rode / DJI",
+    price: 18,
+    deposit: 200,
+    area: "hackney",
+    photos: p("creator-kit"),
+    description:
+      "Everything you need to level up your videos: a Rode VideoMic, DJI phone gimbal, two LED panels with stands and a mini tripod, all in one hard case. Great for YouTube, course projects and short films.",
+    pickupNotes: "Hackney Central station (Overground), Amhurst Road exit. Weekdays after 6pm, weekends any time.",
+  },
+
+  // Camping
+  {
+    id: "mountain-hardwear-4-person-tent",
+    owner: "tom-hughes",
+    title: "Mountain Hardwear 4-person tent",
+    category: "CAMPING",
+    condition: "GOOD",
+    brand: "Mountain Hardwear",
+    size: "Sleeps 4",
+    price: 15,
+    deposit: 100,
+    area: "walthamstow",
+    photos: p("mh-4p-tent"),
+    featured: true,
+    description:
+      "Sturdy dome tent with two doors and two porches, so nobody climbs over anyone at 3am. It has survived Glastonbury mud and Welsh wind. Footprint, pegs and a spare guy line included.",
+    pickupNotes: "Near Walthamstow Central. I'm usually around in the evenings and at weekends.",
+  },
+  {
+    id: "lightweight-2-person-tent",
+    owner: "hannah-brooks",
+    title: "Lightweight 2-person tent",
+    category: "CAMPING",
+    condition: "LIKE_NEW",
+    brand: "Vango",
+    size: "Sleeps 2, 1.9 kg",
+    price: 12,
+    deposit: 80,
+    area: "clapham",
+    photos: p("2p-tent"),
+    description:
+      "Bright yellow, quick to pitch and light enough for a train-and-hike weekend. Packs down to the size of a rolled-up yoga mat. Pegs and a repair kit included.",
+    pickupNotes: "Clapham Common station or my flat five minutes away. Weekday evenings and Saturdays.",
+  },
+  {
+    id: "canvas-bell-tent-5m",
+    owner: "tom-hughes",
+    title: "5m canvas bell tent",
+    category: "CAMPING",
+    condition: "GOOD",
+    brand: "Boutique Camping",
+    size: "Sleeps 4–6",
+    price: 35,
+    deposit: 200,
+    area: "walthamstow",
+    photos: p("bell-tent"),
+    featured: true,
+    description:
+      "Proper glamping: a 5m cotton canvas bell tent with a zipped-in groundsheet. Fits a double airbed plus two singles. It weighs about 25 kg, so it's best with a car, and I'll help you load it.",
+    pickupNotes: "Near Walthamstow Central. Bring a car: I'll help you load it.",
+    blocked: [[30, 33]],
+  },
+  {
+    id: "tipi-tent-for-4",
+    owner: "leo-martins",
+    title: "Tipi tent for 4",
+    category: "CAMPING",
+    condition: "GOOD",
+    brand: "Robens",
+    size: "Sleeps 4",
+    price: 20,
+    deposit: 120,
+    area: "brixton",
+    photos: p("tipi-tent"),
+    description:
+      "Single-pole tipi that looks magic lit up at night and pitches in ten minutes once you've done it once. Loads of headroom. Pole, pegs and guy lines included.",
+    pickupNotes: "Brixton station, outside the Ritzy side. Most evenings.",
+  },
+  {
+    id: "3-person-tent-with-porch",
+    owner: "tom-hughes",
+    title: "3-person tent with big porch",
+    category: "CAMPING",
+    condition: "GOOD",
+    brand: "Coleman",
+    size: "Sleeps 3",
+    price: 14,
+    deposit: 80,
+    area: "walthamstow",
+    photos: p("porch-tent", 2),
+    description:
+      "Roomy tunnel tent with a big porch for boots and bags, and a blackout bedroom so you won't wake at 5am. A good pick for festivals and first-time campers.",
+    pickupNotes: "Near Walthamstow Central. I'm usually around in the evenings and at weekends.",
+  },
+  {
+    id: "osprey-60l-rucksack",
+    owner: "tom-hughes",
+    title: "Osprey 60L trekking rucksack",
+    category: "CAMPING",
+    condition: "GOOD",
+    brand: "Osprey",
+    size: "60 litres, adjustable back",
+    price: 8,
+    deposit: 50,
+    area: "walthamstow",
+    photos: p("rucksack", 2),
+    description:
+      "Comfortable, adjustable pack for multi-day hikes, with a rain cover in the base, hip-belt pockets and a sleeping-bag compartment. Washed after every trip.",
+    pickupNotes: "Near Walthamstow Central. I'm usually around in the evenings and at weekends.",
+  },
+  {
+    id: "festival-camping-bundle",
+    owner: "sam-taylor",
+    title: "Festival camping bundle for 2",
+    category: "CAMPING",
+    condition: "GOOD",
+    size: "For 2 people",
+    price: 25,
+    deposit: 100,
+    area: "stratford",
+    photos: p("festival-bundle"),
+    description:
+      "A whole festival setup in one bag: a 2-person pop-up tent, two self-inflating mats, two freshly washed sleeping bags, a lantern and a gas stove. Just add wellies and glitter.",
+    pickupNotes: "Stratford station, by the Westfield entrance. Weekends are easiest.",
+  },
+  {
+    id: "portable-fire-pit",
+    owner: "leo-martins",
+    title: "Portable fire pit with grill",
+    category: "CAMPING",
+    condition: "GOOD",
+    price: 10,
+    deposit: 40,
+    area: "brixton",
+    photos: p("fire-pit"),
+    description:
+      "Steel fire bowl with a removable grill, great for garden evenings and campsites that allow fires. Marshmallow forks included, marshmallows not.",
+    pickupNotes: "Brixton station, outside the Ritzy side. Most evenings.",
+  },
+
+  // Seasonal
+  {
+    id: "life-size-halloween-skeletons",
+    owner: "amara-okafor",
+    title: "Life-size Halloween skeletons (pair)",
+    category: "SEASONAL",
+    condition: "GOOD",
+    size: "1.6 m tall each",
+    price: 12,
+    deposit: 40,
+    area: "peckham",
+    photos: p("skeletons"),
+    featured: true,
+    description:
+      "Two poseable 1.6m skeletons. Sit them on the sofa, prop them in the window or leave them guarding the door. Comes with a set of purple fairy lights.",
+    pickupNotes: "Peckham Rye station, by the main entrance. Most evenings and Sunday afternoons.",
+  },
+  {
+    id: "light-up-pumpkin-lanterns",
+    owner: "amara-okafor",
+    title: "Light-up pumpkin lanterns (set of 2)",
+    category: "SEASONAL",
+    condition: "LIKE_NEW",
+    price: 5,
+    deposit: 15,
+    area: "peckham",
+    photos: p("pumpkins"),
+    description:
+      "Realistic carved-pumpkin lanterns with flickering LED candles. No carving, no mess and no mouldy pumpkin a week later. Batteries included.",
+    pickupNotes: "Peckham Rye station, by the main entrance. Most evenings and Sunday afternoons.",
+  },
+  {
+    id: "creepy-clown-mask-costume",
+    owner: "amara-okafor",
+    title: "Creepy clown mask and costume",
+    category: "SEASONAL",
+    condition: "GOOD",
+    size: "Adult M/L",
+    price: 8,
+    deposit: 25,
+    area: "peckham",
+    photos: p("clown"),
+    description:
+      "Latex clown mask with a ragged suit and gloves. Washed between rentals and the mask is sanitised. Guaranteed to clear the dance floor.",
+    pickupNotes: "Peckham Rye station, by the main entrance. Most evenings and Sunday afternoons.",
+  },
+  {
+    id: "decorated-6ft-christmas-tree",
+    owner: "sam-taylor",
+    title: "6ft Christmas tree, fully decorated",
+    category: "SEASONAL",
+    condition: "GOOD",
+    size: "6ft (183 cm)",
+    price: 3,
+    deposit: 40,
+    area: "stratford",
+    photos: p("xmas-tree"),
+    featured: true,
+    description:
+      "A full, realistic artificial tree that comes already decorated in red and gold with warm-white lights. No needles in the carpet and nothing to store in January. Fits in a large car or an Uber XL.",
+    pickupNotes: "Stratford station, by the Westfield entrance. Weekends are easiest.",
+  },
+  {
+    id: "white-silver-christmas-tree",
+    owner: "sam-taylor",
+    title: "7ft white and silver Christmas tree",
+    category: "SEASONAL",
+    condition: "LIKE_NEW",
+    size: "7ft (213 cm)",
+    price: 4,
+    deposit: 50,
+    area: "stratford",
+    photos: p("white-tree"),
+    description:
+      "Snowy white pre-lit tree with silver and white baubles. A showstopper for a big living room or a Christmas party, and it folds into two boxes.",
+    pickupNotes: "Stratford station, by the Westfield entrance. Weekends are easiest.",
+  },
+  {
+    id: "christmas-decorations-box",
+    owner: "sam-taylor",
+    title: "Christmas decorations box",
+    category: "SEASONAL",
+    condition: "GOOD",
+    price: 5,
+    deposit: 20,
+    area: "stratford",
+    photos: p("xmas-decorations", 2),
+    description:
+      "One box, instant Christmas: three sets of warm-white fairy lights, 40 baubles, a garland, a tree topper and a door wreath. Ideal if you rent your flat and don't have a loft full of tinsel.",
+    pickupNotes: "Stratford station, by the Westfield entrance. Weekends are easiest.",
+  },
+  {
+    id: "ski-kit-skis-poles-helmet",
+    owner: "callum-reid",
+    title: "Ski kit: skis, poles and helmet",
+    category: "SEASONAL",
+    condition: "GOOD",
+    brand: "Rossignol",
+    size: "Skis 162 cm, boots UK 6–9, helmet M",
+    price: 20,
+    deposit: 150,
+    area: "greenwich",
+    photos: p("ski-kit", 2),
+    description:
+      "All-mountain skis (162 cm) with bindings set for UK boot sizes 6–9, plus poles and a medium helmet. Freshly waxed. Cheaper than resort hire, and you can practise at an indoor slope first.",
+    pickupNotes: "Cutty Sark DLR station. Evenings and weekends.",
+  },
+  {
+    id: "snowboard-with-bindings",
+    owner: "callum-reid",
+    title: "Snowboard with bindings (156 cm)",
+    category: "SEASONAL",
+    condition: "GOOD",
+    brand: "Burton",
+    size: "156 cm, bindings M",
+    price: 18,
+    deposit: 120,
+    area: "greenwich",
+    photos: p("snowboard"),
+    description:
+      "Burton all-mountain board with medium bindings, suits riders around 65–85 kg. Waxed and edges sharpened this season. Board bag included.",
+    pickupNotes: "Cutty Sark DLR station. Evenings and weekends.",
+  },
+];
+
+export type SeedStatus = "REQUESTED" | "ACCEPTED" | "ACTIVE" | "COMPLETED" | "DECLINED" | "CANCELLED";
+
+export interface SeedReview {
+  rating: number;
+  comment: string;
+}
+
+export interface SeedBooking {
+  listing: string;
+  renter: string;
+  start: number;
+  end: number;
+  status: SeedStatus;
+  message?: string;
+  /** Day offset the request was sent on (defaults to a week before pickup, never in the future). */
+  requestedOn?: number;
+  renterReview?: SeedReview;
+  ownerReview?: SeedReview;
+  /** For ACCEPTED/ACTIVE bookings: which sides have already done their check. */
+  pickupDone?: ("OWNER" | "RENTER")[];
+  returnDone?: ("OWNER" | "RENTER")[];
+  declineReason?: string;
+}
+
+export const BOOKINGS: SeedBooking[] = [
+  // Sophie (main demo renter)
+  {
+    listing: "red-satin-ball-gown",
+    renter: "sophie-clarke",
+    start: -24,
+    end: -22,
+    status: "COMPLETED",
+    message: "Hi Hannah, I've got a charity gala at the Natural History Museum and this dress is exactly what I pictured. I'm a UK 8.",
+    renterReview: {
+      rating: 5,
+      comment: "The dress was immaculate and fitted perfectly. Hannah even lent me a garment bag for the Tube. Felt a million dollars at the gala.",
+    },
+    ownerReview: { rating: 5, comment: "Sophie took great care of the dress and brought it back on time, steamed. Welcome back any time." },
+  },
+  {
+    listing: "3-person-tent-with-porch",
+    renter: "sophie-clarke",
+    start: -62,
+    end: -59,
+    status: "COMPLETED",
+    renterReview: {
+      rating: 5,
+      comment: "Spacious, clean and dead easy to pitch. Tom showed me how it folds back into the bag, which saved a lot of swearing on Sunday morning.",
+    },
+    ownerReview: { rating: 5, comment: "Returned clean and dry, exactly how it went out. Great communication throughout." },
+  },
+  {
+    listing: "life-size-halloween-skeletons",
+    renter: "sophie-clarke",
+    start: -16,
+    end: -12,
+    status: "COMPLETED",
+    renterReview: {
+      rating: 5,
+      comment: "These stole the show at our party. Amara met me at Peckham Rye with them already bagged up. Will be back next year.",
+    },
+    ownerReview: { rating: 5, comment: "Lovely to deal with and everything came back in one piece." },
+  },
+  {
+    listing: "fujifilm-x100v",
+    renter: "sophie-clarke",
+    start: -2,
+    end: 1,
+    status: "ACTIVE",
+    message: "Weekend in Edinburgh and I want something better than my phone. Promise to look after it!",
+    pickupDone: ["OWNER", "RENTER"],
+  },
+  {
+    listing: "ski-kit-skis-poles-helmet",
+    renter: "sophie-clarke",
+    start: 20,
+    end: 26,
+    status: "ACCEPTED",
+    message: "Off to the Alps with friends! I'm 168 cm, so hopefully the skis are about right.",
+  },
+  {
+    listing: "plum-off-shoulder-gown",
+    renter: "sophie-clarke",
+    start: 12,
+    end: 13,
+    status: "REQUESTED",
+    requestedOn: -1,
+    message: "Hi Amara, I've got a work Christmas party and this is exactly what I had in mind. I'm a UK 10 too. Could I collect on the Friday after work?",
+  },
+  {
+    listing: "portable-fire-pit",
+    renter: "sophie-clarke",
+    start: -30,
+    end: -29,
+    status: "CANCELLED",
+    message: "For a garden birthday party, if the weather holds!",
+  },
+
+  // Priya (main demo owner)
+  {
+    listing: "sony-a7-iii-28-70mm",
+    renter: "leo-martins",
+    start: 5,
+    end: 7,
+    status: "REQUESTED",
+    requestedOn: 0,
+    message: "Hi Priya! I'm shooting my mate's band at a gig in Brixton on Saturday. I've used an A7 III before, so it's in safe hands. Could I pick up on Friday evening?",
+  },
+  {
+    listing: "sony-a7-iii-28-70mm",
+    renter: "daniel-reyes",
+    start: 6,
+    end: 6,
+    status: "REQUESTED",
+    requestedOn: -1,
+    message: "Need it for a friend's engagement shoot on Primrose Hill. Just the one day!",
+  },
+  {
+    listing: "polaroid-onestep-2",
+    renter: "daniel-reyes",
+    start: 0,
+    end: 1,
+    status: "ACCEPTED",
+    message: "For my sister's engagement party. Could I buy a pack of film from you too?",
+  },
+  {
+    listing: "content-creator-kit",
+    renter: "oliver-bennett",
+    start: -3,
+    end: 0,
+    status: "ACTIVE",
+    message: "Filming a short for a course and need decent audio. Thanks!",
+    pickupDone: ["OWNER", "RENTER"],
+    returnDone: ["RENTER"],
+  },
+  {
+    listing: "sony-a7-iii-28-70mm",
+    renter: "hannah-brooks",
+    start: -30,
+    end: -28,
+    status: "COMPLETED",
+    renterReview: {
+      rating: 5,
+      comment: "Camera and lens were spotless, batteries fully charged and Priya included a spare SD card. Got some lovely shots at my cousin's wedding.",
+    },
+    ownerReview: { rating: 5, comment: "Hannah looked after the camera brilliantly and returned it on time. A model renter." },
+  },
+  {
+    listing: "polaroid-onestep-2",
+    renter: "zara-ahmed",
+    start: -45,
+    end: -44,
+    status: "COMPLETED",
+    renterReview: {
+      rating: 5,
+      comment: "Perfect for our wedding guest book. Priya explained how to load the film and it worked flawlessly all night.",
+    },
+    ownerReview: { rating: 5, comment: "Came back with the camera, strap and box all present and correct. Would happily rent to Zara again." },
+  },
+  {
+    listing: "sony-a7-iii-28-70mm",
+    renter: "callum-reid",
+    start: -9,
+    end: -7,
+    status: "COMPLETED",
+    renterReview: {
+      rating: 4,
+      comment: "Great kit and really flexible with pickup times. Only knocking a star because the strap's a bit worn, but that's me being picky.",
+    },
+  },
+
+  {
+    listing: "content-creator-kit",
+    renter: "mei-chen",
+    start: -70,
+    end: -68,
+    status: "COMPLETED",
+    renterReview: {
+      rating: 5,
+      comment: "Everything in one case and clearly labelled. Made my first YouTube video look properly professional.",
+    },
+    ownerReview: { rating: 5, comment: "Mei returned the kit perfectly packed. Lovely to deal with." },
+  },
+  {
+    listing: "polaroid-onestep-2",
+    renter: "sophie-clarke",
+    start: -95,
+    end: -94,
+    status: "COMPLETED",
+    renterReview: { rating: 5, comment: "Took it to a hen do and it was the hit of the weekend. Super easy pickup at Hackney Central." },
+    ownerReview: { rating: 5, comment: "Sophie returned it on time and spotless. Would rent to Sophie again any day." },
+  },
+  {
+    listing: "sony-a7-iii-28-70mm",
+    renter: "mei-chen",
+    start: -120,
+    end: -118,
+    status: "COMPLETED",
+    renterReview: { rating: 5, comment: "Immaculate kit: clean sensor, charged batteries, even a lens cloth in the bag. Priya made the handover easy." },
+    ownerReview: { rating: 5, comment: "Mei knows exactly what to do with a camera. Welcome back any time." },
+  },
+
+  // Everyone else
+  {
+    listing: "mountain-hardwear-4-person-tent",
+    renter: "leo-martins",
+    start: -90,
+    end: -86,
+    status: "COMPLETED",
+    renterReview: { rating: 5, comment: "Survived a very wet festival weekend and kept us bone dry. Tom was super helpful and quick to reply." },
+    ownerReview: { rating: 5, comment: "The tent came back muddy (festival, fair enough) but Leo dried it out before returning it. Top renter." },
+  },
+  {
+    listing: "canvas-bell-tent-5m",
+    renter: "hannah-brooks",
+    start: -100,
+    end: -97,
+    status: "COMPLETED",
+    renterReview: { rating: 5, comment: "An absolute dream for a glamping weekend. It's heavy, so bring a car, but Tom helped load it." },
+    ownerReview: { rating: 5, comment: "Careful, punctual and friendly. Recommended." },
+  },
+  {
+    listing: "black-tuxedo-satin-lapels",
+    renter: "daniel-reyes",
+    start: -40,
+    end: -39,
+    status: "COMPLETED",
+    renterReview: { rating: 5, comment: "Fitted like it was made for me, and Oliver threw in the bow tie. Saved me buying a tux I'd wear once." },
+    ownerReview: { rating: 5, comment: "Returned dry-cleaned, which was a lovely touch. Easy five stars." },
+  },
+  {
+    listing: "dji-mavic-air-2-drone",
+    renter: "mei-chen",
+    start: -50,
+    end: -48,
+    status: "COMPLETED",
+    renterReview: { rating: 5, comment: "Brilliant drone, and three batteries is plenty for a day of shooting. Callum gave me a quick flying lesson in Greenwich Park." },
+    ownerReview: { rating: 5, comment: "Mei clearly knows drones inside out. Returned with every battery charged." },
+  },
+  {
+    listing: "creepy-clown-mask-costume",
+    renter: "daniel-reyes",
+    start: -15,
+    end: -13,
+    status: "COMPLETED",
+    renterReview: { rating: 5, comment: "Properly terrifying. The mask fits well and the costume was freshly washed. Scared my flatmates half to death." },
+    ownerReview: { rating: 5, comment: "No issues at all, returned promptly." },
+  },
+  {
+    listing: "light-up-pumpkin-lanterns",
+    renter: "leo-martins",
+    start: -14,
+    end: -13,
+    status: "COMPLETED",
+    renterReview: { rating: 4, comment: "Cute lanterns and batteries included. Easy pickup." },
+    ownerReview: { rating: 5, comment: "Easy rental, thanks Leo." },
+  },
+  {
+    listing: "purple-gold-silk-saree",
+    renter: "mei-chen",
+    start: -6,
+    end: -5,
+    status: "COMPLETED",
+    renterReview: { rating: 5, comment: "Gorgeous fabric, and Zara showed me how to drape it properly. I got so many compliments." },
+    ownerReview: { rating: 5, comment: "Mei treated the saree with real care. Thank you!" },
+  },
+  {
+    listing: "fujifilm-x-t3-18-55mm",
+    renter: "daniel-reyes",
+    start: -20,
+    end: -18,
+    status: "COMPLETED",
+    renterReview: { rating: 5, comment: "Lovely camera, clearly well looked after. Mei was quick to reply and flexible on the handover time." },
+    ownerReview: { rating: 5, comment: "Great renter. Everything came back exactly as it went out." },
+  },
+  {
+    listing: "nikon-d750-50mm",
+    renter: "oliver-bennett",
+    start: -25,
+    end: -23,
+    status: "COMPLETED",
+    renterReview: { rating: 4, comment: "Solid camera, everything as described. Smooth handover outside Brixton station." },
+    ownerReview: { rating: 5, comment: "Prompt and polite. No problems at all." },
+  },
+  {
+    listing: "festival-camping-bundle",
+    renter: "leo-martins",
+    start: -110,
+    end: -106,
+    status: "COMPLETED",
+    renterReview: { rating: 5, comment: "Everything you need for a festival in one go. Saved me a fortune and a lot of cupboard space." },
+    ownerReview: { rating: 5, comment: "All returned in good shape. Cheers Leo!" },
+  },
+  {
+    listing: "blue-check-three-piece-suit",
+    renter: "callum-reid",
+    start: -55,
+    end: -54,
+    status: "COMPLETED",
+    renterReview: { rating: 5, comment: "Sharp suit in great condition. Got compliments all day at the wedding." },
+    ownerReview: { rating: 5, comment: "Callum returned the suit on time and in perfect condition." },
+  },
+  {
+    listing: "lightweight-2-person-tent",
+    renter: "daniel-reyes",
+    start: -80,
+    end: -78,
+    status: "COMPLETED",
+    renterReview: { rating: 5, comment: "Light, quick to pitch and packed small enough for the train. Hannah was lovely." },
+    ownerReview: { rating: 5, comment: "Daniel was great. Would rent to Daniel again in a heartbeat." },
+  },
+  {
+    listing: "fujifilm-x100v",
+    renter: "oliver-bennett",
+    start: -35,
+    end: -33,
+    status: "COMPLETED",
+    renterReview: { rating: 5, comment: "Tiny, gorgeous camera. Mei had it set up with a lovely film simulation already, and the handover took two minutes." },
+    ownerReview: { rating: 5, comment: "Returned on time and in perfect nick. Thanks Oliver!" },
+  },
+  {
+    listing: "scarlet-gown-with-train",
+    renter: "zara-ahmed",
+    start: -28,
+    end: -27,
+    status: "COMPLETED",
+    renterReview: { rating: 5, comment: "Showstopping dress! The train photographs beautifully, and Hannah was so helpful with sizing." },
+    ownerReview: { rating: 5, comment: "Zara was a dream renter and the gown came back perfect." },
+  },
+  {
+    listing: "canvas-bell-tent-5m",
+    renter: "mei-chen",
+    start: 8,
+    end: 10,
+    status: "ACCEPTED",
+    message: "Planning a glamping weekend in Kent for a friend's birthday. I'll have a car.",
+  },
+  {
+    listing: "black-tuxedo-satin-lapels",
+    renter: "leo-martins",
+    start: 16,
+    end: 17,
+    status: "ACCEPTED",
+    message: "Black-tie Christmas party. You're a lifesaver.",
+  },
+  {
+    listing: "dji-mavic-air-2-drone",
+    renter: "daniel-reyes",
+    start: -10,
+    end: -9,
+    status: "DECLINED",
+    message: "Fancy getting some shots of the Thames at sunrise.",
+    declineReason: "Sorry Daniel, I'm using it myself that weekend. Try me another time!",
+  },
+];
+
+export const CHECK_NOTES = {
+  pickupOwner: ["All good, matches the listing photos.", "Charged, cleaned and packed.", "Everything in the bag as listed."],
+  pickupRenter: ["Looks great, exactly as described.", "All there and in lovely condition.", "Checked everything at pickup, no issues."],
+  returnOwner: ["Back in the same condition. Thanks!", "All present and correct.", "Returned clean and on time."],
+  returnRenter: ["Returned everything as it came.", "All packed back up, thanks again!", "Handed back in person, all good."],
+};
