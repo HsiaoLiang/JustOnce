@@ -1,0 +1,170 @@
+{
+  "listings": {
+    "tuxedo": [
+      "1598808503746-f34c53b9323e"
+    ],
+    "blue-check-suit": [
+      "1594938298603-c8148c4dae35"
+    ],
+    "navy-suit": [
+      "1507679799987-c73779587ccf",
+      "1617137968427-85924c800a22"
+    ],
+    "plum-gown": [
+      "1566174053879-31528523f8ae"
+    ],
+    "red-ball-gown": [
+      "1595777457583-95e059d581b8"
+    ],
+    "scarlet-train-gown": [
+      "1612336307429-8a898d10e223"
+    ],
+    "silk-saree": [
+      "1610030469983-98e550d6193c"
+    ],
+    "designer-bag": [
+      "1548036328-c9fa89d128fa"
+    ],
+    "sony-a7iii": [
+      "1516035069371-29a1b244cc32",
+      "1581591524425-c7e0978865fc"
+    ],
+    "fuji-x100v": [
+      "1510127034890-ba27508e9f1c",
+      "1516724562728-afc824a36e84"
+    ],
+    "canon-80d": [
+      "1495707902641-75cac588d2e9"
+    ],
+    "mavic-air-2": [
+      "1527977966376-1c8408f9f108",
+      "1507582020474-9a35b7d455d9"
+    ],
+    "polaroid": [
+      "1526170375885-4d8ecf77b99f"
+    ],
+    "fuji-xt3": [
+      "1452780212940-6f5c0d14d848"
+    ],
+    "nikon-d750": [
+      "1564466809058-bf4114d55352",
+      "1520390138845-fd2d229dd553"
+    ],
+    "creator-kit": [
+      "1526406915894-7bcd65f60845"
+    ],
+    "mh-4p-tent": [
+      "1487730116645-74489c95b41b"
+    ],
+    "2p-tent": [
+      "1445308394109-4ec2920981b1"
+    ],
+    "bell-tent": [
+      "1525811902-f2342640856e"
+    ],
+    "tipi-tent": [
+      "1496080174650-637e3f22fa03"
+    ],
+    "porch-tent": [
+      "1504280390367-361c6d9f38f4",
+      "1532339142463-fd0a8979791a"
+    ],
+    "rucksack": [
+      "1622260614153-03223fb72052",
+      "1551632811-561732d1e306"
+    ],
+    "festival-bundle": [
+      "1533873984035-25970ab07461"
+    ],
+    "fire-pit": [
+      "1510672981848-a1c4f1cb5ccf"
+    ],
+    "skeletons": [
+      "1509557965875-b88c97052f0e"
+    ],
+    "pumpkins": [
+      "1508361001413-7a9dca21d08a"
+    ],
+    "clown": [
+      "1509248961158-e54f6934749c"
+    ],
+    "xmas-tree": [
+      "1543589077-47d81606c1bf"
+    ],
+    "white-tree": [
+      "1606830733744-0ad778449672"
+    ],
+    "xmas-decorations": [
+      "1545048702-79362596cdc9",
+      "1543258103-a62bdc069871"
+    ],
+    "ski-kit": [
+      "1551524559-8af4e6624178",
+      "1565992441121-4367c2967103"
+    ],
+    "snowboard": [
+      "1478700485868-972b69dc3fc4"
+    ]
+  },
+  "categories": {
+    "formalwear": {
+      "id": "1598808503746-f34c53b9323e",
+      "position": "attention"
+    },
+    "cameras": {
+      "id": "1554048612-b6a482bc67e5",
+      "position": "left"
+    },
+    "camping": {
+      "id": "1504280390367-361c6d9f38f4",
+      "position": "centre"
+    },
+    "seasonal": {
+      "id": "1482517967863-00e15c9b44be",
+      "position": "right"
+    }
+  },
+  "avatars": {
+    "sophie": {
+      "id": "1544005313-94ddf0286df2",
+      "position": "attention"
+    },
+    "priya": {
+      "id": "1488426862026-3ee34a7d66df",
+      "position": "attention"
+    },
+    "amara": {
+      "id": "1531123897727-8f129e1688ce",
+      "position": "top"
+    },
+    "tom": {
+      "id": "1500648767791-00dcc994a43e",
+      "position": "attention"
+    },
+    "hannah": {
+      "id": "1438761681033-6461ffad8d80",
+      "position": "attention"
+    },
+    "leo": {
+      "id": "1539571696357-5a69c17a67c6",
+      "position": "attention"
+    },
+    "callum": {
+      "id": "1531427186611-ecfd6d936c79",
+      "extract": {
+        "left": 228,
+        "top": 170,
+        "width": 400,
+        "height": 400
+      }
+    },
+    "oliver": {
+      "id": "1599566150163-29194dcaad36",
+      "position": "attention"
+    },
+    "daniel": {
+      "id": "1507003211169-0a1dd7228f2d",
+      "position": "attention"
+    }
+  }
+}
