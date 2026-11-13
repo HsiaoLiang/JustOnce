@@ -32,7 +32,7 @@ Built for AI Cup, Track B (Creativity & Commerce). The core journey works end to
 
 ## Run it locally
 
-You need **Node.js 20.9 or newer** and a **PostgreSQL** database (14 or newer).
+You need **Node.js 20.9 or newer** (22 LTS recommended) and a **PostgreSQL** database (14 or newer).
 
 1. Install dependencies:
 
@@ -81,6 +81,8 @@ Both have free plans and need no credit card. Allow about 10 minutes.
 Your app is now live at `https://<project-name>.vercel.app`. Share that link with the judges.
 
 **Other hosts.** Anything that runs Node.js with a Postgres database works (Railway, Render, Fly.io, a VPS). Set `DATABASE_URL` (and `DATABASE_URL_UNPOOLED` if your provider gives you a separate direct connection), then run `npm run db:migrate`, `npm run db:seed`, `npm run build` and `npm start`.
+
+**If `npm run dev` shows "require() of ES Module … magic-string" on your computer:** delete the `.next` folder and run `npm install` again (`rm -rf .next && npm install`), or update Node.js to 22 LTS.
 
 **If something goes wrong on Vercel:**
 
