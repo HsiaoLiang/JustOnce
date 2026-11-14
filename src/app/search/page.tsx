@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SearchX, X } from "lucide-react";
+import { SearchX, Sparkles, X } from "lucide-react";
 import { ListingGrid } from "@/components/listing-card";
 import { SearchFilters } from "@/components/search-filters";
 import { Container, LinkButton } from "@/components/ui";
@@ -19,7 +19,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 export default async function SearchPage({ searchParams }: Props) {
-  const filters = parseSearch(await searchParams);
+  const raw = await searchParams;
+  const filters = parseSearch(raw);
+  const viaAi = raw.via === "ai";
   const listings = await searchListings({
     q: filters.q,
     category: filters.category,
@@ -72,6 +74,15 @@ export default async function SearchPage({ searchParams }: Props) {
           </div>
         )}
       </div>
+
+      {viaAi && (
+        <p className="mb-6 flex items-start gap-2 rounded-xl bg-accent-soft px-4 py-3 text-sm text-ink-2">
+          <Sparkles className="mt-0.5 size-4 shrink-0 text-accent-ink" aria-hidden />
+          <span>
+            We turned your description into the filters above. Remove or change any that we got wrong. Sizes aren&apos;t filtered yet, so check the size on each item.
+          </span>
+        </p>
+      )}
 
       {listings.length > 0 ? (
         <ListingGrid listings={listings} priorityCount={4} query={filters.from && filters.to ? `start=${filters.from}&end=${filters.to}` : undefined} />

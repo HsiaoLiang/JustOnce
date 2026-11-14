@@ -22,6 +22,7 @@ export interface AiImage {
 interface AskOptions {
   system: string;
   prompt: string;
+  /** Photos to look at. Pass an empty list for a text-only question. */
   images: AiImage[];
   /** The model must answer by filling in this JSON schema. */
   schema: { name: string; description: string; json: object };

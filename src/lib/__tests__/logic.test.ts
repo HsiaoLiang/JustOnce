@@ -9,6 +9,7 @@ import { nextStep, type FlowBooking } from "../booking-flow";
 import { isAllowedPhotoUrl } from "../photos";
 import { parseSearch } from "../search-params";
 import { median, modelDraftSchema, suggestPricing } from "../listing-draft";
+import { budgetToMaxPrice, isEmptySearch, situationHref, situationSchema, situationToSearch } from "../situation";
 
 const today = "2026-11-13";
 const availability: Availability = {
@@ -181,4 +182,30 @@ test("deposit claims come before reviews in the next step", () => {
   // A clean return goes straight to reviews, as before.
   const clean = { ...done, checks: [{ stage: "RETURN" as const, party: "OWNER" as const, conditionOk: true }], depositStatus: "RELEASED" as const };
   assert.equal(nextStep(clean, "OWNER", "Sophie Clarke", today).label, "Rate Sophie");
+});
+
+test("situation search: the model's answer becomes ordinary, cleaned-up filters", () => {
+  const answer = situationSchema.parse({ keywords: "tuxedo black tie jacket", category: "formalwear", area: "narnia", from: "2099-06-06", to: "", maxPricePerDayPounds: 60 });
+  const search = situationToSearch(answer);
+  assert.equal(search.q, "tuxedo black");
+  assert.equal(search.category, "FORMALWEAR");
+  assert.equal(search.area, "");
+  assert.equal(search.from, "2099-06-06");
+  assert.equal(search.to, "2099-06-06");
+  assert.equal(search.max, 50);
+  assert.equal(situationHref(search), "/search?q=tuxedo+black&category=formalwear&from=2099-06-06&to=2099-06-06&max=50&via=ai");
+});
+
+test("situation search: budgets map to a filter that never exceeds them", () => {
+  assert.equal(budgetToMaxPrice(60), 50);
+  assert.equal(budgetToMaxPrice(25), 20);
+  assert.equal(budgetToMaxPrice(10), 10);
+  assert.equal(budgetToMaxPrice(5), undefined);
+  assert.equal(budgetToMaxPrice(null), undefined);
+  assert.equal(situationToSearch(situationSchema.parse({ category: "camping", maxPricePerDayPounds: 5 })).sort, "price-asc");
+});
+
+test("situation search: an answer with nothing usable falls back to plain search", () => {
+  assert.equal(isEmptySearch(situationToSearch(situationSchema.parse({ category: "boats", from: "soon" }))), true);
+  assert.equal(isEmptySearch(situationToSearch(situationSchema.parse({ area: "east" }))), false);
 });

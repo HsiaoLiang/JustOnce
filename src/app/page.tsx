@@ -2,12 +2,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { HeroSearch } from "@/components/hero-search";
+import { SituationSearch } from "@/components/situation-search";
 import { ListingGrid } from "@/components/listing-card";
 import { Container, LinkButton, SectionHeading } from "@/components/ui";
 import { CATEGORIES } from "@/lib/catalogue";
 import { formatGBP } from "@/lib/money";
 import { cn } from "@/lib/cn";
 import { getHomeData, type ListingCardData } from "@/server/queries";
+import { aiEnabled } from "@/server/ai";
 import { getCurrentUser } from "@/server/auth";
 
 export const dynamic = "force-dynamic";
@@ -50,6 +52,7 @@ export default async function HomePage() {
             </div>
             <div className="min-w-0 lg:col-span-2">
               <HeroSearch />
+              {aiEnabled() && <SituationSearch />}
               <p className="mt-4 text-sm text-muted">
                 Got something gathering dust?{" "}
                 <Link href={user ? "/listings/new" : "/signup?next=/listings/new"} className="font-semibold text-ink underline decoration-accent decoration-2 underline-offset-4">
