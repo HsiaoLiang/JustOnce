@@ -4,7 +4,9 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { addDays, toDate, todayInLondon, type ISODate } from "../../lib/dates";
-import { claimReasonLabel, formatGBP, quote } from "../../lib/money";
+import { claimReasonLabel, deliveryFee, formatGBP, quote } from "../../lib/money";
+import { getLocker } from "../../lib/lockers";
+import { areaName } from "../../lib/areas";
 import { BOOKINGS, CHECK_NOTES, DEMO_PASSWORD, LISTINGS, OWNER_PICKUP_POINTS, USERS, type SeedBooking } from "./data";
 
 export interface SeedSummary {
@@ -85,6 +87,7 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
       availableTo: toDate(day(180)),
       featured: Boolean(l.featured),
       replacementValue: l.replacementValue ? l.replacementValue * 100 : null,
+      handoverMethods: ["MEET", ...(l.delivery ?? [])],
       pickupLat: OWNER_PICKUP_POINTS[l.owner]?.[0] ?? null,
       pickupLng: OWNER_PICKUP_POINTS[l.owner]?.[1] ?? null,
       fullDepositOnly: Boolean(l.fullDepositOnly),
@@ -114,7 +117,10 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
     if (!listing || !renter) throw new Error(`Bad seed booking ${b.listing} / ${b.renter}`);
     const owner = usersById.get(listing.owner)!;
     const days = b.end - b.start + 1;
-    const q = quote(listing.price * 100, listing.deposit * 100, days);
+    const h = b.handover;
+    const locker = h?.method === "LOCKER" ? getLocker(h.lockerId) : undefined;
+    const delivery = h ? deliveryFee(h.method, listing.area, h.method === "COURIER" ? h.area : locker?.area) : 0;
+    const q = quote(listing.price * 100, listing.deposit * 100, days, delivery);
     const firstName = (name: string) => name.split(" ")[0];
 
     const requestedOn = b.requestedOn ?? Math.min(b.start - 6, -2);
@@ -133,6 +139,8 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
     if (b.status === "CANCELLED") event("cancelled", later(requestedAt, 60 * 20), renter.id, "Cancelled before the owner responded. Nothing was charged.");
     if (confirmed) {
       event("accepted", respondedAt, owner.id, `${formatGBP(q.total, { alwaysShowPence: true })} paid · ${formatGBP(q.deposit)} deposit held`);
+      if (h?.method === "COURIER") event("courier_booked", later(respondedAt, 1), null, `Collects from ${firstName(owner.name)} and brings it back after the rental`);
+      if (h?.method === "LOCKER") event("locker_reserved", later(respondedAt, 1), null, locker?.name);
     }
 
     const photosFor = (party: "OWNER" | "RENTER") => [party === "OWNER" ? listing.photos[0] : (listing.photos[1] ?? listing.photos[0])];
@@ -220,6 +228,10 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
               ? "HELD"
               : "NONE",
         depositKept: b.claim?.status === "ACCEPTED" ? b.claim.amount * 100 : 0,
+        handoverMethod: h?.method ?? "MEET",
+        deliveryFee: q.delivery,
+        deliveryAddress: h?.method === "COURIER" ? `${h.address}, ${areaName(h.area)}` : null,
+        lockerName: locker?.name ?? null,
         claim: b.claim
           ? {
               create: {

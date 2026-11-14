@@ -22,6 +22,8 @@ export interface ParsedSearch {
   max?: number;
   sort: SortKey;
   view: "list" | "map";
+  /** Only items that can be sent by courier or locker. */
+  delivery: boolean;
   /** Map area the results are limited to ("Search this area"). */
   bbox?: Bbox;
 }
@@ -48,11 +50,12 @@ export function parseSearch(raw: Raw): ParsedSearch {
   const sort = SORTS.some((s) => s.id === sortRaw) ? sortRaw : "recommended";
   const view = one(raw.view) === "map" ? "map" : "list";
   const bbox = parseBbox(one(raw.bbox)) ?? undefined;
-  return { q, categorySlug: category?.slug ?? "", category: category?.id, area, from, to, max, sort, view, bbox };
+  const delivery = one(raw.delivery) === "1";
+  return { q, categorySlug: category?.slug ?? "", category: category?.id, area, from, to, max, sort, view, bbox, delivery };
 }
 
 /** Builds a /search URL from the current filters with some values replaced. */
-export function searchHref(current: ParsedSearch, changes: Partial<Record<"q" | "category" | "area" | "from" | "to" | "max" | "sort" | "view" | "bbox", string | undefined>>): string {
+export function searchHref(current: ParsedSearch, changes: Partial<Record<"q" | "category" | "area" | "from" | "to" | "max" | "sort" | "view" | "bbox" | "delivery", string | undefined>>): string {
   const values: Record<string, string | undefined> = {
     q: current.q || undefined,
     category: current.categorySlug || undefined,
@@ -63,6 +66,7 @@ export function searchHref(current: ParsedSearch, changes: Partial<Record<"q" | 
     sort: current.sort !== "recommended" ? current.sort : undefined,
     view: current.view === "map" ? "map" : undefined,
     bbox: current.bbox ? formatBbox(current.bbox) : undefined,
+    delivery: current.delivery ? "1" : undefined,
     ...changes,
   };
   const params = new URLSearchParams();

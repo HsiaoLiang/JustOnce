@@ -8,7 +8,9 @@ import { requireUser } from "../auth";
 import { setFlash } from "../flash";
 import { BLOCKING_STATUSES, checkRange } from "@/lib/booking-rules";
 import { formatDay, isISODate, rentalDays, todayInLondon, toDate, toISO } from "@/lib/dates";
-import { depositFor, formatGBP, quote } from "@/lib/money";
+import { deliveryFee, depositFor, formatGBP, handoverLabel, HANDOVER_METHODS, quote, type HandoverMethodId } from "@/lib/money";
+import { getLocker } from "@/lib/lockers";
+import { areaName, isAreaSlug } from "@/lib/areas";
 import { isConditionId } from "@/lib/catalogue";
 import { firstName } from "@/lib/cn";
 import { isAllowedPhotoUrl } from "@/lib/photos";
@@ -39,12 +41,24 @@ export async function requestBooking(_prev: RequestState, formData: FormData): P
   const start = String(formData.get("start") ?? "");
   const end = String(formData.get("end") ?? "");
   const message = String(formData.get("message") ?? "").trim().slice(0, 500) || null;
+  const method = String(formData.get("handoverMethod") ?? "MEET") as HandoverMethodId;
+  const deliveryArea = String(formData.get("deliveryArea") ?? "");
+  const deliveryStreet = String(formData.get("deliveryAddress") ?? "").trim().slice(0, 200);
+  const locker = getLocker(String(formData.get("lockerId") ?? ""));
   const user = await requireUser(`/items/${listingId}`);
 
   if (!isISODate(start) || !isISODate(end)) return { error: "Choose your pickup and return dates first." };
   const listing = await db.listing.findUnique({ where: { id: listingId }, include: { owner: { select: { name: true } } } });
   if (!listing || listing.status !== "ACTIVE") return { error: "This item isn't available to book right now." };
   if (listing.ownerId === user.id) return { error: "This is your own listing, so there's nothing to book." };
+
+  // The method must be one the owner offers, and the fee is always recalculated here.
+  if (!HANDOVER_METHODS.some((m) => m.id === method) || !listing.handoverMethods.includes(method)) {
+    return { error: `This item can't be handed over by ${handoverLabel(method).toLowerCase()}.` };
+  }
+  if (method === "COURIER" && (!isAreaSlug(deliveryArea) || deliveryStreet.length < 5)) return { error: "Add the delivery address and area for the courier." };
+  if (method === "LOCKER" && !locker) return { error: "Choose a parcel locker." };
+  const delivery = method === "MEET" ? 0 : deliveryFee(method, listing.area, method === "COURIER" ? deliveryArea : locker!.area);
 
   const overlap = { startDate: { lte: toDate(end) }, endDate: { gte: toDate(start) } };
   const [blocked, booked, duplicate] = await Promise.all([
@@ -66,7 +80,7 @@ export async function requestBooking(_prev: RequestState, formData: FormData): P
   // The deposit is always worked out here, never taken from the browser.
   const trust = await getRenterTrust(user.id);
   const deposit = depositFor(listing.deposit, { ...trust, fullDepositOnly: listing.fullDepositOnly });
-  const q = quote(listing.pricePerDay, deposit.amount, rentalDays(start, end));
+  const q = quote(listing.pricePerDay, deposit.amount, rentalDays(start, end), delivery);
   const booking = await db.booking.create({
     data: {
       listingId,
@@ -81,6 +95,10 @@ export async function requestBooking(_prev: RequestState, formData: FormData): P
       total: q.total,
       deposit: q.deposit,
       depositReduced: deposit.reduced,
+      handoverMethod: method,
+      deliveryFee: q.delivery,
+      deliveryAddress: method === "COURIER" ? `${deliveryStreet}, ${areaName(deliveryArea)}` : null,
+      lockerName: method === "LOCKER" ? locker!.name : null,
       message,
       events: { create: { type: "requested", actorId: user.id, note: message } },
     },
@@ -120,6 +138,13 @@ export async function acceptBooking(formData: FormData) {
       await tx.bookingEvent.create({
         data: { bookingId: id, actorId: user.id, type: "accepted", note: `${money(b.total)} paid · ${money(b.deposit)} deposit held` },
       });
+      if (b.handoverMethod === "COURIER") {
+        await tx.bookingEvent.create({
+          data: { bookingId: id, type: "courier_booked", note: `Collects from ${firstName(user.name)} on ${formatDay(toISO(b.startDate))} and brings it back after ${formatDay(toISO(b.endDate))}` },
+        });
+      } else if (b.handoverMethod === "LOCKER") {
+        await tx.bookingEvent.create({ data: { bookingId: id, type: "locker_reserved", note: b.lockerName } });
+      }
 
       // Anyone else who asked for overlapping dates gets a clear answer straight away.
       const overlapping = await tx.booking.findMany({
@@ -239,8 +264,18 @@ export async function submitCheck(_prev: FormState, formData: FormData): Promise
       await tx.bookingEvent.create({
         data: { bookingId: id, actorId: user.id, type: stage === "PICKUP" ? "pickup_check" : "return_check", note: conditionOk ? null : notes },
       });
+      // Simulated delivery steps: the sender's photo check is when the parcel leaves.
+      const sending = (stage === "PICKUP" && party === "OWNER") || (stage === "RETURN" && party === "RENTER");
+      if (b.handoverMethod !== "MEET" && sending) {
+        const type = b.handoverMethod === "COURIER" ? (stage === "PICKUP" ? "out_for_delivery" : "return_collected") : stage === "PICKUP" ? "dropped_at_locker" : "returned_to_locker";
+        await tx.bookingEvent.create({ data: { bookingId: id, type, note: b.lockerName } });
+      }
       const count = await tx.handoverCheck.count({ where: { bookingId: id, stage } });
       if (count < 2) return false;
+      if (b.handoverMethod !== "MEET") {
+        const type = b.handoverMethod === "COURIER" ? (stage === "PICKUP" ? "delivered" : "return_delivered") : stage === "PICKUP" ? "collected_from_locker" : "collected_back_from_locker";
+        await tx.bookingEvent.create({ data: { bookingId: id, type } });
+      }
       if (stage === "PICKUP") {
         const moved = await tx.booking.updateMany({ where: { id, status: "ACCEPTED" }, data: { status: "ACTIVE", pickedUpAt: new Date() } });
         if (moved.count) await tx.bookingEvent.create({ data: { bookingId: id, type: "picked_up" } });

@@ -96,6 +96,10 @@ export function SearchFilters({ filters, today, activeCount }: { filters: Parsed
             ))}
           </Select>
         </div>
+        <label className="col-span-2 flex cursor-pointer items-center gap-2 text-sm font-semibold md:col-span-6">
+          <input type="checkbox" name="delivery" value="1" defaultChecked={filters.delivery} onChange={submit} className="size-4 accent-[var(--color-ink)]" />
+          Delivery available <span className="font-normal text-muted">(courier or parcel locker)</span>
+        </label>
         <Button type="submit" variant="dark" className="col-span-2 md:hidden">
           Show results
         </Button>

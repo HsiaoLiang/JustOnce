@@ -8,7 +8,7 @@ import { areaName, areasByRegion } from "@/lib/areas";
 import { CATEGORIES, CONDITIONS, conditionLabel, type CategoryId } from "@/lib/catalogue";
 import type { ISODate } from "@/lib/dates";
 import type { ListingFormValues } from "@/lib/listing-form-values";
-import { DEPOSIT_PROMISE, formatGBP, parsePounds, penceToPoundsInput, suggestedDeposit } from "@/lib/money";
+import { DEPOSIT_PROMISE, formatGBP, HANDOVER_METHODS, parsePounds, penceToPoundsInput, suggestedDeposit } from "@/lib/money";
 import { MAX_LISTING_PHOTOS } from "@/lib/photos";
 import { cn, plural } from "@/lib/cn";
 import dynamic from "next/dynamic";
@@ -194,8 +194,40 @@ export function ListingForm({ initial, today, locked = [], mode }: { initial: Li
           </p>
         </Section>
 
-        <Section title="Pickup">
+        <Section title="Pickup and delivery">
           <div className="space-y-5">
+            <fieldset>
+              <legend className="mb-1.5 text-sm font-semibold">How can it change hands?</legend>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {HANDOVER_METHODS.map((m) => {
+                  const checked = v.handoverMethods.includes(m.id);
+                  return (
+                    <label
+                      key={m.id}
+                      className={cn(
+                        "flex cursor-pointer gap-2.5 rounded-2xl border p-3.5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink",
+                        checked ? "border-ink bg-surface shadow-[inset_0_0_0_1px_var(--color-ink)]" : "border-line-strong hover:border-ink",
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        name="handoverMethods"
+                        value={m.id}
+                        checked={checked}
+                        onChange={() => set("handoverMethods", checked ? v.handoverMethods.filter((x) => x !== m.id) : [...v.handoverMethods, m.id])}
+                        className="mt-0.5 size-4 accent-[var(--color-ink)]"
+                      />
+                      <span>
+                        <span className="block text-sm font-semibold">{m.label}</span>
+                        <span className="block text-xs text-muted">{m.hint}</span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              <p className="mt-1.5 text-xs text-muted">Renters pay for delivery (simulated): locker £3 each way, courier £6–£9 each way. Photo checks still happen at both ends.</p>
+              <FieldError>{errors.handoverMethods}</FieldError>
+            </fieldset>
             <div>
               <Label htmlFor="area">Pickup area</Label>
               <Select id="area" name="area" value={v.area} onChange={(e) => set("area", e.target.value)} aria-invalid={!!errors.area}>

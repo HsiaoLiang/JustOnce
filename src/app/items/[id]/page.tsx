@@ -9,7 +9,7 @@ import { Avatar, Container, LinkButton, Rating, Stars, VerifiedBadge } from "@/c
 import { areaName, getArea, REGIONS } from "@/lib/areas";
 import { categoryInfo, CONDITIONS } from "@/lib/catalogue";
 import { formatMonthYear, isISODate, toISO } from "@/lib/dates";
-import { DEPOSIT_PROMISE, depositFor, formatGBP } from "@/lib/money";
+import { DEPOSIT_PROMISE, depositFor, formatGBP, handoverLabel } from "@/lib/money";
 import { firstName, plural, shortName } from "@/lib/cn";
 import { getCurrentUser } from "@/server/auth";
 import { getListingDetail, getMoreFromOwner, getRenterTrust } from "@/server/queries";
@@ -103,7 +103,9 @@ export default async function ItemPage({ params, searchParams }: Props) {
         </p>
       )}
 
-      <BookingProvider availability={availability} initialStart={isISODate(sp.start) ? sp.start : undefined} initialEnd={isISODate(sp.end) ? sp.end : undefined}>
+      <BookingProvider
+        handoverOptions={{ methods: listing.handoverMethods, ownerArea: listing.area, renterArea: user?.area ?? null }}
+        availability={availability} initialStart={isISODate(sp.start) ? sp.start : undefined} initialEnd={isISODate(sp.end) ? sp.end : undefined}>
         <div className="mt-6 grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_auto_auto_auto_auto_auto_1fr] xl:grid-cols-[minmax(0,1fr)_400px]">
           <div className="min-w-0 lg:col-start-1">
             <PhotoGallery photos={listing.photos} title={listing.title} />
@@ -132,6 +134,7 @@ export default async function ItemPage({ params, searchParams }: Props) {
               {listing.size && <Detail label="Size" value={listing.size} />}
               <Detail label="Category" value={category?.label ?? ""} />
               <Detail label="Pickup area" value={`${areaName(listing.area)} (${area?.postcode})`} />
+              <Detail label="Handover" value={listing.handoverMethods.map((m) => handoverLabel(m)).join(" · ")} />
               <Detail label="Deposit" value={`${formatGBP(listing.deposit)}, refundable`} hint={listing.fullDepositOnly ? "Full deposit for everyone" : "Half for trusted renters"} />
             </dl>
           </section>

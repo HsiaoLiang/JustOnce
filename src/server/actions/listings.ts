@@ -64,6 +64,8 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
     fieldErrors.replacementValue = "Enter a replacement value between £1 and £20,000, or leave it blank.";
   }
   const fullDepositOnly = formData.get("fullDepositOnly") === "on";
+  const handoverMethods = [...new Set(formData.getAll("handoverMethods").map(String))].filter((m): m is "MEET" | "COURIER" | "LOCKER" => m === "MEET" || m === "COURIER" || m === "LOCKER");
+  if (handoverMethods.length === 0) fieldErrors.handoverMethods = "Choose at least one way to hand it over.";
 
   const latRaw = String(formData.get("pickupLat") ?? "").trim();
   const lngRaw = String(formData.get("pickupLng") ?? "").trim();
@@ -128,6 +130,7 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
     fullDepositOnly,
     pickupLat,
     pickupLng,
+    handoverMethods,
     photos: photos as string[],
     availableFrom: toDate(from),
     availableTo: toDate(to),

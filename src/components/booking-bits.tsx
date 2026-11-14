@@ -4,7 +4,7 @@ import { ArrowRight, Check, CircleDot } from "lucide-react";
 import { STATUS_STAMP, statusChip, type DepositStatusId } from "@/lib/booking-flow";
 import type { BookingStatusId, PartyId } from "@/lib/booking-rules";
 import { formatDay, todayInLondon, toISO } from "@/lib/dates";
-import { formatGBP } from "@/lib/money";
+import { formatGBP, handoverLabel } from "@/lib/money";
 import { cn, firstName, plural } from "@/lib/cn";
 import type { BookingRow as BookingRowData } from "@/server/queries";
 import { Chip } from "./ui";
@@ -90,6 +90,8 @@ export function BookingTicketSummary({
     deposit: number;
     depositKept: number;
     depositReduced: boolean;
+    handoverMethod: "MEET" | "COURIER" | "LOCKER";
+    deliveryFee: number;
     paymentStatus: "UNPAID" | "PAID" | "REFUNDED";
     depositStatus: DepositStatusId;
     payoutStatus: "NONE" | "SCHEDULED" | "PAID";
@@ -159,7 +161,9 @@ export function BookingTicketSummary({
             <p className="font-display text-lg leading-tight font-semibold">{formatDay(toISO(booking.endDate))}</p>
           </div>
         </div>
-        <p className="mt-2 text-sm text-muted">{plural(booking.days, "day")}</p>
+        <p className="mt-2 text-sm text-muted">
+          {plural(booking.days, "day")} · {handoverLabel(booking.handoverMethod)}
+        </p>
         <span key={booking.status} className="stamp absolute top-4 right-4 animate-stamp text-[0.72rem]">
           {STATUS_STAMP[booking.status]}
         </span>
@@ -172,6 +176,7 @@ export function BookingTicketSummary({
         {viewer === "RENTER" ? (
           <>
             <Row label="Service fee" value={pence(booking.serviceFee)} />
+            {booking.handoverMethod !== "MEET" && <Row label={`Delivery (${handoverLabel(booking.handoverMethod).toLowerCase()}, both ways)`} value={pence(booking.deliveryFee)} />}
             <div className="flex items-center justify-between gap-3 border-t border-line pt-2 font-semibold">
               <dt className="flex items-center gap-2">
                 Total <Chip tone={payment.tone}>{payment.label}</Chip>

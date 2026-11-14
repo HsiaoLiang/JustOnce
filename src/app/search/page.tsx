@@ -30,6 +30,7 @@ export default async function SearchPage({ searchParams }: Props) {
     maxPrice: filters.max ? filters.max * 100 : undefined,
     sort: filters.sort,
     bbox: filters.bbox,
+    delivery: filters.delivery,
   });
   // Approximate public pins only: no exact pickup point is ever selected here.
   const items = listings.map((l) => ({ ...l, pin: publicPin(l.id, l.area) }));
@@ -42,6 +43,7 @@ export default async function SearchPage({ searchParams }: Props) {
     filters.from && filters.to && { label: formatRange(filters.from, filters.to), href: searchHref(filters, { from: undefined, to: undefined }) },
     filters.max && { label: `Up to £${filters.max}/day`, href: searchHref(filters, { max: undefined }) },
     filters.bbox && { label: "Map area", href: searchHref(filters, { bbox: undefined }) },
+    filters.delivery && { label: "Delivery available", href: searchHref(filters, { delivery: undefined }) },
   ].filter(Boolean) as { label: string; href: string }[];
 
   return (

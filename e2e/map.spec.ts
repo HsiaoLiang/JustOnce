@@ -9,7 +9,9 @@ test("map view shows a pin for every result, and the list agrees", async ({ page
   await expect(results.first()).toBeVisible();
   const count = await results.count();
   await expect(page.locator(".jo-pin")).toHaveCount(count);
-  await page.locator(".leaflet-marker-icon").first().click();
+  // Pins are keyboard-focusable; Enter opens the listing card.
+  await page.locator(".leaflet-marker-icon").first().focus();
+  await page.keyboard.press("Enter");
   await expect(page.locator(".jo-popup")).toBeVisible();
 });
 

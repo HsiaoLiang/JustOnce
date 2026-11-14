@@ -89,7 +89,24 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
         <aside className="space-y-4 lg:sticky lg:top-24 lg:col-start-2 lg:row-span-4 lg:row-start-1 lg:self-start">
           <BookingTicketSummary booking={b} viewer={viewer} />
           <PersonCard person={other} role={viewer === "OWNER" ? "Renter" : "Owner"} completed={otherCompleted} />
-          {pickup && (
+          {b.handoverMethod !== "MEET" && (b.status === "ACCEPTED" || b.status === "ACTIVE" || viewer === "RENTER") && (
+            <Card className="p-5">
+              <p className="flex items-center gap-2 font-semibold">
+                <MapPin className="size-4" aria-hidden /> {b.handoverMethod === "COURIER" ? "Courier delivery" : "Parcel locker"}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-ink-2">
+                {b.handoverMethod === "COURIER"
+                  ? b.deliveryAddress
+                    ? `Delivered to ${b.deliveryAddress} and collected from there after the rental.`
+                    : "Delivered to the renter's address."
+                  : `Both ways through ${b.lockerName}.`}
+              </p>
+              <p className="mt-2 text-xs text-muted">
+                {formatGBP(b.deliveryFee, { alwaysShowPence: b.deliveryFee % 100 !== 0 })} for delivery both ways (simulated). {b.handoverMethod === "COURIER" && viewer === "OWNER" ? "The address is shared with you because you accepted." : ""}
+              </p>
+            </Card>
+          )}
+          {pickup && b.handoverMethod === "MEET" && (
             <Card className="p-5">
               <p className="flex items-center gap-2 font-semibold">
                 <MapPin className="size-4" aria-hidden /> Pickup in {areaName(b.listing.area)}
@@ -324,8 +341,14 @@ function NextStep({
         <p className="text-ink-2">
           {when}{" "}
           {pickup
-            ? "When you meet, check the item together, take a photo or two and confirm here. The rental starts once you've both confirmed."
-            : `When it's handed back, you both confirm its condition with photos. Then the ${formatGBP(b.deposit)} deposit is released.`}
+            ? b.handoverMethod === "MEET"
+              ? "When you meet, check the item together, take a photo or two and confirm here. The rental starts once you've both confirmed."
+              : `${b.handoverMethod === "COURIER" ? "By courier" : `Via ${b.lockerName}`}: ${ownerFirst} photographs the item when sending it and ${renterFirst} when it arrives. You don't need to be in the same place at the same time. The rental starts once you've both confirmed.`
+            : b.handoverMethod === "MEET"
+              ? `When it's handed back, you both confirm its condition with photos. Then the ${formatGBP(b.deposit)} deposit is released.`
+              : b.handoverMethod === "COURIER"
+                ? `The courier collects it from ${renterFirst}, who photographs it when sending; ${ownerFirst} adds photos when it arrives. Then the ${formatGBP(b.deposit)} deposit is released.`
+                : `It goes back via ${b.lockerName}: ${renterFirst} photographs it when dropping it off, ${ownerFirst} when collecting it. Then the ${formatGBP(b.deposit)} deposit is released.`}
         </p>
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
           <CheckStatus label="You" done={mine} />
@@ -631,6 +654,16 @@ const EVENT_TEXT: Record<string, (actor: string) => string> = {
   accepted: (a) => `${a} accepted the request`,
   declined: (a) => `${a} declined the request`,
   auto_declined: () => "Declined automatically",
+  courier_booked: () => "Courier booked",
+  locker_reserved: () => "Locker reserved",
+  out_for_delivery: () => "Out for delivery",
+  delivered: () => "Delivered",
+  dropped_at_locker: () => "Dropped at the locker",
+  collected_from_locker: () => "Collected from the locker",
+  return_collected: () => "Return collected",
+  return_delivered: () => "Returned to the owner",
+  returned_to_locker: () => "Dropped back at the locker",
+  collected_back_from_locker: () => "Collected back from the locker",
   cancelled: (a) => `${a} cancelled`,
   pickup_check: (a) => `${a} confirmed the pickup`,
   picked_up: () => "Rental started",

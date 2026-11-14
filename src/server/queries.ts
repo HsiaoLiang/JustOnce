@@ -70,6 +70,7 @@ export interface SearchFilters {
   maxPrice?: number;
   sort?: SortKey;
   bbox?: Bbox;
+  delivery?: boolean;
 }
 
 // Typing "camera" or "halloween" should find the category even when titles don't say so.
@@ -106,6 +107,7 @@ export async function searchListings(filters: SearchFilters) {
   }
   if (areas) where.area = { in: areas };
   if (filters.maxPrice) where.pricePerDay = { lte: filters.maxPrice };
+  if (filters.delivery) where.handoverMethods = { hasSome: ["COURIER", "LOCKER"] };
   if (filters.q?.trim()) {
     for (const term of filters.q.trim().split(/\s+/).slice(0, 6)) and.push(termCondition(term));
   }
@@ -209,6 +211,8 @@ export const bookingRowSelect = {
   reviews: { select: { authorRole: true } },
   depositReduced: true,
   depositKept: true,
+  handoverMethod: true,
+  deliveryFee: true,
   claim: { select: { status: true, amount: true } },
 } satisfies Prisma.BookingSelect;
 
@@ -223,6 +227,7 @@ export function toFlow(b: {
   reviews: { authorRole: "OWNER" | "RENTER" }[];
   depositStatus?: FlowBooking["depositStatus"];
   claim?: { status: ClaimStatusId } | null;
+  handoverMethod?: FlowBooking["handoverMethod"];
 }): FlowBooking {
   return {
     status: b.status as BookingStatusId,
@@ -233,6 +238,7 @@ export function toFlow(b: {
     reviews: b.reviews,
     depositStatus: b.depositStatus,
     claim: b.claim ?? null,
+    handoverMethod: b.handoverMethod,
   };
 }
 
@@ -276,6 +282,7 @@ export async function getAttentionCounts(userId: string) {
       endDate: true,
       returnedAt: true,
       depositStatus: true,
+      handoverMethod: true,
       checks: { select: { stage: true, party: true, conditionOk: true } },
       reviews: { select: { authorRole: true } },
       claim: { select: { status: true } },
