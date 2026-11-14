@@ -17,7 +17,7 @@ export function HeroSearch() {
     >
       <label className={`${field} border-b border-line md:border-b-0`}>
         <span className={label}>What</span>
-        <input name="q" placeholder="Tuxedo, tent, drone…" className={control} />
+        <input name="q" placeholder="Tuxedo, handbag, tent…" className={control} />
       </label>
       <label className={`${field} border-b border-line md:border-b-0`}>
         <span className={label}>Where</span>

@@ -104,6 +104,67 @@
     ],
     "snowboard": [
       "1478700485868-972b69dc3fc4"
+    ],
+    "explorer-watch": [
+      "1587836374828-4dbafa94cf0e"
+    ],
+    "tissot-chrono": [
+      "1522312346375-d1a52e2b99b3"
+    ],
+    "minimal-watch": [
+      "1524592094714-0f0654e20314"
+    ],
+    "monk-straps": [
+      "1533867617858-e7b97e060509"
+    ],
+    "navy-heels": [
+      "1515347619252-60a4bf4fff4f"
+    ],
+    "floral-heels": [
+      "1543163521-1bf539c55dd2"
+    ],
+    "rockstud-bag": [
+      "1559563458-527698bf5295"
+    ],
+    "red-top-handle-bag": [
+      "1584917865442-de89df76afd3"
+    ],
+    "woven-tote": [
+      "1598532163257-ae3c6b2524b6"
+    ],
+    "pearl-necklace": [
+      "1515562141207-7a88fb7ce338"
+    ],
+    "crystal-earrings": [
+      "1535632066927-ab7c9ab60908"
+    ],
+    "bridal-set": [
+      "1601121141461-9d6647bca1ed"
+    ],
+    "camel-coat": [
+      "1539533018447-63fcce2678e3"
+    ],
+    "red-floral-dress": [
+      "1572804013309-59a88b7e92f1"
+    ],
+    "suede-jacket": [
+      "1617114919297-3c8ddb01f599"
+    ],
+    "white-blazer-dress": [
+      "1632149877166-f75d49000351"
+    ],
+    "greaser-costume": [
+      "1520975954732-35dd22299614",
+      "1551028719-00167b16eac5"
+    ],
+    "round-sunglasses": [
+      "1511499767150-a48a237f0083"
+    ],
+    "black-sunglasses": [
+      "1572635196237-14b3f281503f"
+    ],
+    "check-scarf": [
+      "1520903920243-00d872a2d1c9"
     ]
   },
   "categories": {
@@ -122,6 +183,34 @@
     "seasonal": {
       "id": "1482517967863-00e15c9b44be",
       "position": "right"
+    },
+    "clothing": {
+      "id": "1539533018447-63fcce2678e3",
+      "position": "attention"
+    },
+    "shoes": {
+      "id": "1515347619252-60a4bf4fff4f",
+      "position": "centre"
+    },
+    "bags": {
+      "id": "1584917865442-de89df76afd3",
+      "position": "centre"
+    },
+    "jewellery": {
+      "id": "1515562141207-7a88fb7ce338",
+      "position": "attention"
+    },
+    "watches": {
+      "id": "1522312346375-d1a52e2b99b3",
+      "position": "attention"
+    },
+    "accessories": {
+      "id": "1621184455862-c163dfb30e0f",
+      "position": "attention"
+    },
+    "costumes": {
+      "id": "1509248961158-e54f6934749c",
+      "position": "attention"
     }
   },
   "avatars": {

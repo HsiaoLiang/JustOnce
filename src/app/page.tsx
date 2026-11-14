@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { HeroSearch } from "@/components/hero-search";
 import { ListingGrid } from "@/components/listing-card";
 import { Container, LinkButton, SectionHeading } from "@/components/ui";
-import { CATEGORIES } from "@/lib/catalogue";
+import { CATEGORY_GROUPS, categoriesInGroup, type CategoryInfo } from "@/lib/catalogue";
 import { formatGBP } from "@/lib/money";
 import { cn } from "@/lib/cn";
 import { getHomeData, type ListingCardData } from "@/server/queries";
@@ -29,7 +29,7 @@ export default async function HomePage() {
                 Why buy it for <span className="relative inline-block">one weekend?<Underline /></span>
               </h1>
               <p className="mt-5 max-w-lg text-lg leading-relaxed text-ink-2">
-                Rent formalwear, cameras, camping kit and seasonal bits from people near you in London. Pick it up, use it, hand it back.
+                Rent outfits, bags, jewellery, cameras and camping kit from people near you in London. Pick it up, use it, hand it back.
               </p>
               {stats.rentals > 0 && (
                 <p className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
@@ -65,25 +65,25 @@ export default async function HomePage() {
         <section aria-labelledby="categories" className="pt-2">
           <SectionHeading title="What do you need it for?" kicker="Browse" />
           <h2 id="categories" className="sr-only">Categories</h2>
-          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
-            {CATEGORIES.map((c, i) => (
-              <Link key={c.id} href={`/search?category=${c.slug}`} className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface">
-                <Image
-                  src={c.image}
-                  alt=""
-                  fill
-                  priority={i < 2}
-                  sizes="(min-width: 1024px) 300px, 46vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent p-4 pt-16 text-white sm:p-5">
-                  <p className="font-display text-xl font-semibold sm:text-2xl">{c.label}</p>
-                  <p className="mt-0.5 hidden text-sm text-white/85 sm:block">{c.blurb}</p>
-                  <p className="mt-2 inline-flex items-center gap-1 font-mono text-[0.7rem] tracking-[0.12em] uppercase">
-                    {counts[c.id] ?? 0} items <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
-                  </p>
+          <div className="space-y-8 sm:space-y-10">
+            {CATEGORY_GROUPS.map((group, gi) => (
+              <div key={group.id}>
+                <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 sm:mb-4">
+                  <h3 className="text-lg font-semibold sm:text-xl">{group.label}</h3>
+                  <p className="text-sm text-muted">{group.blurb}</p>
                 </div>
-              </Link>
+                {/* A swipeable row on phones, a grid from tablet up. */}
+                <div
+                  className={cn(
+                    "scrollbar-none -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0",
+                    group.id === "FASHION" ? "sm:grid-cols-4" : "sm:grid-cols-3",
+                  )}
+                >
+                  {categoriesInGroup(group.id).map((c, i) => (
+                    <CategoryTile key={c.id} category={c} count={counts[c.id] ?? 0} wide={group.id === "KIT"} priority={gi === 0 && i < 4} />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </section>
@@ -132,6 +132,34 @@ export default async function HomePage() {
         </section>
       </Container>
     </>
+  );
+}
+
+function CategoryTile({ category: c, count, wide, priority }: { category: CategoryInfo; count: number; wide: boolean; priority: boolean }) {
+  return (
+    <Link
+      href={`/search?category=${c.slug}`}
+      className={cn(
+        "group relative aspect-[4/5] w-[42vw] max-w-56 shrink-0 snap-start overflow-hidden rounded-2xl bg-surface sm:w-auto sm:max-w-none",
+        wide ? "sm:aspect-[4/3]" : "sm:aspect-square lg:aspect-[4/5]",
+      )}
+    >
+      <Image
+        src={c.image}
+        alt=""
+        fill
+        priority={priority}
+        sizes={wide ? "(min-width: 640px) 33vw, 42vw" : "(min-width: 1024px) 300px, (min-width: 640px) 25vw, 42vw"}
+        className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+      />
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent p-4 pt-16 text-white sm:p-5">
+        <p className="font-display text-xl font-semibold sm:text-2xl">{c.label}</p>
+        <p className="mt-0.5 hidden text-sm text-white/85 sm:block">{c.blurb}</p>
+        <p className="mt-2 inline-flex items-center gap-1 font-mono text-[0.7rem] tracking-[0.12em] uppercase">
+          {count} {count === 1 ? "item" : "items"} <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
+        </p>
+      </div>
+    </Link>
   );
 }
 

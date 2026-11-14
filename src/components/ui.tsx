@@ -117,7 +117,7 @@ export function Rating({
       <Star className="size-3.5 fill-ink text-ink" aria-hidden />
       <span className="font-semibold">{value}</span>
       {showCount && <span className="text-muted">({count})</span>}
-      <span className="sr-only"> out of 5 from {count} reviews</span>
+      <span className="sr-only"> out of 5 from {count} {count === 1 ? "review" : "reviews"}</span>
     </span>
   );
 }

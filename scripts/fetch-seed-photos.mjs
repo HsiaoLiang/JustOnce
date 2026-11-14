@@ -1,6 +1,7 @@
 // One-off helper used to build public/seed from Unsplash (https://unsplash.com/license).
 // The processed images are committed, so you never need to run this to use the app.
 //   NODE_USE_ENV_PROXY=1 node scripts/fetch-seed-photos.mjs   (the env var only matters behind a proxy)
+// Files that already exist are kept; pass --force to download everything again.
 import fs from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
@@ -16,6 +17,10 @@ async function download(id, width) {
   return Buffer.from(await res.arrayBuffer());
 }
 
+const force = process.argv.includes("--force");
+const exists = (file) => fs.access(file).then(() => true, () => false);
+const skip = async (file) => !force && (await exists(file));
+
 const jpeg = (img) => img.jpeg({ quality: 78, progressive: true, mozjpeg: true });
 const credits = [];
 
@@ -25,10 +30,11 @@ await fs.mkdir(path.join(out, "avatars"), { recursive: true });
 
 for (const [slug, ids] of Object.entries(manifest.listings)) {
   for (const [i, id] of ids.entries()) {
-    const buf = await download(id, 1600);
     const file = path.join(out, "listings", `${slug}-${i + 1}.jpg`);
-    await jpeg(sharp(buf).rotate().resize(1400, 1400, { fit: "inside", withoutEnlargement: true })).toFile(file);
     credits.push(`| /seed/listings/${slug}-${i + 1}.jpg | https://images.unsplash.com/photo-${id} |`);
+    if (await skip(file)) continue;
+    const buf = await download(id, 1600);
+    await jpeg(sharp(buf).rotate().resize(1400, 1400, { fit: "inside", withoutEnlargement: true })).toFile(file);
     console.log("listing", slug, i + 1);
   }
 }
@@ -36,17 +42,21 @@ for (const [slug, ids] of Object.entries(manifest.listings)) {
 const position = (p) => (p === "attention" ? sharp.strategy.attention : p);
 
 for (const [slug, { id, position: pos }] of Object.entries(manifest.categories)) {
-  const buf = await download(id, 1400);
-  await jpeg(sharp(buf).rotate().resize(800, 1000, { fit: "cover", position: position(pos) })).toFile(path.join(out, "categories", `${slug}.jpg`));
+  const file = path.join(out, "categories", `${slug}.jpg`);
   credits.push(`| /seed/categories/${slug}.jpg | https://images.unsplash.com/photo-${id} |`);
+  if (await skip(file)) continue;
+  const buf = await download(id, 1400);
+  await jpeg(sharp(buf).rotate().resize(800, 1000, { fit: "cover", position: position(pos) })).toFile(file);
   console.log("category", slug);
 }
 
 for (const [slug, { id, position: pos, extract }] of Object.entries(manifest.avatars)) {
+  const file = path.join(out, "avatars", `${slug}.jpg`);
+  credits.push(`| /seed/avatars/${slug}.jpg | https://images.unsplash.com/photo-${id} |`);
+  if (await skip(file)) continue;
   let buf = await download(id, 800);
   if (extract) buf = await sharp(buf).extract(extract).toBuffer();
-  await jpeg(sharp(buf).rotate().resize(320, 320, { fit: "cover", position: position(pos ?? "centre") })).toFile(path.join(out, "avatars", `${slug}.jpg`));
-  credits.push(`| /seed/avatars/${slug}.jpg | https://images.unsplash.com/photo-${id} |`);
+  await jpeg(sharp(buf).rotate().resize(320, 320, { fit: "cover", position: position(pos ?? "centre") })).toFile(file);
   console.log("avatar", slug);
 }
 

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")),
   title: { default: "Just Once · Rent the things you only need once", template: "%s · Just Once" },
   description:
-    "Rent formalwear, cameras, camping kit and seasonal items from people nearby in London. Owners earn from things they're not using; renters skip buying something they'd use once.",
+    "Rent outfits, bags, jewellery, watches, cameras and camping kit from people nearby in London. Owners earn from things they're not using; renters skip buying something they'd use once.",
   applicationName: "Just Once",
   openGraph: { siteName: "Just Once", locale: "en_GB", type: "website" },
 };

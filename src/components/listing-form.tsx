@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useActionState, useMemo, useState, type ReactNode } from "react";
-import { Camera, Shirt, Snowflake, Tent } from "lucide-react";
+import { Camera, Footprints, Gem, Glasses, Handbag, Shirt, Snowflake, Sparkles, Tent, VenetianMask, Watch } from "lucide-react";
 import { saveListing, type ListingFormState } from "@/server/actions/listings";
 import { areaName, areasByRegion } from "@/lib/areas";
 import { CATEGORIES, CONDITIONS, conditionLabel, type CategoryId } from "@/lib/catalogue";
@@ -22,7 +22,14 @@ import { PhotoUploader } from "./photo-uploader";
 import { Button, FieldError, FormAlert, Input, Label, Select, Textarea, inputClass } from "./ui";
 
 const CATEGORY_ICONS: Record<CategoryId, ReactNode> = {
-  FORMALWEAR: <Shirt className="size-5" />,
+  FORMALWEAR: <Sparkles className="size-5" />,
+  CLOTHING: <Shirt className="size-5" />,
+  SHOES: <Footprints className="size-5" />,
+  BAGS: <Handbag className="size-5" />,
+  JEWELLERY: <Gem className="size-5" />,
+  WATCHES: <Watch className="size-5" />,
+  ACCESSORIES: <Glasses className="size-5" />,
+  COSTUMES: <VenetianMask className="size-5" />,
   CAMERAS: <Camera className="size-5" />,
   CAMPING: <Tent className="size-5" />,
   SEASONAL: <Snowflake className="size-5" />,
@@ -76,12 +83,12 @@ export function ListingForm({ initial, today, locked = [], mode }: { initial: Li
 
             <fieldset>
               <legend className="mb-1.5 text-sm font-semibold">Category</legend>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {CATEGORIES.map((c) => (
                   <label
                     key={c.id}
                     className={cn(
-                      "flex cursor-pointer flex-col gap-2 rounded-2xl border p-3.5 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink",
+                      "flex min-w-0 cursor-pointer flex-col gap-2 rounded-2xl border p-3 transition-colors sm:p-3.5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink",
                       v.category === c.id ? "border-ink bg-surface shadow-[inset_0_0_0_1px_var(--color-ink)]" : "border-line-strong hover:border-ink",
                     )}
                   >

@@ -75,10 +75,17 @@ export interface SearchFilters {
 
 // Typing "camera" or "halloween" should find the category even when titles don't say so.
 const CATEGORY_KEYWORDS: Record<CategoryId, string[]> = {
-  FORMALWEAR: ["formal", "suit", "tux", "dress", "gown", "black tie", "black-tie", "wedding", "outfit", "bag"],
+  FORMALWEAR: ["formal", "suit", "tux", "dress", "gown", "black tie", "black-tie", "wedding", "outfit", "saree", "sari"],
+  CLOTHING: ["clothes", "clothing", "coat", "jacket", "blazer", "dress", "outfit", "knitwear"],
+  SHOES: ["shoe", "heel", "stiletto", "boot", "brogue", "loafer", "trainer", "sneaker", "footwear"],
+  BAGS: ["bag", "handbag", "clutch", "tote", "purse", "crossbody"],
+  JEWELLERY: ["jewellery", "jewelry", "necklace", "earring", "bracelet", "pearl", "pendant", "bridal"],
+  WATCHES: ["watch", "timepiece", "chronograph", "rolex"],
+  ACCESSORIES: ["accessory", "accessories", "sunglasses", "shades", "scarf", "scarves", "hat", "cufflink", "belt"],
+  COSTUMES: ["costume", "fancy dress", "halloween", "cosplay"],
   CAMERAS: ["camera", "photo", "lens", "drone", "video", "film", "vlog"],
   CAMPING: ["camp", "tent", "festival", "hike", "hiking", "outdoor", "glamping"],
-  SEASONAL: ["seasonal", "halloween", "christmas", "xmas", "ski", "snow", "costume", "party", "decoration"],
+  SEASONAL: ["seasonal", "halloween", "christmas", "xmas", "ski", "snow", "party", "decoration"],
 };
 
 function termCondition(term: string): Prisma.ListingWhereInput {
