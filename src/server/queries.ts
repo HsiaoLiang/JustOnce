@@ -3,7 +3,7 @@
 import type { Prisma } from "@prisma/client";
 import { db } from "./db";
 import { BLOCKING_STATUSES, type BookingStatusId } from "@/lib/booking-rules";
-import { nextStep, type FlowBooking } from "@/lib/booking-flow";
+import { nextStep, type ClaimStatusId, type FlowBooking } from "@/lib/booking-flow";
 import { addDays, toDate, todayInLondon, toISO, type ISODate } from "@/lib/dates";
 import { areaFilterSlugs } from "@/lib/areas";
 import type { CategoryId } from "@/lib/catalogue";
@@ -197,8 +197,11 @@ export const bookingRowSelect = {
   listing: { select: { id: true, title: true, photos: true, area: true } },
   owner: { select: { id: true, name: true, avatarUrl: true } },
   renter: { select: { id: true, name: true, avatarUrl: true, verifiedAt: true, ratingSum: true, ratingCount: true } },
-  checks: { select: { stage: true, party: true } },
+  checks: { select: { stage: true, party: true, conditionOk: true } },
   reviews: { select: { authorRole: true } },
+  depositReduced: true,
+  depositKept: true,
+  claim: { select: { status: true, amount: true } },
 } satisfies Prisma.BookingSelect;
 
 export type BookingRow = Prisma.BookingGetPayload<{ select: typeof bookingRowSelect }>;
@@ -208,8 +211,10 @@ export function toFlow(b: {
   startDate: Date;
   endDate: Date;
   returnedAt?: Date | null;
-  checks: { stage: "PICKUP" | "RETURN"; party: "OWNER" | "RENTER" }[];
+  checks: { stage: "PICKUP" | "RETURN"; party: "OWNER" | "RENTER"; conditionOk?: boolean }[];
   reviews: { authorRole: "OWNER" | "RENTER" }[];
+  depositStatus?: FlowBooking["depositStatus"];
+  claim?: { status: ClaimStatusId } | null;
 }): FlowBooking {
   return {
     status: b.status as BookingStatusId,
@@ -218,6 +223,8 @@ export function toFlow(b: {
     returnedAt: b.returnedAt ?? null,
     checks: b.checks,
     reviews: b.reviews,
+    depositStatus: b.depositStatus,
+    claim: b.claim ?? null,
   };
 }
 
@@ -244,7 +251,15 @@ export async function getAttentionCounts(userId: string) {
   const bookings = await db.booking.findMany({
     where: {
       OR: [{ ownerId: userId }, { renterId: userId }],
-      AND: [{ OR: [{ status: { in: ["REQUESTED", "ACCEPTED", "ACTIVE"] } }, { status: "COMPLETED", returnedAt: { gte: recent } }] }],
+      AND: [
+        {
+          OR: [
+            { status: { in: ["REQUESTED", "ACCEPTED", "ACTIVE"] } },
+            { status: "COMPLETED", returnedAt: { gte: recent } },
+            { status: "COMPLETED", depositStatus: { in: ["HELD", "IN_REVIEW"] } },
+          ],
+        },
+      ],
     },
     select: {
       ownerId: true,
@@ -252,8 +267,10 @@ export async function getAttentionCounts(userId: string) {
       startDate: true,
       endDate: true,
       returnedAt: true,
-      checks: { select: { stage: true, party: true } },
+      depositStatus: true,
+      checks: { select: { stage: true, party: true, conditionOk: true } },
       reviews: { select: { authorRole: true } },
+      claim: { select: { status: true } },
     },
   });
   const today = todayInLondon();
@@ -270,10 +287,11 @@ export async function getBookingDetail(id: string) {
   return db.booking.findUnique({
     where: { id },
     include: {
-      listing: { select: { id: true, title: true, photos: true, area: true, category: true, condition: true, pickupNotes: true, ownerId: true } },
+      listing: { select: { id: true, title: true, photos: true, area: true, category: true, condition: true, pickupNotes: true, ownerId: true, deposit: true } },
       owner: { select: { id: true, name: true, avatarUrl: true, verifiedAt: true, ratingSum: true, ratingCount: true, createdAt: true } },
       renter: { select: { id: true, name: true, avatarUrl: true, verifiedAt: true, ratingSum: true, ratingCount: true, createdAt: true } },
       checks: { orderBy: { createdAt: "asc" } },
+      claim: true,
       reviews: { include: { author: { select: { id: true, name: true, avatarUrl: true } } }, orderBy: { createdAt: "asc" } },
       events: { include: { actor: { select: { id: true, name: true } } }, orderBy: { createdAt: "asc" } },
     },
@@ -321,3 +339,24 @@ export async function getListingForEdit(id: string, ownerId: string) {
   const hasOpenBookings = await db.booking.count({ where: { listingId: id, status: { in: ["ACCEPTED", "ACTIVE"] } } });
   return { listing, blockedDates: listing.blockedDates.map((b) => toISO(b.date)), hasOpenBookings: hasOpenBookings > 0 };
 }
+
+// ---------------------------------------------------------------- deposits
+
+/** What decides whether a renter gets the reduced deposit. */
+export async function getRenterTrust(userId: string) {
+  const [user, completedRentals, ownerReviews, openClaims] = await Promise.all([
+    db.user.findUnique({ where: { id: userId }, select: { verifiedAt: true } }),
+    db.booking.count({ where: { renterId: userId, status: "COMPLETED" } }),
+    db.review.aggregate({ where: { subjectId: userId, authorRole: "OWNER" }, _avg: { rating: true }, _count: { _all: true } }),
+    db.depositClaim.count({ where: { booking: { renterId: userId }, status: { in: ["OPEN", "CONTESTED"] } } }),
+  ]);
+  return {
+    verified: Boolean(user?.verifiedAt),
+    completedRentals,
+    avgRating: ownerReviews._avg.rating ?? null,
+    reviewCount: ownerReviews._count._all,
+    openClaims,
+  };
+}
+
+export type RenterTrust = Awaited<ReturnType<typeof getRenterTrust>>;

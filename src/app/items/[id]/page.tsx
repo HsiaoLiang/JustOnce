@@ -9,10 +9,10 @@ import { Avatar, Container, LinkButton, Rating, Stars, VerifiedBadge } from "@/c
 import { areaName, getArea, REGIONS } from "@/lib/areas";
 import { categoryInfo, CONDITIONS } from "@/lib/catalogue";
 import { formatMonthYear, isISODate, toISO } from "@/lib/dates";
-import { formatGBP } from "@/lib/money";
+import { DEPOSIT_PROMISE, depositFor, formatGBP } from "@/lib/money";
 import { firstName, plural, shortName } from "@/lib/cn";
 import { getCurrentUser } from "@/server/auth";
-import { getListingDetail, getMoreFromOwner } from "@/server/queries";
+import { getListingDetail, getMoreFromOwner, getRenterTrust } from "@/server/queries";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -49,6 +49,23 @@ export default async function ItemPage({ params, searchParams }: Props) {
   };
   const ownerFirst = firstName(owner.name);
   const paused = listing.status === "PAUSED";
+
+  // Work out this viewer's deposit the same way requestBooking will.
+  const trust = user && !isOwner ? await getRenterTrust(user.id) : null;
+  const decision = trust ? depositFor(listing.deposit, { ...trust, fullDepositOnly: listing.fullDepositOnly }) : null;
+  const deposit = decision?.amount ?? listing.deposit;
+  const depositInfo = {
+    listed: listing.deposit,
+    reduced: Boolean(decision?.reduced),
+    message: decision?.reduced
+      ? `Half the usual ${formatGBP(listing.deposit)} because you're verified with ${plural(trust!.reviewCount, "good review")}.`
+      : !user && !listing.fullDepositOnly
+        ? "Verified renters with good reviews pay half."
+        : decision?.reason === "open-claim"
+          ? "You'll pay half again once your open deposit claim is settled."
+          : null,
+    verifyNudge: decision?.reason === "unverified",
+  };
 
   return (
     <Container className="pt-4 pb-12 md:pt-8">
@@ -113,7 +130,7 @@ export default async function ItemPage({ params, searchParams }: Props) {
               {listing.size && <Detail label="Size" value={listing.size} />}
               <Detail label="Category" value={category?.label ?? ""} />
               <Detail label="Pickup area" value={`${areaName(listing.area)} (${area?.postcode})`} />
-              <Detail label="Deposit" value={`${formatGBP(listing.deposit)}, refundable`} />
+              <Detail label="Deposit" value={`${formatGBP(listing.deposit)}, refundable`} hint={listing.fullDepositOnly ? "Full deposit for everyone" : "Half for trusted renters"} />
             </dl>
           </section>
 
@@ -133,7 +150,7 @@ export default async function ItemPage({ params, searchParams }: Props) {
                 You both photograph the item at handover, so its condition is on record.
               </Assurance>
               <Assurance icon={<RotateCcw className="size-5" />} title="Deposit back on return">
-                Confirm the return together and the {formatGBP(listing.deposit)} deposit is released.
+                {DEPOSIT_PROMISE}
               </Assurance>
             </ul>
           </section>
@@ -200,7 +217,8 @@ export default async function ItemPage({ params, searchParams }: Props) {
               <BookingTicket
                 listingId={listing.id}
                 pricePerDay={listing.pricePerDay}
-                deposit={listing.deposit}
+                deposit={deposit}
+                depositInfo={depositInfo}
                 ratingSum={listing.ratingSum}
                 ratingCount={listing.ratingCount}
                 ownerFirstName={ownerFirst}
@@ -210,7 +228,7 @@ export default async function ItemPage({ params, searchParams }: Props) {
             )}
           </aside>
         </div>
-        {!paused && <MobileBookingBar pricePerDay={listing.pricePerDay} deposit={listing.deposit} listingId={listing.id} signedIn={!!user} isOwner={isOwner} />}
+        {!paused && <MobileBookingBar pricePerDay={listing.pricePerDay} deposit={deposit} listingId={listing.id} signedIn={!!user} isOwner={isOwner} />}
       </BookingProvider>
 
       {more.length > 0 && (

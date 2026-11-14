@@ -61,8 +61,25 @@ enum PaymentStatus {
 
 enum DepositStatus {
   NONE
-  HELD
-  RELEASED
+  HELD          // taken when the owner accepts
+  IN_REVIEW     // the owner has claimed part or all of it
+  PART_RELEASED // a claim was settled: some kept, the rest returned
+  KEPT          // the whole deposit went to the owner
+  RELEASED      // returned in full
+}
+
+enum ClaimReason {
+  DAMAGED
+  MISSING_PARTS
+  NOT_CLEANED
+  RETURNED_LATE
+}
+
+enum ClaimStatus {
+  OPEN      // waiting for the renter
+  ACCEPTED  // renter agreed, amount kept
+  CONTESTED // renter disagreed, Just Once reviews it
+  RESOLVED  // settled after review
 }
 
 enum PayoutStatus {
@@ -129,6 +146,10 @@ model Listing {
   size          String?
   pricePerDay   Int
   deposit       Int
+  /// What it would cost to replace, in pence. Used to suggest a fair deposit.
+  replacementValue Int?
+  /// Opt out of the reduced deposit for trusted renters.
+  fullDepositOnly Boolean @default(false)
   /// Neighbourhood slug from src/lib/areas.ts, e.g. "hackney".
   area          String
   /// Shared with the renter only once a booking is accepted.
@@ -181,7 +202,12 @@ model Booking {
   serviceFee       Int
   /// What the renter pays (subtotal + service fee). The deposit is held separately.
   total            Int
+  /// The deposit this renter pays (half the listed one for trusted renters).
   deposit          Int
+  /// True when the trusted-renter reduction applied.
+  depositReduced   Boolean       @default(false)
+  /// Part of the deposit kept by the owner after a claim.
+  depositKept      Int           @default(0)
   message          String?
   status           BookingStatus @default(REQUESTED)
   paymentStatus    PaymentStatus @default(UNPAID)
@@ -203,10 +229,29 @@ model Booking {
   checks         HandoverCheck[]
   reviews        Review[]
   events         BookingEvent[]
+  claim          DepositClaim?
 
   @@index([listingId, status])
   @@index([renterId, status])
   @@index([ownerId, status])
+}
+
+/// An owner's claim against the deposit after a problem at the return check.
+model DepositClaim {
+  id             String      @id @default(cuid())
+  bookingId      String      @unique
+  amount         Int
+  reason         ClaimReason
+  ownerNote      String
+  photos         String[]
+  status         ClaimStatus @default(OPEN)
+  renterNote     String?
+  renterPhotos   String[]
+  resolvedAmount Int?
+  createdAt      DateTime    @default(now())
+  respondedAt    DateTime?
+  resolvedAt     DateTime?
+  booking        Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 }
 
 /// One side's confirmation at pickup or return, with condition photos.
