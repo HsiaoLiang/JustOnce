@@ -133,6 +133,79 @@ All demo photos come from [Unsplash](https://unsplash.com) and are used under th
 | /seed/listings/black-sunglasses-3.jpg | https://images.unsplash.com/photo-1572635196237-14b3f281503f (detail crop) |
 | /seed/listings/check-scarf-1.jpg | https://images.unsplash.com/photo-1520903920243-00d872a2d1c9 |
 | /seed/listings/check-scarf-2.jpg | https://images.unsplash.com/photo-1520903920243-00d872a2d1c9 (detail crop) |
+| /seed/listings/bauble-set-1.jpg | https://images.unsplash.com/photo-1512474932049-78ac69ede12c |
+| /seed/listings/bauble-set-2.jpg | https://images.unsplash.com/photo-1512474932049-78ac69ede12c (detail crop) |
+| /seed/listings/black-minimal-watch-1.jpg | https://images.unsplash.com/photo-1434056886845-dac89ffe9b56 |
+| /seed/listings/black-minimal-watch-2.jpg | https://images.unsplash.com/photo-1434056886845-dac89ffe9b56 (detail crop) |
+| /seed/listings/blue-maxi-dress-1.jpg | https://images.unsplash.com/photo-1539008835657-9e8e9680c956 |
+| /seed/listings/blue-maxi-dress-2.jpg | https://images.unsplash.com/photo-1539008835657-9e8e9680c956 (detail crop) |
+| /seed/listings/blue-maxi-dress-3.jpg | https://images.unsplash.com/photo-1539008835657-9e8e9680c956 (detail crop) |
+| /seed/listings/christmas-decor-set-1.jpg | https://images.unsplash.com/photo-1576919228236-a097c32a5cd4 |
+| /seed/listings/christmas-decor-set-2.jpg | https://images.unsplash.com/photo-1576919228236-a097c32a5cd4 (detail crop) |
+| /seed/listings/christmas-decor-set-3.jpg | https://images.unsplash.com/photo-1576919228236-a097c32a5cd4 (detail crop) |
+| /seed/listings/corduroy-shirt-dress-1.jpg | https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03 |
+| /seed/listings/corduroy-shirt-dress-2.jpg | https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03 (detail crop) |
+| /seed/listings/corduroy-shirt-dress-3.jpg | https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03 (detail crop) |
+| /seed/listings/croc-mini-bag-1.jpg | https://images.unsplash.com/photo-1575032617751-6ddec2089882 |
+| /seed/listings/croc-mini-bag-2.jpg | https://images.unsplash.com/photo-1575032617751-6ddec2089882 (detail crop) |
+| /seed/listings/dome-tent-1.jpg | https://images.unsplash.com/photo-1508873696983-2dfd5898f08b |
+| /seed/listings/dome-tent-2.jpg | https://images.unsplash.com/photo-1508873696983-2dfd5898f08b (detail crop) |
+| /seed/listings/eighties-party-look-1.jpg | https://images.unsplash.com/photo-1529139574466-a303027c1d8b |
+| /seed/listings/eighties-party-look-2.jpg | https://images.unsplash.com/photo-1529139574466-a303027c1d8b (detail crop) |
+| /seed/listings/eighties-party-look-3.jpg | https://images.unsplash.com/photo-1529139574466-a303027c1d8b (detail crop) |
+| /seed/listings/fedora-hats-1.jpg | https://images.unsplash.com/photo-1533055640609-24b498dfd74c |
+| /seed/listings/fedora-hats-2.jpg | https://images.unsplash.com/photo-1533055640609-24b498dfd74c (detail crop) |
+| /seed/listings/fedora-hats-3.jpg | https://images.unsplash.com/photo-1533055640609-24b498dfd74c (detail crop) |
+| /seed/listings/film-camera-1.jpg | https://images.unsplash.com/photo-1491796014055-e6835cdcd4c6 |
+| /seed/listings/film-camera-2.jpg | https://images.unsplash.com/photo-1491796014055-e6835cdcd4c6 (detail crop) |
+| /seed/listings/fossil-chrono-1.jpg | https://images.unsplash.com/photo-1542496658-e33a6d0d50f6 |
+| /seed/listings/fossil-chrono-2.jpg | https://images.unsplash.com/photo-1542496658-e33a6d0d50f6 (detail crop) |
+| /seed/listings/gold-hoops-1.jpg | https://images.unsplash.com/photo-1617038220319-276d3cfab638 (detail crop) |
+| /seed/listings/gold-hoops-2.jpg | https://images.unsplash.com/photo-1617038220319-276d3cfab638 |
+| /seed/listings/hiking-daypack-1.jpg | https://images.unsplash.com/photo-1501555088652-021faa106b9b |
+| /seed/listings/hiking-daypack-2.jpg | https://images.unsplash.com/photo-1501555088652-021faa106b9b (detail crop) |
+| /seed/listings/leather-boots-1.jpg | https://images.unsplash.com/photo-1608256246200-53e635b5b65f |
+| /seed/listings/leather-boots-2.jpg | https://images.unsplash.com/photo-1608256246200-53e635b5b65f (detail crop) |
+| /seed/listings/leather-boots-3.jpg | https://images.unsplash.com/photo-1608256246200-53e635b5b65f (detail crop) |
+| /seed/listings/linen-shirt-dress-1.jpg | https://images.unsplash.com/photo-1617019114583-affb34d1b3cd |
+| /seed/listings/linen-shirt-dress-2.jpg | https://images.unsplash.com/photo-1617019114583-affb34d1b3cd (detail crop) |
+| /seed/listings/navy-check-blazer-1.jpg | https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0 |
+| /seed/listings/navy-check-blazer-2.jpg | https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0 (detail crop) |
+| /seed/listings/navy-check-blazer-3.jpg | https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0 (detail crop) |
+| /seed/listings/pastel-trainers-1.jpg | https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a |
+| /seed/listings/pastel-trainers-2.jpg | https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a (detail crop) |
+| /seed/listings/pastel-trainers-3.jpg | https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a (detail crop) |
+| /seed/listings/pearl-pendant-1.jpg | https://images.unsplash.com/photo-1611085583191-a3b181a88401 |
+| /seed/listings/pearl-pendant-2.jpg | https://images.unsplash.com/photo-1611085583191-a3b181a88401 (detail crop) |
+| /seed/listings/prada-box-bag-1.jpg | https://images.unsplash.com/photo-1589363460779-cd717d2ed8fa |
+| /seed/listings/prada-box-bag-2.jpg | https://images.unsplash.com/photo-1589363460779-cd717d2ed8fa (detail crop) |
+| /seed/listings/prada-box-bag-3.jpg | https://images.unsplash.com/photo-1589363460779-cd717d2ed8fa (detail crop) |
+| /seed/listings/rose-gold-bangle-1.jpg | https://images.unsplash.com/photo-1611591437281-460bfbe1220a |
+| /seed/listings/rose-gold-bangle-2.jpg | https://images.unsplash.com/photo-1611591437281-460bfbe1220a (detail crop) |
+| /seed/listings/seventies-festival-look-1.jpg | https://images.unsplash.com/photo-1542103749-8ef59b94f47e |
+| /seed/listings/seventies-festival-look-2.jpg | https://images.unsplash.com/photo-1542103749-8ef59b94f47e (detail crop) |
+| /seed/listings/seventies-festival-look-3.jpg | https://images.unsplash.com/photo-1542103749-8ef59b94f47e (detail crop) |
+| /seed/listings/sherpa-denim-jacket-1.jpg | https://images.unsplash.com/photo-1543076447-215ad9ba6923 |
+| /seed/listings/sherpa-denim-jacket-2.jpg | https://images.unsplash.com/photo-1543076447-215ad9ba6923 (detail crop) |
+| /seed/listings/sigma-art-lens-1.jpg | https://images.unsplash.com/photo-1617005082133-548c4dd27f35 |
+| /seed/listings/sigma-art-lens-2.jpg | https://images.unsplash.com/photo-1617005082133-548c4dd27f35 (detail crop) |
+| /seed/listings/silk-tie-1.jpg | https://images.unsplash.com/photo-1598033129183-c4f50c736f10 |
+| /seed/listings/silk-tie-2.jpg | https://images.unsplash.com/photo-1598033129183-c4f50c736f10 (detail crop) |
+| /seed/listings/steel-dress-watch-1.jpg | https://images.unsplash.com/photo-1547996160-81dfa63595aa |
+| /seed/listings/steel-dress-watch-2.jpg | https://images.unsplash.com/photo-1547996160-81dfa63595aa (detail crop) |
+| /seed/listings/steel-dress-watch-3.jpg | https://images.unsplash.com/photo-1547996160-81dfa63595aa (detail crop) |
+| /seed/listings/straw-hat-1.jpg | https://images.unsplash.com/photo-1596783074918-c84cb06531ca (detail crop) |
+| /seed/listings/straw-hat-2.jpg | https://images.unsplash.com/photo-1596783074918-c84cb06531ca |
+| /seed/listings/studio-lighting-kit-1.jpg | https://images.unsplash.com/photo-1471341971476-ae15ff5dd4ea |
+| /seed/listings/studio-lighting-kit-2.jpg | https://images.unsplash.com/photo-1471341971476-ae15ff5dd4ea (detail crop) |
+| /seed/listings/teal-brogues-1.jpg | https://images.unsplash.com/photo-1560343090-f0409e92791a |
+| /seed/listings/teal-brogues-2.jpg | https://images.unsplash.com/photo-1560343090-f0409e92791a (detail crop) |
+| /seed/listings/teal-brogues-3.jpg | https://images.unsplash.com/photo-1560343090-f0409e92791a (detail crop) |
+| /seed/listings/teal-satchel-1.jpg | https://images.unsplash.com/photo-1594223274512-ad4803739b7c |
+| /seed/listings/teal-satchel-2.jpg | https://images.unsplash.com/photo-1594223274512-ad4803739b7c (detail crop) |
+| /seed/listings/teal-satchel-3.jpg | https://images.unsplash.com/photo-1594223274512-ad4803739b7c (detail crop) |
+| /seed/listings/tennis-bracelet-1.jpg | https://images.unsplash.com/photo-1573408301185-9146fe634ad0 |
+| /seed/listings/tennis-bracelet-2.jpg | https://images.unsplash.com/photo-1573408301185-9146fe634ad0 (detail crop) |
 | /seed/categories/formalwear.jpg | https://images.unsplash.com/photo-1598808503746-f34c53b9323e |
 | /seed/categories/cameras.jpg | https://images.unsplash.com/photo-1554048612-b6a482bc67e5 |
 | /seed/categories/camping.jpg | https://images.unsplash.com/photo-1504280390367-361c6d9f38f4 |
