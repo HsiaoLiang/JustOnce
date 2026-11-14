@@ -877,9 +877,9 @@ export const BOOKINGS: SeedBooking[] = [
     message: "Shooting a friend's supper club launch. I'll keep it in its bag between shots!",
     pickupDone: ["OWNER", "RENTER"],
     returnDone: ["RENTER"],
-    // The same photo as at pickup with a fine scratch added to the lens name ring: a subtle damage case for the AI comparison.
+    // The same photo as at pickup with two light scratches added across the lens name ring: a small damage case for the AI comparison.
     pickupPhotos: ["/seed/listings/sony-a7iii-1.jpg"],
-    renterReturnPhotos: ["/seed/checks/sony-a7iii-return-1.jpg"],
+    renterReturnPhotos: ["/seed/checks/sony-a7iii-scratched-1.jpg"],
   },
   {
     listing: "sony-a7-iii-28-70mm",

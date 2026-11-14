@@ -51,7 +51,7 @@ for (const [slug, { id, position: pos, extract }] of Object.entries(manifest.ava
 }
 
 // Made by hand from listing photos (not downloaded here): the return photos for the AI photo comparison demo.
-credits.push("| /seed/checks/sony-a7iii-return-1.jpg | Edited copy of /seed/listings/sony-a7iii-1.jpg with a fine scratch added to the lens ring, for the photo comparison demo |");
+credits.push("| /seed/checks/sony-a7iii-scratched-1.jpg | Edited copy of /seed/listings/sony-a7iii-1.jpg with scratches added to the lens ring, for the photo comparison demo |");
 credits.push("| /seed/checks/creator-kit-return-1.jpg | Edited copy of /seed/listings/creator-kit-1.jpg with the microphone removed, for the photo comparison demo |");
 
 await fs.writeFile(
