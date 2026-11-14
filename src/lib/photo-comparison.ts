@@ -188,10 +188,10 @@ export function pickPhotos(photos: string[], max: number): string[] {
 }
 
 /**
- * True when every return photo is the very same file as a pickup photo. Uploads
- * get a new id each time, so this only happens when a stored photo is reused
- * (the demo's "use the listing photo" button). There is nothing to compare, so
- * no model is asked.
+ * True when every photo of a check is the very same file as one of the earlier
+ * photos. Uploads get a new id each time, so this only happens when a stored
+ * photo is reused (the demo's "use the listing photo" button, or seed data).
+ * There is nothing to compare, so no model is asked.
  */
 export function sameFiles(referencePhotos: string[], photos: string[]): boolean {
   return photos.length > 0 && photos.every((p) => referencePhotos.includes(p));

@@ -52,9 +52,10 @@ const PICKUP_SYSTEM = `You do a light check for Just Once, a London peer-to-peer
 The first photos are from the listing, the later ones were taken when the item was handed over. Say whether the handover photos appear to show the same item as the listing.
 
 Rules:
-- Answer "yes" when it is plainly the same kind of item with the same visible features. Small differences in accessories or wear don't change that.
-- Answer "no" only when it is clearly a different item (a different model, colour or type). Add one short, cautious note saying what looks different.
-- Answer "unsure" when you can't tell, and use comparable false when the photos are too dark, blurred or differently framed to judge.
+- The listing photos can differ a lot from each other: different angles, lighting and backgrounds, close-ups, or the item shown next to other things. The handover photos only need to match the item in ONE of the listing photos, not all of them.
+- Answer "yes" when the handover photos plainly show the same kind of item with the same visible features as any listing photo. Differences in accessories, attached parts, wear or setting don't change that.
+- Answer "no" only when no listing photo could be the same item: an obviously different type of thing or a clearly different colour. Never answer "no" because of a brand or model name you think you can read. Add one short, cautious note saying what looks different.
+- If you are not sure, answer "unsure". Use comparable false when the photos are too dark, blurred or differently framed to judge.
 ${SHARED_RULES}`;
 
 /** Reads one stored photo: an upload from the database, or a bundled seed image from this site. */
@@ -84,7 +85,9 @@ const list = (from: number, count: number) => Array.from({ length: count }, (_, 
 async function compare(stage: "PICKUP" | "RETURN", title: string, referencePhotos: string[], photos: string[], origin: string): Promise<DoneComparison> {
   const base = { v: 1 as const, status: "done" as const, at: new Date().toISOString(), referencePhotos, photos };
   // The very same files (only possible when a stored photo is reused): nothing to compare, so no model is asked.
-  if (stage === "RETURN" && sameFiles(referencePhotos, photos)) return { ...base, stage, comparable: true, differences: [], missingParts: [] };
+  if (sameFiles(referencePhotos, photos)) {
+    return stage === "RETURN" ? { ...base, stage, comparable: true, differences: [], missingParts: [] } : { ...base, stage, comparable: true, matchesListing: "yes", note: "" };
+  }
 
   const images = await Promise.all([...referencePhotos, ...photos].map((src) => loadPhoto(src, origin)));
   const earlier = `Photo${referencePhotos.length > 1 ? "s" : ""} ${list(1, referencePhotos.length)}`;
