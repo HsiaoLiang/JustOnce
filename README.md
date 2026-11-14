@@ -2,7 +2,7 @@
 
 **Rent the things you only need once.** Just Once is a peer-to-peer rental marketplace for London: an outfit, a designer bag or a watch for a wedding, a camera for a weekend away, a tent for a festival, a Santa suit for the office party. Owners earn from things sitting in a cupboard; renters don't buy something they'll use once and then store in a small flat.
 
-Students and staff can also **borrow within their school or office**: verify with a school or work email, then filter to your community, see items listed for members only, and ask for what you need on the community's exchange board. London Business School, Imperial, UCL, Google UK and Meta London are seeded.
+Students and staff can also **borrow within their school or office**: verify with a school or work email, then filter to your community, see items listed for members only, and ask for what you need on the community's exchange board. London Business School, Imperial, UCL, Queen Mary, Google UK, Meta London and Barclays are seeded, each with seven posts on its exchange board.
 
 Built for AI Cup, Track B (Creativity & Commerce). The core journey works end to end: list → search → book → accept → pickup check → return check → deposit back → ratings.
 
@@ -105,7 +105,7 @@ Every demo account uses the password **`justonce`**. In demo mode the log-in pag
 | Tom Hughes | `tom@example.com` | Owner, Walthamstow | Tents and camping kit; a bell-tent booking next week |
 | Oliver Bennett | `oliver@example.com` | Owner, Shoreditch | Callum's request for his Rolex Explorer (full deposit only, £1,000); suits and monk straps, including a members-only navy interview suit listed with LBS |
 
-Also seeded: `hannah@`, `callum@`, `daniel@`, `zara@`, `mei@`, `isla@`, `ruby@`, `kwame@` and `sam@example.com` (Sam isn't ID-verified, so you can show the unverified state and the "Verify your ID to halve deposits" prompt). Leo qualifies as a trusted renter, so he's quoted half deposits, and his tuxedo booking goes through a parcel locker; Sophie's ski kit comes by courier. Daniel's Fujifilm X-T3 rental shows a settled claim (£25 kept for a missing lens hood). In total: 15 people, each with a profile photo, 97 listings across 11 categories (at least four in each, six or more in all but Costumes), 58 bookings in every state and 77 reviews, plus 5 communities with 15 community items (9 of them members-only), 16 board posts and 7 replies. Every listing has a gallery of two or three photos. The categories come in two groups: **Fashion** (formalwear, clothing, shoes, bags, jewellery, watches, accessories and costumes) and **Kit and occasions** (cameras, camping and seasonal). All dates are relative to the day you seed, so the demo always looks current.
+Also seeded: `hannah@`, `callum@`, `daniel@`, `zara@`, `mei@`, `isla@`, `ruby@`, `kwame@`, `aisha@`, `jack@`, `elena@`, `ben@`, `chloe@`, `tunde@` and `sam@example.com` (Sam isn't ID-verified, so you can show the unverified state and the "Verify your ID to halve deposits" prompt). Leo qualifies as a trusted renter, so he's quoted half deposits, and his tuxedo booking goes through a parcel locker; Sophie's ski kit comes by courier. Daniel's Fujifilm X-T3 rental shows a settled claim (£25 kept for a missing lens hood). In total: 21 people, each with a profile photo, 97 listings across 11 categories (at least four in each, six or more in all but Costumes), 58 bookings in every state and 77 reviews, plus 7 communities with 21 community items (12 of them members-only) and 49 board posts (7 per community) with 50 replies. Every listing has a gallery of two or three photos. The categories come in two groups: **Fashion** (formalwear, clothing, shoes, bags, jewellery, watches, accessories and costumes) and **Kit and occasions** (cameras, camping and seasonal). All dates are relative to the day you seed, so the demo always looks current.
 
 **Who belongs where** (all verified by school or work email):
 
@@ -114,8 +114,10 @@ Also seeded: `hannah@`, `callum@`, `daniel@`, `zara@`, `mei@`, `isla@`, `ruby@`,
 | London Business School (`@london.edu`) | Sophie, Oliver, Mei |
 | Imperial College London (`@imperial.ac.uk`, `@ic.ac.uk`) | Priya, Tom, Callum |
 | University College London (`@ucl.ac.uk`) | Amara, Hannah, Kwame |
+| Queen Mary University of London (`@qmul.ac.uk`) | Aisha, Jack, Elena |
 | Google UK (`@google.com`) | Leo, Isla, Zara |
 | Meta London (`@meta.com`, `@fb.com`) | Daniel, Ruby |
+| Barclays Canary Wharf (`@barclays.com`) | Ben, Chloe, Tunde |
 
 Everyone else, Sam for example, isn't in a community yet, so they can try verifying.
 

@@ -232,5 +232,11 @@ All demo photos come from [Unsplash](https://unsplash.com) and are used under th
 | /seed/avatars/ruby.jpg | https://images.unsplash.com/photo-1567532939604-b6b5b0db2604 |
 | /seed/avatars/kwame.jpg | https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f |
 | /seed/avatars/sam.jpg | https://images.unsplash.com/photo-1554151228-14d9def656e4 |
+| /seed/avatars/aisha.jpg | https://images.unsplash.com/photo-1544725176-7c40e5a71c5e |
+| /seed/avatars/jack.jpg | https://images.unsplash.com/photo-1570295999919-56ceb5ecca61 |
+| /seed/avatars/elena.jpg | https://images.unsplash.com/photo-1494790108377-be9c29b29330 |
+| /seed/avatars/ben.jpg | https://images.unsplash.com/photo-1506794778202-cad84cf45f1d |
+| /seed/avatars/chloe.jpg | https://images.unsplash.com/photo-1573496359142-b8d87734a5a2 |
+| /seed/avatars/tunde.jpg | https://images.unsplash.com/photo-1519244703995-f4e0f30006d5 |
 | /seed/checks/creator-kit-return-1.jpg | Edited copy of /seed/listings/creator-kit-1.jpg with the microphone removed, for the photo comparison demo |
 | /seed/checks/sony-a7iii-scratched-1.jpg | Edited copy of /seed/listings/sony-a7iii-1.jpg with scratches added to the lens ring, for the photo comparison demo |

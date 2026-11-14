@@ -20,12 +20,16 @@ export const DEMO_ACCOUNTS: DemoAccount[] = [
   { email: "tom@example.com", name: "Tom Hughes", role: "Owner", community: "Imperial", note: "Tents and camping kit", avatar: "/seed/avatars/tom.jpg" },
   { email: "amara@example.com", name: "Amara Okafor", role: "Owner", community: "UCL", note: "Dresses, costumes and Halloween props", avatar: "/seed/avatars/amara.jpg" },
   { email: "hannah@example.com", name: "Hannah Brooks", role: "Owner", community: "UCL", note: "Ball gowns for the Summer Ball", avatar: "/seed/avatars/hannah.jpg" },
+  { email: "aisha@example.com", name: "Aisha Rahman", role: "Renter", community: "Queen Mary", note: "Medic hunting for a ball gown", avatar: "/seed/avatars/aisha.jpg" },
+  { email: "jack@example.com", name: "Jack Morrison", role: "Owner", community: "Queen Mary", note: "Tents and hiking kit for society trips", avatar: "/seed/avatars/jack.jpg" },
   { email: "leo@example.com", name: "Leo Martins", role: "Renter", community: "Google UK", note: "Waiting on a camera request", avatar: "/seed/avatars/leo.jpg" },
   { email: "isla@example.com", name: "Isla Fraser", role: "Owner", community: "Google UK", note: "Bell tent and wardrobe pieces", avatar: "/seed/avatars/isla.jpg" },
   { email: "daniel@example.com", name: "Daniel Reyes", role: "Owner", community: "Meta", note: "Suits and a Canon DSLR", avatar: "/seed/avatars/daniel.jpg" },
   { email: "ruby@example.com", name: "Ruby Patel", role: "Renter", community: "Meta", note: "Looking for a standing desk", avatar: "/seed/avatars/ruby.jpg" },
+  { email: "ben@example.com", name: "Ben Carter", role: "Renter", community: "Barclays", note: "Needs a second suit for client week", avatar: "/seed/avatars/ben.jpg" },
+  { email: "chloe@example.com", name: "Chloe Evans", role: "Owner", community: "Barclays", note: "Gala gowns and ski kit to lend", avatar: "/seed/avatars/chloe.jpg" },
 ];
 
-export const DEMO_COMMUNITY_ORDER = ["LBS", "Imperial", "UCL", "Google UK", "Meta"] as const;
+export const DEMO_COMMUNITY_ORDER = ["LBS", "Imperial", "UCL", "Queen Mary", "Google UK", "Meta", "Barclays"] as const;
 
 export const DEMO_PASSWORD_HINT = "justonce";
