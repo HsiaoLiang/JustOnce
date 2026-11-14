@@ -110,7 +110,7 @@ About 6 minutes. Use **two screens** so the judges watch both sides of the same 
 **Setup:** reset the demo data, log the laptop in as **Priya** (owner) and the phone in as **Sophie** (renter). Have one or two photos of a camera on the laptop.
 
 1. **The pitch (30 s), home page.** "Why buy it for one weekend?" Point out the three occasion tickets, the four categories and the search by item, area and dates.
-2. **An owner lists an item (75 s), laptop as Priya.** Click **List an item**. Upload a photo, title it *Canon EOS R6 body*, choose **Cameras** and **Like new**, set **£40 a day** and a **£500 deposit**, pickup area **Hackney**. In the calendar, tap two days to block them out. Watch the live preview on the right, then **Publish listing**. It's live straight away and appears in *Just listed* on the home page.
+2. **An owner lists an item (75 s), laptop as Priya.** Click **List an item**. Upload a photo of a camera and press **Fill in from photo**: within a few seconds the title, category, condition and description fill in, with a suggested price and deposit and the reason for each. Point out the *Suggested* marks, correct one field so its mark disappears, and choose pickup area **Hackney**. (No AI key set? Fill it in by hand: *Canon EOS R6 body*, **Cameras**, **Like new**, **£40 a day**, **£500 deposit**.) In the calendar, tap two days to block them out. Watch the live preview on the right, then **Publish listing**. It's live straight away and appears in *Just listed* on the home page.
 3. **A renter books it (60 s), phone as Sophie.** Search *Canon*, or tap Cameras and filter to East London, and open the new item. Tap a pickup day and a return day: the "return ticket" fills in with the out and back dates, £40 × days, the 10% service fee and, on the tear-off stub, the refundable deposit. Add a note and **Request to book**. Sophie sees *Waiting for Priya to respond* and hasn't been charged.
 4. **The owner accepts (30 s), laptop.** The *My listings* badge shows a new request. **Accept request**: the toast confirms Sophie has paid and the deposit is held (simulated). Those dates are now locked, and the phone flips to the pickup check on its own.
 5. **Pickup check (60 s), both screens.** On each screen add a photo (on the phone, take one with the camera, or tap *Use the listing photo (demo)*), confirm the item matches the listing and press **Confirm pickup**. Once both have confirmed, the ticket's stamp changes to **ON RENT**.
@@ -138,7 +138,7 @@ Resetting logs everyone out. If you're showing the site on a phone, log in again
 | Home `/` | Search (item, area, dates), categories with live counts, featured items, newest listings, how it works, an earnings pitch for owners |
 | Search `/search` | Filters for category, dates (only shows items free on those dates), area (a neighbourhood or a whole region such as East London), price and sort |
 | Item `/items/[id]` | Large photo gallery, availability calendar (booked and blocked days crossed out), price breakdown, deposit, owner profile and reviews |
-| List an item `/listings/new`, edit `/listings/[id]/edit` | Photos (resized in the browser), category, condition, price, deposit, pickup area and private pickup details, availability window plus days blocked out; pause, resume or remove a listing |
+| List an item `/listings/new`, edit `/listings/[id]/edit` | Photos (resized in the browser), **AI draft from a photo**, category, condition, price, deposit, pickup area and private pickup details, availability window plus days blocked out; pause, resume or remove a listing |
 | My rentals `/dashboard/rentals` | Renter view: what needs you, what's on rent, upcoming, past |
 | My listings `/dashboard/listings` | Owner view: requests to accept or decline in place, what needs you, earnings, your items, past bookings |
 | Booking `/bookings/[id]` | The whole rental on one page: progress, the next step, the return ticket, pickup and return checks with photos, ratings, activity timeline |
@@ -146,7 +146,9 @@ Resetting logs everyone out. If you're showing the site on a phone, log in again
 | Account `/account` | Edit profile and photo, simulated ID verification, log out |
 | Log in, sign up | Email and password; one-tap demo accounts in demo mode |
 
-Payments, deposits and payouts are **simulated**: the app shows every amount and status change (paid, deposit held, deposit released, refunded, paid out) without a payment provider. ID verification is simulated too. There are no AI features in the product.
+Payments, deposits and payouts are **simulated**: the app shows every amount and status change (paid, deposit held, deposit released, refunded, paid out) without a payment provider. ID verification is simulated too.
+
+**AI: photo-to-listing.** On *List an item*, once a photo is uploaded, **Fill in from photo** drafts the title, category, condition, brand, size and description, and suggests a daily price and deposit. The price and deposit come from the median of similar active listings in the database, with the reason shown; with fewer than three similar listings it says so and uses an estimate instead. Every AI-filled field is marked *Suggested, check before publishing* until the owner edits or confirms it, and anything the photo doesn't settle is left empty with a question rather than a guess. It needs `ANTHROPIC_API_KEY`; without it the button is hidden and listing works as before.
 
 ## How it works
 
@@ -236,6 +238,8 @@ npm run test:e2e
 | `DATABASE_URL` | Yes | Postgres connection string (the pooled one on Neon) |
 | `DATABASE_URL_UNPOOLED` | Optional | Direct connection for migrations; falls back to `DATABASE_URL` |
 | `DEMO_RESET_KEY` | Optional | Turns on `/demo/reset` and `POST /api/demo/reset` |
+| `ANTHROPIC_API_KEY` | Optional | Turns on the AI features (photo-to-listing). Server-side only. Without it the AI buttons are hidden |
+| `AI_MODEL` | Optional | Vision model used by the AI features; defaults to `claude-haiku-5-5` |
 | `NEXT_PUBLIC_DEMO_MODE` | Optional | Set to `false` to hide the one-tap demo log-ins and account switcher (takes effect on the next build) |
 
 ## Limitations and next steps
@@ -244,6 +248,7 @@ This is a competition demo, so some things are deliberately simulated or left ou
 
 - **Payments:** simulated. In production this would be Stripe Connect, with the deposit held as an uncaptured authorisation and released after the return check.
 - **ID verification:** simulated. A real version would hand off to a provider such as Stripe Identity.
+- **AI drafts are suggestions:** photo-to-listing can misread an item, so nothing is published until the owner has checked it. The photos used for a draft are sent to the AI provider (Anthropic). Drafts aren't logged yet, and there is no saved fallback response for a demo with bad wifi.
 - **Not built yet:** in-app messages, damage claims against the deposit, email and push notifications, map search, and the swap option described above.
 - **Demo mode** publishes the demo password and adds one-tap log-ins. Set `NEXT_PUBLIC_DEMO_MODE=false` for anything beyond a demo.
 

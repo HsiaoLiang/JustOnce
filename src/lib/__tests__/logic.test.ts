@@ -8,6 +8,7 @@ import { checkRange, dayState, type Availability } from "../booking-rules";
 import { nextStep, type FlowBooking } from "../booking-flow";
 import { isAllowedPhotoUrl } from "../photos";
 import { parseSearch } from "../search-params";
+import { median, modelDraftSchema, suggestPricing } from "../listing-draft";
 
 const today = "2026-11-13";
 const availability: Availability = {
@@ -94,4 +95,47 @@ test("search params are cleaned up", () => {
   assert.equal(parsed.to, "2099-01-05");
   assert.equal(parsed.max, undefined);
   assert.equal(parsed.sort, "recommended");
+});
+
+test("AI draft: only catalogue categories and conditions are accepted", () => {
+  const draft = modelDraftSchema.parse({ title: "  Sony A7 III body  ", category: "CAMERAS", condition: "MINT", brand: null, size: "", description: "A camera.", questions: [] });
+  assert.equal(draft.title, "Sony A7 III body");
+  assert.equal(draft.category, "CAMERAS");
+  assert.equal(draft.condition, null);
+  assert.equal(draft.brand, "");
+  assert.equal(modelDraftSchema.parse({ category: "BOATS" }).category, null);
+});
+
+test("AI draft: questions for unknown fields are dropped, bad estimates ignored", () => {
+  const draft = modelDraftSchema.parse({ questions: [{ field: "password", question: "?" }], secondHandValuePounds: -5, pricePerDayPounds: "lots" });
+  assert.deepEqual(draft.questions, []);
+  assert.equal(draft.secondHandValuePounds, null);
+  assert.equal(draft.pricePerDayPounds, null);
+});
+
+test("AI draft: price and deposit come from comparable listings when there are enough", () => {
+  assert.equal(median([3000, 4500, 3800]), 3800);
+  assert.equal(median([1000, 2000]), 1500);
+  assert.equal(median([]), null);
+  const comparables = [
+    { pricePerDay: 3000, deposit: 40000 },
+    { pricePerDay: 3800, deposit: 45000 },
+    { pricePerDay: 4500, deposit: 50000 },
+  ];
+  const s = suggestPricing(comparables, "cameras listings", { secondHandValuePounds: 5, pricePerDayPounds: 999 });
+  assert.equal(s.fromComparables, true);
+  assert.equal(s.price.amount, 3800);
+  assert.equal(s.deposit.amount, 45000);
+  assert.match(s.price.reason, /3 similar cameras listings on Just Once rent for £30 to £45/);
+});
+
+test("AI draft: with few comparables it says so and falls back to the estimate", () => {
+  const s = suggestPricing([{ pricePerDay: 3000, deposit: 40000 }], "cameras listings", { secondHandValuePounds: 900, pricePerDayPounds: 38 });
+  assert.equal(s.fromComparables, false);
+  assert.equal(s.price.amount, 3800);
+  assert.equal(s.deposit.amount, 45000);
+  assert.match(s.price.reason, /Few similar items/);
+  const none = suggestPricing([], "listings", { secondHandValuePounds: null, pricePerDayPounds: null });
+  assert.equal(none.price.amount, null);
+  assert.equal(none.deposit.amount, null);
 });

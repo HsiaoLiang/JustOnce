@@ -2,13 +2,14 @@
 
 import Image from "next/image";
 import { useActionState, useMemo, useState, type ReactNode } from "react";
-import { Camera, Shirt, Snowflake, Tent } from "lucide-react";
+import { Camera, LoaderCircle, Shirt, Snowflake, Sparkles, Tent } from "lucide-react";
 import { saveListing, type ListingFormState } from "@/server/actions/listings";
 import { areaName, areasByRegion } from "@/lib/areas";
 import { CATEGORIES, CONDITIONS, conditionLabel, type CategoryId } from "@/lib/catalogue";
 import type { ISODate } from "@/lib/dates";
+import type { DraftField, ListingDraftResponse } from "@/lib/listing-draft";
 import type { ListingFormValues } from "@/lib/listing-form-values";
-import { formatGBP, parsePounds } from "@/lib/money";
+import { formatGBP, parsePounds, penceToPoundsInput } from "@/lib/money";
 import { MAX_LISTING_PHOTOS } from "@/lib/photos";
 import { cn, plural } from "@/lib/cn";
 import { Calendar } from "./calendar";
@@ -22,13 +23,96 @@ const CATEGORY_ICONS: Record<CategoryId, ReactNode> = {
   SEASONAL: <Snowflake className="size-5" />,
 };
 
-export function ListingForm({ initial, today, locked = [], mode }: { initial: ListingFormValues; today: ISODate; locked?: ISODate[]; mode: "create" | "edit" }) {
+type SuggestibleField = DraftField | "price" | "deposit";
+
+export function ListingForm({
+  initial,
+  today,
+  locked = [],
+  mode,
+  aiEnabled = false,
+}: {
+  initial: ListingFormValues;
+  today: ISODate;
+  locked?: ISODate[];
+  mode: "create" | "edit";
+  /** Shows "Fill in from photo". False when no AI key is configured, so the form is exactly as before. */
+  aiEnabled?: boolean;
+}) {
   const [state, formAction, pending] = useActionState<ListingFormState, FormData>(saveListing, undefined);
   const [v, setV] = useState(initial);
   const [photos, setPhotos] = useState(initial.photos);
   const [uploading, setUploading] = useState(false);
   const errors = state?.fieldErrors ?? {};
-  const set = <K extends keyof ListingFormValues>(key: K, value: ListingFormValues[K]) => setV((prev) => ({ ...prev, [key]: value }));
+  // AI draft: which fields still hold an unreviewed suggestion, and what the model couldn't tell.
+  const [suggested, setSuggested] = useState<ReadonlySet<SuggestibleField>>(new Set());
+  const [questions, setQuestions] = useState<Partial<Record<DraftField, string>>>({});
+  const [reasons, setReasons] = useState<{ price?: string; deposit?: string }>({});
+  const [drafting, setDrafting] = useState(false);
+  const [draftMessage, setDraftMessage] = useState<{ tone: "info" | "danger"; text: string } | null>(null);
+
+  const confirm = (key: SuggestibleField) =>
+    setSuggested((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  // Editing a field counts as checking it, so its "Suggested" mark goes away.
+  const set = <K extends keyof ListingFormValues>(key: K, value: ListingFormValues[K]) => {
+    setV((prev) => ({ ...prev, [key]: value }));
+    confirm(key as SuggestibleField);
+    if (value) setQuestions((prev) => (key in prev ? { ...prev, [key]: undefined } : prev));
+  };
+  const mark = (key: SuggestibleField) => suggested.has(key) && <SuggestedMark onConfirm={() => confirm(key)} />;
+
+  const draftPhotos = photos.filter((url) => url.startsWith("/api/images/"));
+
+  async function fillFromPhoto() {
+    setDrafting(true);
+    setDraftMessage(null);
+    try {
+      const response = await fetch("/api/ai/listing-draft", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ photos: draftPhotos }),
+      });
+      const body = (await response.json().catch(() => null)) as (ListingDraftResponse & { error?: string }) | null;
+      if (!response.ok || !body?.draft) throw new Error(body?.error ?? "Couldn't read the photo. Fill it in by hand.");
+
+      const { draft, pricing } = body;
+      const filled = new Set<SuggestibleField>();
+      const next = { ...v };
+      // Never overwrite something the owner typed: only empty fields, or ones still holding an earlier suggestion.
+      const fill = <K extends SuggestibleField>(key: K, value: ListingFormValues[K] | null | undefined) => {
+        if (!value || (v[key] && !suggested.has(key))) return;
+        next[key] = value;
+        filled.add(key);
+      };
+      fill("title", draft.title);
+      fill("category", draft.category);
+      fill("condition", draft.condition);
+      fill("brand", draft.brand);
+      fill("size", draft.size);
+      fill("description", draft.description);
+      fill("price", pricing.price.amount ? penceToPoundsInput(pricing.price.amount) : null);
+      fill("deposit", pricing.deposit.amount ? penceToPoundsInput(pricing.deposit.amount) : null);
+
+      setV(next);
+      setSuggested(filled);
+      setQuestions(Object.fromEntries(draft.questions.filter((q) => !next[q.field]).map((q) => [q.field, q.question])));
+      setReasons({ price: pricing.price.reason, deposit: pricing.deposit.reason });
+      setDraftMessage(
+        filled.size
+          ? { tone: "info", text: `Filled in ${plural(filled.size, "field")} from your photo. Check each one before you publish.` }
+          : { tone: "danger", text: draft.questions[0]?.question ?? "Couldn't tell what this is from the photo. Try a brighter, closer one, or fill it in by hand." },
+      );
+    } catch (e) {
+      setDraftMessage({ tone: "danger", text: e instanceof Error ? e.message : "Couldn't read the photo. Fill it in by hand." });
+    } finally {
+      setDrafting(false);
+    }
+  }
 
   const blocked = useMemo(() => new Set(v.blockedDates.filter((d) => d >= v.availableFrom && d <= v.availableTo)), [v.blockedDates, v.availableFrom, v.availableTo]);
   const lockedSet = useMemo(() => new Set(locked), [locked]);
@@ -54,20 +138,33 @@ export function ListingForm({ initial, today, locked = [], mode }: { initial: Li
             }}
           />
           <FieldError>{errors.photos}</FieldError>
+          {aiEnabled && draftPhotos.length > 0 && (
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <Button type="button" variant="secondary" onClick={fillFromPhoto} disabled={drafting || uploading}>
+                {drafting ? <LoaderCircle className="size-4 animate-spin" aria-hidden /> : <Sparkles className="size-4" aria-hidden />}
+                {drafting ? "Reading your photo…" : "Fill in from photo"}
+              </Button>
+              <p className="text-sm text-muted">AI drafts the details and suggests a price. You check everything before it goes live.</p>
+            </div>
+          )}
+          <div aria-live="polite" className="mt-3">
+            {draftMessage && <FormAlert tone={draftMessage.tone}>{draftMessage.text}</FormAlert>}
+          </div>
         </Section>
 
         <Section title="The basics">
           <div className="space-y-5">
             <div>
               <Label htmlFor="title" hint={`${v.title.length}/80`}>
-                Title
+                Title {mark("title")}
               </Label>
               <Input id="title" name="title" value={v.title} onChange={(e) => set("title", e.target.value)} maxLength={80} placeholder="e.g. Navy three-piece suit, 40R" aria-invalid={!!errors.title} />
+              <Question>{questions.title}</Question>
               <FieldError>{errors.title}</FieldError>
             </div>
 
             <fieldset>
-              <legend className="mb-1.5 text-sm font-semibold">Category</legend>
+              <legend className="mb-1.5 text-sm font-semibold">Category {mark("category")}</legend>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {CATEGORIES.map((c) => (
                   <label
@@ -83,11 +180,12 @@ export function ListingForm({ initial, today, locked = [], mode }: { initial: Li
                   </label>
                 ))}
               </div>
+              <Question>{questions.category}</Question>
               <FieldError>{errors.category}</FieldError>
             </fieldset>
 
             <fieldset>
-              <legend className="mb-1.5 text-sm font-semibold">Condition</legend>
+              <legend className="mb-1.5 text-sm font-semibold">Condition {mark("condition")}</legend>
               <div className="flex flex-wrap gap-2">
                 {CONDITIONS.map((c) => (
                   <label
@@ -103,12 +201,13 @@ export function ListingForm({ initial, today, locked = [], mode }: { initial: Li
                 ))}
               </div>
               <p className="mt-1.5 text-sm text-muted">{CONDITIONS.find((c) => c.id === v.condition)?.hint ?? "How worn is it? Be honest: it's checked at pickup."}</p>
+              <Question>{questions.condition}</Question>
               <FieldError>{errors.condition}</FieldError>
             </fieldset>
 
             <div>
               <Label htmlFor="description" hint={`${v.description.length}/2000`}>
-                Description
+                Description {mark("description")}
               </Label>
               <Textarea
                 id="description"
@@ -120,22 +219,25 @@ export function ListingForm({ initial, today, locked = [], mode }: { initial: Li
                 placeholder="What is it, what's included, and what's it great for? Mention anything a renter should know."
                 aria-invalid={!!errors.description}
               />
+              <Question>{questions.description}</Question>
               <FieldError>{errors.description}</FieldError>
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
                 <Label htmlFor="brand" hint="Optional">
-                  Brand
+                  Brand {mark("brand")}
                 </Label>
                 <Input id="brand" name="brand" value={v.brand} onChange={(e) => set("brand", e.target.value)} maxLength={60} placeholder="e.g. Reiss, Sony, Vango" />
+                <Question>{questions.brand}</Question>
                 <FieldError>{errors.brand}</FieldError>
               </div>
               <div>
                 <Label htmlFor="size" hint="Optional">
-                  Size or dimensions
+                  Size or dimensions {mark("size")}
                 </Label>
                 <Input id="size" name="size" value={v.size} onChange={(e) => set("size", e.target.value)} maxLength={60} placeholder="e.g. UK 10, 40R, sleeps 4" />
+                <Question>{questions.size}</Question>
                 <FieldError>{errors.size}</FieldError>
               </div>
             </div>
@@ -145,13 +247,15 @@ export function ListingForm({ initial, today, locked = [], mode }: { initial: Li
         <Section title="Price and deposit" hint="Renters pay a 10% service fee on top. You keep 100% of your daily price.">
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <Label htmlFor="price">Price per day</Label>
+              <Label htmlFor="price">Price per day {mark("price")}</Label>
               <MoneyInput id="price" name="price" value={v.price} onChange={(x) => set("price", x)} suffix="/day" invalid={!!errors.price} />
+              {reasons.price && <p className="mt-1.5 text-sm text-ink-2">{reasons.price}</p>}
               <FieldError>{errors.price}</FieldError>
             </div>
             <div>
-              <Label htmlFor="deposit">Refundable deposit</Label>
+              <Label htmlFor="deposit">Refundable deposit {mark("deposit")}</Label>
               <MoneyInput id="deposit" name="deposit" value={v.deposit} onChange={(x) => set("deposit", x)} invalid={!!errors.deposit} />
+              {reasons.deposit && <p className="mt-1.5 text-sm text-ink-2">{reasons.deposit}</p>}
               <FieldError>{errors.deposit}</FieldError>
             </div>
           </div>
@@ -259,6 +363,30 @@ export function ListingForm({ initial, today, locked = [], mode }: { initial: Li
       </aside>
     </div>
   );
+}
+
+/** Sits beside a field the AI filled in, until the owner edits the field or taps to confirm it. */
+function SuggestedMark({ onConfirm }: { onConfirm: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        onConfirm();
+      }}
+      title="Looks right? Tap to confirm"
+      className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 align-middle text-xs font-semibold text-accent-ink hover:bg-accent-line"
+    >
+      <Sparkles className="size-3" aria-hidden />
+      Suggested, check before publishing
+    </button>
+  );
+}
+
+/** What the AI couldn't tell from the photo, shown instead of a guess. */
+function Question({ children }: { children?: string }) {
+  if (!children) return null;
+  return <p className="mt-1.5 text-sm text-accent-ink">{children}</p>;
 }
 
 function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
