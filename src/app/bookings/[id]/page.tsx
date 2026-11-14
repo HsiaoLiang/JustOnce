@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Camera, Check, CircleCheck, Clock, MapPin, MessageSquare, PackageCheck, RotateCcw, Star, X } from "lucide-react";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { BookingTicketSummary, StatusChip } from "@/components/booking-bits";
+import { CheckComparison, ComparisonPanel, doneComparison } from "@/components/photo-comparison";
 import { AcceptDeclineButtons, CancelBookingButton, CheckForm, ClaimForm, ClaimResponseForm, ReviewForm } from "@/components/booking-forms";
 import { Avatar, Card, Container, LinkButton, Rating, Stars, VerifiedBadge } from "@/components/ui";
 import { hasCheck, nextStep, otherParty, ownerFlaggedReturn, progressIndex, STEPS } from "@/lib/booking-flow";
@@ -15,6 +16,7 @@ import { formatDateTime, formatLongDay, formatMonthYear, formatRange, todayInLon
 import { CLAIM_WINDOW_HOURS, claimReasonLabel, formatGBP } from "@/lib/money";
 import { DEMO_MODE } from "@/lib/demo";
 import { cn, firstName, plural } from "@/lib/cn";
+import { aiEnabled } from "@/server/ai";
 import { requireUser } from "@/server/auth";
 import { db } from "@/server/db";
 import { settleOverdueDeposits } from "@/server/deposits";
@@ -40,6 +42,9 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
   const step = nextStep(flow, viewer, other.name, today);
   const progress = progressIndex(flow);
   const closed = b.status === "DECLINED" || b.status === "CANCELLED";
+  // With no AI key the photo comparison never starts and the page is exactly as it was.
+  const aiOn = aiEnabled();
+  const now = Date.now();
   const overlappingRequests =
     viewer === "OWNER" && b.status === "REQUESTED"
       ? await db.booking.count({
@@ -172,6 +177,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                 </p>
                                 {check.notes && <p className="mt-1 text-sm text-muted">“{check.notes}”</p>}
                                 <p className="mt-2 text-xs text-muted">{formatDateTime(check.createdAt)}</p>
+                                <CheckComparison check={check} aiOn={aiOn} now={now} />
                               </>
                             ) : (
                               <p className="mt-2 flex items-center gap-1.5 text-sm text-muted">
@@ -325,6 +331,9 @@ function NextStep({
     const mine = hasCheck(flowOf(b), stage, viewer);
     const theirs = hasCheck(flowOf(b), stage, otherParty(viewer));
     const pickup = stage === "PICKUP";
+    // What the AI noticed in the other person's return photos, shown before this person ticks "same condition".
+    const theirReturn = pickup ? undefined : b.checks.find((c) => c.stage === "RETURN" && c.party === otherParty(viewer));
+    const theirComparison = theirReturn ? doneComparison(theirReturn.aiComparison) : null;
     const when = pickup
       ? start > today
         ? `Pickup is planned for ${formatLongDay(start)}. If you meet earlier, you can confirm early.`
@@ -368,6 +377,7 @@ function NextStep({
             </>
           ) : (
             <div className="rounded-2xl bg-paper p-4 sm:p-5">
+              {theirComparison && <ComparisonPanel comparison={theirComparison} whose={`${otherFirst}'s`} className="mb-5" />}
               <CheckForm key={`${b.id}-${stage}`} bookingId={b.id} stage={stage} defaultCondition={b.listing.condition as ConditionId} samplePhoto={sample} />
             </div>
           )}
@@ -481,6 +491,9 @@ function DepositSection({ b, viewer }: { b: BookingDetail; viewer: PartyId }) {
   const ownerReturn = b.checks.find((c) => c.stage === "RETURN" && c.party === "OWNER");
   const deadline = ownerReturn ? new Date(ownerReturn.createdAt.getTime() + CLAIM_WINDOW_HOURS * 3_600_000) : null;
   const claim = b.claim;
+  // The comparison of the owner's own return photos: the same evidence for both sides of a claim.
+  const comparison = ownerReturn ? doneComparison(ownerReturn.aiComparison) : null;
+  const comparisonWhose = viewer === "OWNER" ? "your" : `${ownerFirst}'s`;
 
   if (!claim) {
     if (b.depositStatus !== "HELD" || !ownerReturn || ownerReturn.conditionOk) return null;
@@ -488,6 +501,7 @@ function DepositSection({ b, viewer }: { b: BookingDetail; viewer: PartyId }) {
       <div className="rounded-2xl bg-paper p-4 sm:p-5">
         <p className="font-semibold">{viewer === "OWNER" ? "Claim from the deposit" : `${ownerFirst} reported a problem`}</p>
         {ownerReturn.notes && <p className="mt-1 text-sm text-ink-2 italic">“{ownerReturn.notes}”</p>}
+        {comparison && <ComparisonPanel comparison={comparison} whose={comparisonWhose} className="mt-3 mb-3" />}
         {viewer === "OWNER" ? (
           <>
             <p className="mt-1 mb-4 text-sm text-muted">
@@ -526,6 +540,7 @@ function DepositSection({ b, viewer }: { b: BookingDetail; viewer: PartyId }) {
       </div>
 
       <PhotoCompare b={b} />
+      {comparison && <ComparisonPanel comparison={comparison} whose={comparisonWhose} />}
 
       {claim.status === "OPEN" &&
         (viewer === "RENTER" && b.status === "COMPLETED" ? (
@@ -678,6 +693,8 @@ const EVENT_TEXT: Record<string, (actor: string) => string> = {
   deposit_kept: () => "Deposit kept",
   deposit_released: () => "Deposit returned in full",
   claim_window_closed: () => "No claim made in time",
+  ai_pickup_match: () => "Pickup photos checked against the listing",
+  ai_return_comparison: () => "Return photos compared with pickup",
 };
 
 function Timeline({ events, viewerId }: { events: BookingDetail["events"]; viewerId: string }) {

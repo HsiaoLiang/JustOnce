@@ -58,3 +58,4 @@ All demo photos come from [Unsplash](https://unsplash.com) and are used under th
 | /seed/avatars/callum.jpg | https://images.unsplash.com/photo-1531427186611-ecfd6d936c79 |
 | /seed/avatars/oliver.jpg | https://images.unsplash.com/photo-1599566150163-29194dcaad36 |
 | /seed/avatars/daniel.jpg | https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d |
+| /seed/checks/creator-kit-return-1.jpg | Edited copy of /seed/listings/creator-kit-1.jpg with the microphone removed, for the photo comparison demo |

@@ -283,6 +283,9 @@ model HandoverCheck {
   conditionOk    Boolean    @default(true)
   notes          String?
   photos         String[]
+  /// AI comparison of these photos with the earlier ones (listing photos at pickup, pickup photos at return).
+  /// Advice for the two people only: nothing reads it to change a booking or a deposit. Shape: src/lib/photo-comparison.ts.
+  aiComparison   Json?
   createdAt      DateTime   @default(now())
   booking        Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)

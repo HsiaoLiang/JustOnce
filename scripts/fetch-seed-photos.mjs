@@ -50,6 +50,9 @@ for (const [slug, { id, position: pos, extract }] of Object.entries(manifest.ava
   console.log("avatar", slug);
 }
 
+// Made by hand from a listing photo (not downloaded here): the return photo for the AI photo comparison demo.
+credits.push("| /seed/checks/creator-kit-return-1.jpg | Edited copy of /seed/listings/creator-kit-1.jpg with the microphone removed, for the photo comparison demo |");
+
 await fs.writeFile(
   path.join(out, "CREDITS.md"),
   `# Seed photo credits\n\nAll demo photos come from [Unsplash](https://unsplash.com) and are used under the [Unsplash License](https://unsplash.com/license). People shown in avatars are not real Just Once users.\n\n| File | Source |\n| --- | --- |\n${credits.join("\n")}\n`,

@@ -154,7 +154,7 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
         condition: listing.condition,
         conditionOk: !flagged,
         notes: flagged ? b.claim!.returnIssue : pick(notes, index),
-        photos: photosFor(party),
+        photos: stage === "RETURN" && party === "RENTER" && b.renterReturnPhotos ? b.renterReturnPhotos : photosFor(party),
         createdAt,
       });
       event(stage === "PICKUP" ? "pickup_check" : "return_check", createdAt, party === "OWNER" ? owner.id : renter.id);

@@ -720,6 +720,8 @@ export interface SeedBooking {
   /** For ACCEPTED/ACTIVE bookings: which sides have already done their check. */
   pickupDone?: ("OWNER" | "RENTER")[];
   returnDone?: ("OWNER" | "RENTER")[];
+  /** The renter's return photos, when they should differ from the pickup ones (for the AI photo comparison demo). */
+  renterReturnPhotos?: string[];
   declineReason?: string;
   /** Delivered instead of meeting in person. */
   handover?: { method: "COURIER"; area: string; address: string } | { method: "LOCKER"; lockerId: string };
@@ -861,6 +863,8 @@ export const BOOKINGS: SeedBooking[] = [
     message: "Filming a short for a course and need decent audio. Thanks!",
     pickupDone: ["OWNER", "RENTER"],
     returnDone: ["RENTER"],
+    // The same flat lay as at pickup with the Rode microphone gone, so the AI comparison has a clear, checkable difference.
+    renterReturnPhotos: ["/seed/checks/creator-kit-return-1.jpg"],
   },
   {
     listing: "sony-a7-iii-28-70mm",
