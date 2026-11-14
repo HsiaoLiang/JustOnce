@@ -2,6 +2,8 @@
 
 **Rent the things you only need once.** Just Once is a peer-to-peer rental marketplace for London: an outfit, a designer bag or a watch for a wedding, a camera for a weekend away, a tent for a festival, a Santa suit for the office party. Owners earn from things sitting in a cupboard; renters don't buy something they'll use once and then store in a small flat.
 
+Students and staff can also **borrow within their school or office**: verify with a school or work email, then filter to your community, see items listed for members only, and ask for what you need on the community's exchange board. London Business School, Imperial, UCL, Google UK and Meta London are seeded.
+
 Built for AI Cup, Track B (Creativity & Commerce). The core journey works end to end: list → search → book → accept → pickup check → return check → deposit back → ratings.
 
 | Home | Item page | Booking request (owner) |
@@ -22,6 +24,7 @@ Built for AI Cup, Track B (Creativity & Commerce). The core journey works end to
 - [Suggested demo script](#suggested-demo-script)
 - [Before you present](#before-you-present)
 - [What's in the app](#whats-in-the-app)
+- [Communities](#communities)
 - [How it works](#how-it-works)
 - [Data model and the future swap option](#data-model-and-the-future-swap-option)
 - [Testing](#testing)
@@ -91,7 +94,7 @@ Your app is now live at `https://<project-name>.vercel.app`. Share that link wit
 
 ## Demo accounts
 
-Every demo account uses the password **`justonce`**. In demo mode the log-in page also has one-tap buttons for the main accounts, and the account menu (top right) has a "Switch demo account" list, so you can jump between owner and renter in two clicks.
+Every demo account uses the password **`justonce`**. In demo mode the log-in page also has one-tap buttons for the main accounts, grouped by the community each one belongs to, and the account menu (top right) has a "Switch demo account" list, so you can jump between owner and renter in two clicks.
 
 | Person | Email | Role | Waiting for them after a fresh seed |
 | --- | --- | --- | --- |
@@ -101,8 +104,21 @@ Every demo account uses the password **`justonce`**. In demo mode the log-in pag
 | Leo Martins | `leo@example.com` | Renter and owner, Brixton | Waiting on Priya's answer about the Sony; a tuxedo booked for a black-tie party |
 | Tom Hughes | `tom@example.com` | Owner, Walthamstow | Tents and camping kit; a bell-tent booking next week |
 | Oliver Bennett | `oliver@example.com` | Owner, Shoreditch | Callum's request for his Rolex Explorer (full deposit only, £1,000); suits and monk straps |
+| Martin Hsiao | `martin@example.com` | LBS student | A members-only navy interview suit listed with LBS, and a request on the LBS board for a TI BA II Plus calculator |
 
-Also seeded: `hannah@`, `callum@`, `daniel@`, `zara@`, `mei@`, `isla@`, `ruby@`, `kwame@` and `sam@example.com` (Sam isn't ID-verified, so you can show the unverified state and the "Verify your ID to halve deposits" prompt). Leo qualifies as a trusted renter, so he's quoted half deposits, and his tuxedo booking goes through a parcel locker; Sophie's ski kit comes by courier. Daniel's Fujifilm X-T3 rental shows a settled claim (£25 kept for a missing lens hood). In total: 15 people, 82 listings across 11 categories (at least four in each, six or more in all but Costumes), 58 bookings in every state and 77 reviews. Every listing has a gallery of two or three photos. The categories come in two groups: **Fashion** (formalwear, clothing, shoes, bags, jewellery, watches, accessories and costumes) and **Kit and occasions** (cameras, camping and seasonal). All dates are relative to the day you seed, so the demo always looks current.
+Also seeded: `hannah@`, `callum@`, `daniel@`, `zara@`, `mei@`, `isla@`, `ruby@`, `kwame@` and `sam@example.com` (Sam isn't ID-verified, so you can show the unverified state and the "Verify your ID to halve deposits" prompt). Leo qualifies as a trusted renter, so he's quoted half deposits, and his tuxedo booking goes through a parcel locker; Sophie's ski kit comes by courier. Daniel's Fujifilm X-T3 rental shows a settled claim (£25 kept for a missing lens hood). In total: 16 people, 97 listings across 11 categories (at least four in each, six or more in all but Costumes), 58 bookings in every state and 77 reviews, plus 5 communities with 15 community items (9 of them members-only), 16 board posts and 7 replies. Every listing has a gallery of two or three photos. The categories come in two groups: **Fashion** (formalwear, clothing, shoes, bags, jewellery, watches, accessories and costumes) and **Kit and occasions** (cameras, camping and seasonal). All dates are relative to the day you seed, so the demo always looks current.
+
+**Who belongs where** (all verified by school or work email):
+
+| Community | Members |
+| --- | --- |
+| London Business School (`@london.edu`) | Martin, Sophie, Oliver, Mei |
+| Imperial College London (`@imperial.ac.uk`, `@ic.ac.uk`) | Priya, Tom, Callum |
+| University College London (`@ucl.ac.uk`) | Amara, Hannah, Kwame |
+| Google UK (`@google.com`) | Leo, Isla, Zara |
+| Meta London (`@meta.com`, `@fb.com`) | Daniel, Ruby |
+
+Everyone else, Sam for example, isn't in a community yet, so they can try verifying.
 
 ## Suggested demo script
 
@@ -120,6 +136,8 @@ About 6 minutes. Use **two screens** so the judges watch both sides of the same 
 8. **Double booking can't happen (30 s), laptop.** Open Priya's Sony A7 III request from Leo. The page warns that one other request overlaps. Accept it: Daniel's overlapping request is declined automatically and he isn't charged, and the dates are crossed out on the calendar. Mention that this is also enforced by the database itself, not just the screen.
 
 **AI photo comparison (optional, 30 s, needs an AI key).** As Priya, open the content-creator kit booking. Oliver has already confirmed the return, and his photo is the pickup flat lay with the Rode microphone gone. Within a few seconds a **Compared with pickup** panel appears above Priya's return form and under Oliver's photos, with a finding along the lines of *"Microphone not visible in the return photos"*. For a subtler case, open Priya's Sony A7 III rental to Zara: the return photo has a light scratch across the lens ring. It is small enough that the comparison can miss it, and that is worth saying out loud. Point out that it is a suggestion: Priya still chooses *Yes, same as before* or *Something's changed* herself, and the deposit only moves on her choice.
+
+**Communities (optional, 60 s).** Log in as **Sophie** and open **Communities → LBS**: the exchange board has requests ("Need a TI BA II Plus for the Corporate Finance midterm") and offers, each from a verified member. Switch to the *LBS items* tab and open Martin's members-only navy interview suit. Now switch to **Leo** (Google UK) and open the same link: he sees a *Members only* page instead, and the suit isn't in his search results or on Martin's profile. Finally, as **Sam**, open `/communities/lbs/verify`, enter any `@london.edu` address, type back the code (shown on screen in demo mode, emailed when Resend is set up) and Sam is verified.
 
 **Short on time?** Skip steps 2 to 4 and use the seeded bookings: as Sophie, return the Fujifilm X100V; as Priya, confirm the content-creator kit return (the renter has already confirmed, so Priya's confirmation completes it) and rate Callum.
 
@@ -140,13 +158,17 @@ Resetting logs everyone out. If you're showing the site on a phone, log in again
 | Page | What it does |
 | --- | --- |
 | Home `/` | Search (item, area, dates), categories grouped into Fashion and Kit and occasions with live counts, featured items, newest listings, how it works, an earnings pitch for owners |
-| Search `/search` | Filters for category, dates (only shows items free on those dates), area (a neighbourhood or a whole region such as East London), price, delivery available and sort; List / Map toggle with price pins and "Search this area"; "Near me" sorts by distance (location stays in the browser) |
+| Search `/search` | A community row ("LBS only" and so on) and filters for category, dates (only shows items free on those dates), area (a neighbourhood or a whole region such as East London), price, delivery available and sort; List / Map toggle with price pins and "Search this area"; "Near me" sorts by distance (location stays in the browser) |
 | Item `/items/[id]` | Large photo gallery, availability calendar (booked and blocked days crossed out), map of the pickup neighbourhood, handover choice (meet, courier or locker), price breakdown, deposit, owner profile and reviews |
 | List an item `/listings/new`, edit `/listings/[id]/edit` | Photos (resized in the browser), **AI draft from a photo**, category, condition, price, deposit, pickup area and private pickup details, availability window plus days blocked out; pause, resume or remove a listing |
 | My rentals `/dashboard/rentals` | Renter view: what needs you, what's on rent, upcoming, past |
 | My listings `/dashboard/listings` | Owner view: requests to accept or decline in place, what needs you, earnings, your items, past bookings |
 | Booking `/bookings/[id]` | The whole rental on one page: progress, the next step, the return ticket, pickup and return checks with photos, deposit claims (claim, accept, contest, review), ratings, activity timeline |
-| Profile `/users/[id]` | Verified badge, rating, items, reviews from renters and from owners |
+| Profile `/users/[id]` | Verified badge, rating, items, reviews from renters and from owners. Members-only items appear only to the owner and members of that community |
+| Communities `/communities` | Every school and company community, with member, item and open-post counts |
+| Community `/communities/[slug]` | The exchange board (looking for / have to lend, filterable) and the community's items, a *Verify* button for non-members, and *List with …* for members |
+| Board post `/communities/[slug]/posts/[postId]` | The post with photos, date and budget or price, replies from members; the author can mark it sorted, reopen it, delete it, or turn an offer into a listing |
+| Verify `/communities/[slug]/verify` | Join a community with a school or work email code, or by uploading an ID card for review |
 | Account `/account` | Edit profile and photo, simulated ID verification, log out |
 | Policies `/policies` | Booking, payments and fees, deposits, half deposits for trusted renters, handover checks, damage claims, cancellations, reviews and privacy, in plain English |
 | Log in, sign up | Email and password; one-tap demo accounts in demo mode |
@@ -163,15 +185,25 @@ Payments, deposits and payouts are **simulated**: the app shows every amount and
 
 **AI: search with a photo.** Also under the home page search, a renter can upload or take a photo of the thing they need. AI names the kind of item ("two-person dome tent") and picks a category and keywords, and the normal search page shows similar items to rent. It matches the kind of item, not the exact model. The photo is shrunk in the browser, used for that one question and not stored.
 
-## Communities (LBS demo)
+## Communities
 
-People can verify that they belong to a school or company and then use that community as a filter and a meeting place. London Business School is seeded as the first community.
+A community is a school or a company. Belonging to one lets you borrow from people you'll actually run into, and hand things over somewhere you both already go (each community has a usual spot, such as the Sammy Ofer Centre reception at LBS).
 
-- **Verify** at `/communities/lbs/verify`: enter an `@london.edu` email and type back the 6-digit code (15 minutes, 5 tries), or upload a student ID card for manual review. With `RESEND_API_KEY` and `EMAIL_FROM` set (Vercel → Settings → Environment Variables), the code is emailed through Resend; without them it's shown on screen, like the other simulated checks.
-- **Other demo communities:** Imperial, UCL, Google UK and Meta London each have seeded members, items and board posts. The log-in page groups the quick-login accounts by community.
-- **Filter**: search has a Community row (`/search?community=lbs`). Listings can be listed with a community and optionally made **members only**: those are hidden from search, the home page, owner pages and link previews for anyone who isn't a verified member, and only members can book them.
-- **Exchange board** at `/communities/lbs`: verified members post what they're *looking for* or *have to lend*, with an optional date, budget/price and photos, and reply to each other. Authors can mark posts as sorted or turn an offer into a listing.
-- Demo login: `martin@example.com` / `justonce` is a verified LBS member (Sophie, Oliver and Mei are too). Any other demo account can try verifying.
+**Joining.** Open a community and press **Verify with …**:
+
+- **School or work email:** enter an address at one of the community's domains (subdomains count, so `@student.london.edu` works for LBS) and type back the 6-digit code. A code lasts 15 minutes and allows 5 tries. A new code can be sent at most once a minute, so asking again can't be used to get more guesses quickly, and guesses sent at the same moment still each use up a try. One address can only be verified on one account.
+- **Email delivery:** with `RESEND_API_KEY` and `EMAIL_FROM` set, the code is emailed through [Resend](https://resend.com). `EMAIL_FROM` must be on a domain you've verified in Resend; Resend's shared `onboarding@resend.dev` only delivers to your own Resend account. Without a key, the code is shown on screen, like the other simulated checks.
+- **ID card:** instead of an email, a member can upload a photo of their student or staff card. It waits as *ID card in review*; there is no review screen in this demo, so use the email route to show joining.
+
+Companies get work wording ("work email", "staff ID card", "colleagues"), schools get school wording.
+
+**Listing with a community.** Members see a *Community* section on the listing form. *List with LBS* adds an LBS badge to the item; also ticking **Members only** means only verified LBS members (and the owner) can see and book it. Members-only items are left out of search, the home page, "more from this owner", the owner's profile and the community's item tab for everyone else, and their link previews show no title or photo. Opening one directly shows a *Members only* page with a way to verify. Booking checks membership again on the server.
+
+For developers: any new query that shows listings to other people must use `visibleListingsWhere` (`src/server/queries.ts`) or `canSeeListing` (`src/lib/communities.ts`), as `AGENTS.md` says.
+
+**Exchange board.** Verified members post what they're **looking for** (with an optional date and budget) or **have to lend** (with an optional date and daily price), with up to 4 photos, and reply to each other. The author can mark a post as sorted, reopen or delete it, and turn an offer into a real listing. Anyone can read the board; only members can post or reply.
+
+**Search.** `/search?community=lbs` shows only items listed with LBS; the community row above the filters switches between them.
 
 ## How it works
 
@@ -241,8 +273,8 @@ npm test
 npm run test:e2e
 ```
 
-- `npm test` runs unit tests for the pricing, deposit, date and booking rules (`src/lib/__tests__`).
-- `npm run test:e2e` drives the real app with Playwright through the whole journey in two browsers: an owner signs up and lists an item with a photo upload, a renter searches and books, the owner accepts, both confirm pickup and return, the deposit is released, both leave reviews, and overlapping requests are declined automatically. `e2e/map.spec.ts` checks pins match the results, "Near me" with location allowed and refused, and that pickup details stay private until acceptance. `e2e/delivery.spec.ts` books with a courier and checks the server rejects a method the listing doesn't offer. `e2e/deposits.spec.ts` covers damage claims (claim → accept, claim → contest → resolve) and half deposits for trusted renters. A last test checks the phone layout. It starts `npm run dev` if nothing is running; to test another server, set `E2E_BASE_URL`. First-time setup: `npx playwright install chromium`. **The tests create data, so run `npm run db:seed` afterwards.**
+- `npm test` runs unit tests for the pricing, deposit, date and booking rules, and for the community rules: email domains, codes and their expiry, the resend gap, and who can see a members-only item (`src/lib/__tests__`).
+- `npm run test:e2e` drives the real app with Playwright through the whole journey in two browsers: an owner signs up and lists an item with a photo upload, a renter searches and books, the owner accepts, both confirm pickup and return, the deposit is released, both leave reviews, and overlapping requests are declined automatically. `e2e/map.spec.ts` checks pins match the results, "Near me" with location allowed and refused, and that pickup details stay private until acceptance. `e2e/delivery.spec.ts` books with a courier and checks the server rejects a method the listing doesn't offer. `e2e/deposits.spec.ts` covers damage claims (claim → accept, claim → contest → resolve) and half deposits for trusted renters. `e2e/communities.spec.ts` checks that a members-only item stays off its owner's profile and behind the members-only page for outsiders but shows for a member, and runs work-email verification: a wrong code is refused, a second code within a minute is refused, and the right code verifies. A last test checks the phone layout. It starts `npm run dev` if nothing is running; to test another server, set `E2E_BASE_URL`. First-time setup: `npx playwright install chromium`. **The tests create data, so run `npm run db:seed` afterwards.**
 
 ## Scripts and environment variables
 
@@ -268,6 +300,8 @@ npm run test:e2e
 | `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET` | Optional | Live "to buy new" prices from eBay UK for the rent-versus-buy line on item pages. Without them the price is an AI estimate (web search first, when the AI key's plan includes it), and with no AI key either, the owner's replacement value. Server-side only |
 | `EBAY_ENV` | Optional | `production` (default) or `sandbox`, matching your eBay keys. Sandbox listings are made up |
 | `AMAZON_ASSOCIATE_TAG`, `EBAY_CAMPAIGN_ID` | Optional | Affiliate IDs added to the "Rather own it?" links on item pages. Without them the links are plain search links |
+| `RESEND_API_KEY` | Optional | Emails community verification codes through Resend. Without it the code is shown on screen. Server-side only |
+| `EMAIL_FROM` | With `RESEND_API_KEY` | The sender, e.g. `Just Once <verify@yourdomain.com>`, on a domain verified in Resend |
 | `NEXT_PUBLIC_DEMO_MODE` | Optional | Set to `false` to hide the one-tap demo log-ins and account switcher (takes effect on the next build) |
 
 ## Limitations and next steps
@@ -281,6 +315,7 @@ This is a competition demo, so some things are deliberately simulated or left ou
 - **Photo search** matches on category and keywords, not on how the item looks, so results are "the same kind of thing" and not visual lookalikes. The photo is sent to the AI provider.
 - **Describe-what-you-need search** picks filters only: it doesn't filter by size, suggest bundles or post "wanted" requests yet, and budgets map to the nearest price filter at or below what was asked.
 - **Delivery:** couriers and lockers are simulated, with demo prices and timeline steps. A real version would call a courier API and a locker network.
+- **Communities:** without Resend, the code is shown on screen, so anyone can "verify" any address at a community's domain; set up Resend before relying on membership. ID cards wait for a review that this demo doesn't have, and the uploaded card is stored like any other photo, readable by anyone who has its link. Board posts are public to read. Communities are added through the seed, not from the app.
 - **Maps:** OpenStreetMap tiles are fine for a demo; switch to a tile provider with a usage plan for real traffic.
 - **Not built yet:** in-app messages, a real support team for contested deposit claims, email and push notifications, and the swap option described above.
 - **Demo mode** publishes the demo password and adds one-tap log-ins. Set `NEXT_PUBLIC_DEMO_MODE=false` for anything beyond a demo.
