@@ -11,6 +11,7 @@ import { parseSearch } from "../search-params";
 import { median, modelDraftSchema, suggestPricing } from "../listing-draft";
 import { budgetToMaxPrice, isEmptySearch, photoSearchSchema, photoToSearch, situationHref, situationSchema, situationToSearch } from "../situation";
 import { sniffImageType } from "../image-type";
+import { aiEnabled, aiProvider } from "../../server/ai";
 
 const today = "2026-11-13";
 const availability: Availability = {
@@ -226,4 +227,30 @@ test("image types are recognised from their first bytes", () => {
   assert.equal(sniffImageType(new Uint8Array([0x89, 0x50, 0x4e, 0x47])), "image/png");
   assert.equal(sniffImageType(new TextEncoder().encode("RIFF0000WEBP")), "image/webp");
   assert.equal(sniffImageType(new TextEncoder().encode("<svg></svg>")), null);
+});
+
+test("AI provider: picked from whichever key is set, hidden with none", () => {
+  const saved = { ...process.env };
+  const set = (env: Record<string, string>) => {
+    for (const key of ["ANTHROPIC_API_KEY", "GEMINI_API_KEY", "AI_PROVIDER"]) delete process.env[key];
+    Object.assign(process.env, env);
+  };
+  try {
+    set({});
+    assert.equal(aiProvider(), null);
+    assert.equal(aiEnabled(), false);
+    set({ GEMINI_API_KEY: "g" });
+    assert.equal(aiProvider(), "gemini");
+    set({ ANTHROPIC_API_KEY: "a" });
+    assert.equal(aiProvider(), "anthropic");
+    set({ ANTHROPIC_API_KEY: "a", GEMINI_API_KEY: "g" });
+    assert.equal(aiProvider(), "anthropic");
+    set({ ANTHROPIC_API_KEY: "a", GEMINI_API_KEY: "g", AI_PROVIDER: "gemini" });
+    assert.equal(aiProvider(), "gemini");
+    // Asking for a provider whose key is missing falls back to the one that is set.
+    set({ ANTHROPIC_API_KEY: "a", AI_PROVIDER: "gemini" });
+    assert.equal(aiProvider(), "anthropic");
+  } finally {
+    process.env = saved;
+  }
 });

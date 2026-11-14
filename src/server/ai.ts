@@ -1,17 +1,53 @@
-// The one place that talks to the AI provider. Server-only: the API key never
-// reaches the browser. Every AI feature goes through `askVisionModel`, and every
+// The one place that talks to an AI provider. Server-only: API keys never
+// reach the browser. Every AI feature goes through `askVisionModel`, and every
 // caller must cope with it throwing, so the app works the same with no key set.
 // Only import this from server code (routes, server actions, server components).
+//
+// Two providers are supported and the features don't care which is in use:
+//   - Anthropic (ANTHROPIC_API_KEY), paid per call.
+//   - Google Gemini (GEMINI_API_KEY), which has a free tier.
+// With both keys set, Anthropic is used unless AI_PROVIDER="gemini".
 
-const API_URL = "https://api.anthropic.com/v1/messages";
-const DEFAULT_MODEL = "claude-haiku-5-5";
-const TIMEOUT_MS = 10_000;
+const TIMEOUT_MS = 15_000;
 
-export class AiUnavailableError extends Error {}
+type Provider = "anthropic" | "gemini";
+
+const DEFAULT_MODELS: Record<Provider, string> = {
+  anthropic: "claude-haiku-5-5",
+  gemini: "gemini-3.7-flash",
+};
+const MODEL_PREFIX: Record<Provider, string> = { anthropic: "claude", gemini: "gemini" };
+
+export class AiUnavailableError extends Error {
+  constructor(
+    message: string,
+    readonly retryable = false,
+  ) {
+    super(message);
+  }
+}
+
+/** Which provider is configured, or null when no usable key is set. */
+export function aiProvider(): Provider | null {
+  const anthropic = !!process.env.ANTHROPIC_API_KEY;
+  const gemini = !!process.env.GEMINI_API_KEY;
+  const wanted = process.env.AI_PROVIDER?.toLowerCase();
+  if (wanted === "gemini" && gemini) return "gemini";
+  if (wanted === "anthropic" && anthropic) return "anthropic";
+  if (anthropic) return "anthropic";
+  if (gemini) return "gemini";
+  return null;
+}
 
 /** AI features hide themselves when this is false. */
 export function aiEnabled(): boolean {
-  return !!process.env.ANTHROPIC_API_KEY;
+  return aiProvider() !== null;
+}
+
+/** AI_MODEL only applies when it names a model from the provider in use, so a leftover value can't break the other one. */
+function modelFor(provider: Provider): string {
+  const chosen = process.env.AI_MODEL?.trim();
+  return chosen && chosen.startsWith(MODEL_PREFIX[provider]) ? chosen : DEFAULT_MODELS[provider];
 }
 
 export interface AiImage {
@@ -24,21 +60,38 @@ interface AskOptions {
   prompt: string;
   /** Photos to look at. Pass an empty list for a text-only question. */
   images: AiImage[];
-  /** The model must answer by filling in this JSON schema. */
+  /**
+   * The model must answer by filling in this JSON schema. Keep it plain so both
+   * providers accept it: one type per field, no nulls (use "" or leave optional
+   * fields out of `required`).
+   */
   schema: { name: string; description: string; json: object };
 }
 
-async function callOnce({ system, prompt, images, schema }: AskOptions): Promise<unknown> {
-  const response = await fetch(API_URL, {
+const base64 = (image: AiImage) => Buffer.from(image.data).toString("base64");
+
+async function post(url: string, headers: Record<string, string>, body: unknown): Promise<unknown> {
+  const response = await fetch(url, {
     method: "POST",
     signal: AbortSignal.timeout(TIMEOUT_MS),
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": process.env.ANTHROPIC_API_KEY!,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: process.env.AI_MODEL || DEFAULT_MODEL,
+    headers: { "content-type": "application/json", ...headers },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    // 429 on a free tier usually means the per-minute or per-day quota is used up.
+    const retryable = response.status >= 500;
+    const detail = (await response.text().catch(() => "")).slice(0, 300);
+    throw new AiUnavailableError(`AI provider answered ${response.status}: ${detail}`, retryable);
+  }
+  return response.json();
+}
+
+async function askAnthropic({ system, prompt, images, schema }: AskOptions): Promise<unknown> {
+  const body = (await post(
+    "https://api.anthropic.com/v1/messages",
+    { "x-api-key": process.env.ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01" },
+    {
+      model: modelFor("anthropic"),
       max_tokens: 1024,
       system,
       tools: [{ name: schema.name, description: schema.description, input_schema: schema.json }],
@@ -47,40 +100,58 @@ async function callOnce({ system, prompt, images, schema }: AskOptions): Promise
         {
           role: "user",
           content: [
-            ...images.map((image) => ({
-              type: "image",
-              source: { type: "base64", media_type: image.mimeType, data: Buffer.from(image.data).toString("base64") },
-            })),
+            ...images.map((image) => ({ type: "image", source: { type: "base64", media_type: image.mimeType, data: base64(image) } })),
             { type: "text", text: prompt },
           ],
         },
       ],
-    }),
-  });
-  if (!response.ok) {
-    const retryable = response.status === 429 || response.status >= 500;
-    throw Object.assign(new AiUnavailableError(`AI provider answered ${response.status}`), { retryable });
-  }
-  const body = (await response.json()) as { content?: { type: string; name?: string; input?: unknown }[] };
+    },
+  )) as { content?: { type: string; name?: string; input?: unknown }[] };
   const answer = body.content?.find((block) => block.type === "tool_use" && block.name === schema.name);
   if (!answer) throw new AiUnavailableError("AI provider returned no structured answer");
   return answer.input;
 }
 
+async function askGemini({ system, prompt, images, schema }: AskOptions): Promise<unknown> {
+  const body = (await post(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelFor("gemini"))}:generateContent`,
+    { "x-goog-api-key": process.env.GEMINI_API_KEY! },
+    {
+      system_instruction: { parts: [{ text: system }] },
+      contents: [
+        {
+          role: "user",
+          parts: [...images.map((image) => ({ inline_data: { mime_type: image.mimeType, data: base64(image) } })), { text: prompt }],
+        },
+      ],
+      generationConfig: { responseMimeType: "application/json", responseJsonSchema: schema.json },
+    },
+  )) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
+  const text = body.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
+  if (!text.trim()) throw new AiUnavailableError("AI provider returned no structured answer");
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new AiUnavailableError("AI provider returned an answer that isn't valid JSON");
+  }
+}
+
 /**
- * Sends photos and a prompt to the vision model and returns its structured
+ * Sends photos and a prompt to the configured model and returns its structured
  * answer, unvalidated: callers parse it with their own zod schema. One retry on
  * timeouts and provider hiccups, then it throws AiUnavailableError.
  */
 export async function askVisionModel(options: AskOptions): Promise<unknown> {
-  if (!aiEnabled()) throw new AiUnavailableError("No ANTHROPIC_API_KEY set");
+  const provider = aiProvider();
+  if (!provider) throw new AiUnavailableError("No AI key set");
+  const ask = provider === "gemini" ? askGemini : askAnthropic;
   try {
-    return await callOnce(options);
+    return await ask(options);
   } catch (first) {
-    const retryable = !(first instanceof AiUnavailableError) || (first as { retryable?: boolean }).retryable;
-    if (!retryable) throw first;
+    // Timeouts and network errors are worth one more go; a rejected request is not.
+    if (first instanceof AiUnavailableError && !first.retryable) throw first;
     try {
-      return await callOnce(options);
+      return await ask(options);
     } catch (second) {
       if (second instanceof AiUnavailableError) throw second;
       throw new AiUnavailableError(second instanceof Error ? second.message : "AI call failed");

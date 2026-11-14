@@ -33,9 +33,9 @@ export const SITUATION_JSON_SCHEMA = {
     area: { type: "string", enum: ["", ...REGIONS.map((r) => r.id), ...AREAS.map((a) => a.slug)], description: "A London region or neighbourhood, only if the person names one. Empty otherwise." },
     from: { type: "string", description: "Pickup date as YYYY-MM-DD, only if the person gives a date or day. Empty otherwise." },
     to: { type: "string", description: "Return date as YYYY-MM-DD. Same as 'from' for a one-day need. Empty if no date was given." },
-    maxPricePerDayPounds: { type: ["number", "null"], description: "Daily budget in pounds, only if the person states one." },
+    maxPricePerDayPounds: { type: "number", description: "Daily budget in pounds, only if the person states one. Leave out otherwise." },
   },
-  required: ["keywords", "category", "area", "from", "to", "maxPricePerDayPounds"],
+  required: ["keywords", "category", "area", "from", "to"],
 } as const;
 
 /** The largest price filter the search page offers that still respects the stated budget. */

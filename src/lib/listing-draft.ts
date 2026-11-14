@@ -47,13 +47,13 @@ export const modelDraftSchema = z.object({
 });
 export type ModelDraft = z.infer<typeof modelDraftSchema>;
 
-/** JSON schema handed to the model so its answer arrives in the shape above. */
+/** JSON schema handed to the model so its answer arrives in the shape above. Kept null-free so every provider accepts it. */
 export const MODEL_DRAFT_JSON_SCHEMA = {
   type: "object",
   properties: {
     title: { type: "string", description: "Listing title, at most 80 characters, e.g. 'Navy three-piece suit, 40R'. Empty if the item is unclear." },
-    category: { type: ["string", "null"], enum: [...categoryIds, null], description: "Null if none of the categories fits." },
-    condition: { type: ["string", "null"], enum: [...conditionIds, null], description: "Null if wear can't be judged from the photos." },
+    category: { type: "string", enum: ["", ...categoryIds], description: "Empty if none of the categories fits." },
+    condition: { type: "string", enum: ["", ...conditionIds], description: "Empty if wear can't be judged from the photos." },
     brand: { type: "string", description: "Only if a logo or label is actually visible. Otherwise empty." },
     size: { type: "string", description: "Only if visible on a label or obvious from the item (e.g. 'sleeps 4'). Otherwise empty." },
     description: { type: "string", description: "Two or three plain sentences: what it is, what appears to be included, what it suits." },
@@ -66,8 +66,8 @@ export const MODEL_DRAFT_JSON_SCHEMA = {
         required: ["field", "question"],
       },
     },
-    secondHandValuePounds: { type: ["number", "null"], description: "Rough UK second-hand value in pounds, or null if unknown." },
-    pricePerDayPounds: { type: ["number", "null"], description: "A fair daily rental price in pounds, or null if unknown." },
+    secondHandValuePounds: { type: "number", description: "Rough UK second-hand value in pounds. Leave out if unknown." },
+    pricePerDayPounds: { type: "number", description: "A fair daily rental price in pounds. Leave out if unknown." },
   },
   required: ["title", "category", "condition", "brand", "size", "description", "questions"],
 } as const;

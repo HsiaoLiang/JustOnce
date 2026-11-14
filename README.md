@@ -152,7 +152,7 @@ Resetting logs everyone out. If you're showing the site on a phone, log in again
 
 Payments, deposits and payouts are **simulated**: the app shows every amount and status change (paid, deposit held, deposit released, refunded, paid out) without a payment provider. ID verification is simulated too.
 
-**AI: photo-to-listing.** On *List an item*, once a photo is uploaded, **Fill in from photo** drafts the title, category, condition, brand, size and description, and suggests a daily price and deposit. The price and deposit come from the median of similar active listings in the database, with the reason shown; with fewer than three similar listings it says so and uses an estimate instead. Every AI-filled field is marked *Suggested, check before publishing* until the owner edits or confirms it, and anything the photo doesn't settle is left empty with a question rather than a guess. It needs `ANTHROPIC_API_KEY`; without it the button is hidden and listing works as before.
+**AI: photo-to-listing.** On *List an item*, once a photo is uploaded, **Fill in from photo** drafts the title, category, condition, brand, size and description, and suggests a daily price and deposit. The price and deposit come from the median of similar active listings in the database, with the reason shown; with fewer than three similar listings it says so and uses an estimate instead. Every AI-filled field is marked *Suggested, check before publishing* until the owner edits or confirms it, and anything the photo doesn't settle is left empty with a question rather than a guess. It needs an AI key (`GEMINI_API_KEY` or `ANTHROPIC_API_KEY`); without one the button is hidden and listing works as before.
 
 **AI: describe what you need.** Under the home page search, a renter can type a sentence such as *"black-tie wedding on Saturday, under £50 a day"*. AI turns it into the ordinary search filters (category, area, dates, price) and the normal search page shows the results, so every item, price and free date comes from the database, never from the model. The filters appear as removable chips, so a wrong guess is one tap to fix. If the AI call fails, or there is no key, it falls back to a plain keyword search.
 
@@ -246,8 +246,10 @@ npm run test:e2e
 | `DATABASE_URL` | Yes | Postgres connection string (the pooled one on Neon) |
 | `DATABASE_URL_UNPOOLED` | Optional | Direct connection for migrations; falls back to `DATABASE_URL` |
 | `DEMO_RESET_KEY` | Optional | Turns on `/demo/reset` and `POST /api/demo/reset` |
-| `ANTHROPIC_API_KEY` | Optional | Turns on the AI features (photo-to-listing, describe-what-you-need search and photo search). Server-side only. Without it they are hidden |
-| `AI_MODEL` | Optional | Vision model used by the AI features; defaults to `claude-haiku-5-5` |
+| `GEMINI_API_KEY` | Optional | Turns on the AI features (photo-to-listing, describe-what-you-need search and photo search) using Google Gemini, which has a free tier. Server-side only |
+| `ANTHROPIC_API_KEY` | Optional | Same features using Anthropic's Claude (paid per call). Set one of the two keys; with neither, the AI features are hidden |
+| `AI_PROVIDER` | Optional | `anthropic` or `gemini`. Only matters when both keys are set; Anthropic is the default |
+| `AI_MODEL` | Optional | Model override. Defaults to `gemini-3.7-flash` or `claude-haiku-5-5` depending on the provider; ignored if it names the other provider's model |
 | `NEXT_PUBLIC_DEMO_MODE` | Optional | Set to `false` to hide the one-tap demo log-ins and account switcher (takes effect on the next build) |
 
 ## Limitations and next steps
@@ -256,8 +258,8 @@ This is a competition demo, so some things are deliberately simulated or left ou
 
 - **Payments:** simulated. In production this would be Stripe Connect, with the deposit held as an uncaptured authorisation and released after the return check.
 - **ID verification:** simulated. A real version would hand off to a provider such as Stripe Identity.
-- **AI drafts are suggestions:** photo-to-listing can misread an item, so nothing is published until the owner has checked it. The photos used for a draft are sent to the AI provider (Anthropic). Drafts aren't logged yet, and there is no saved fallback response for a demo with bad wifi.
-- **Photo search** matches on category and keywords, not on how the item looks, so results are "the same kind of thing" and not visual lookalikes. The photo is sent to the AI provider (Anthropic).
+- **AI drafts are suggestions:** photo-to-listing can misread an item, so nothing is published until the owner has checked it. The photos used for a draft are sent to the AI provider (Google or Anthropic, whichever key is set). On Gemini's free tier, Google may use what is sent to improve its products, so use a paid key for anything beyond a demo. Drafts aren't logged yet, and there is no saved fallback response for a demo with bad wifi.
+- **Photo search** matches on category and keywords, not on how the item looks, so results are "the same kind of thing" and not visual lookalikes. The photo is sent to the AI provider.
 - **Describe-what-you-need search** picks filters only: it doesn't filter by size, suggest bundles or post "wanted" requests yet, and budgets map to the nearest price filter at or below what was asked.
 - **Not built yet:** in-app messages, a real support team for contested deposit claims, email and push notifications, map search, and the swap option described above.
 - **Demo mode** publishes the demo password and adds one-tap log-ins. Set `NEXT_PUBLIC_DEMO_MODE=false` for anything beyond a demo.
