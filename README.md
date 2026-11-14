@@ -249,7 +249,7 @@ npm run test:e2e
 | `GEMINI_API_KEY` | Optional | Turns on the AI features (photo-to-listing, describe-what-you-need search and photo search) using Google Gemini, which has a free tier. Server-side only |
 | `ANTHROPIC_API_KEY` | Optional | Same features using Anthropic's Claude (paid per call). Set one of the two keys; with neither, the AI features are hidden |
 | `AI_PROVIDER` | Optional | `anthropic` or `gemini`. Only matters when both keys are set; Anthropic is the default |
-| `AI_MODEL` | Optional | Model override. Defaults to `gemini-3.7-flash` or `claude-haiku-5-5` depending on the provider; ignored if it names the other provider's model |
+| `AI_MODEL` | Optional | Model override. Defaults to `gemini-3.5-flash-lite` or `claude-haiku-5-5` depending on the provider; ignored if it names the other provider's model |
 | `NEXT_PUBLIC_DEMO_MODE` | Optional | Set to `false` to hide the one-tap demo log-ins and account switcher (takes effect on the next build) |
 
 ## Limitations and next steps

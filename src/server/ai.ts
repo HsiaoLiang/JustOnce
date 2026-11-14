@@ -15,7 +15,9 @@ type Provider = "anthropic" | "gemini";
 
 const DEFAULT_MODELS: Record<Provider, string> = {
   anthropic: "claude-haiku-5-5",
-  gemini: "gemini-3.7-flash",
+  // Fast and answers reliably on a free key. gemini-3.6-flash is a step up in quality if it is quick for you;
+  // gemini-3.7-flash and 3.8-flash stalled without answering on a free key when we tried them (Nov 2026).
+  gemini: "gemini-3.5-flash-lite",
 };
 const MODEL_PREFIX: Record<Provider, string> = { anthropic: "claude", gemini: "gemini" };
 
