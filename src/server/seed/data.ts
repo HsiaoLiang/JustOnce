@@ -188,7 +188,7 @@ export const LISTINGS: SeedListing[] = [
     price: 22,
     deposit: 100,
     area: "shoreditch",
-    photos: p("tuxedo"),
+    photos: p("tuxedo", 3),
     featured: true,
     description:
       "Classic single-breasted dinner suit with satin peak lapels and a slim, modern cut. Worn twice and professionally cleaned after every rental. Comes with a black silk bow tie and a garment bag, so it survives the Tube.",
@@ -207,7 +207,7 @@ export const LISTINGS: SeedListing[] = [
     price: 18,
     deposit: 80,
     area: "camden",
-    photos: p("blue-check-suit"),
+    photos: p("blue-check-suit", 3),
     description:
       "Wool-blend three-piece in a bold blue windowpane check, waistcoat included. Made for weddings and race days when you want to stand out a little. The trousers have room to let out if you need it.",
     pickupNotes: "Camden Town station, Kentish Town Road exit. Evenings after 6pm and weekends.",
@@ -240,7 +240,7 @@ export const LISTINGS: SeedListing[] = [
     price: 16,
     deposit: 80,
     area: "peckham",
-    photos: p("plum-gown"),
+    photos: p("plum-gown", 3),
     description:
       "Deep plum stretch crepe with an off-the-shoulder neckline and a floor-length skirt. Flattering, comfortable enough to dance in all night, and it doesn't crease in a bag. Fits a UK 10 and could work for a small 12.",
     pickupNotes: "Peckham Rye station, by the main entrance. Most evenings and Sunday afternoons.",
@@ -256,7 +256,7 @@ export const LISTINGS: SeedListing[] = [
     price: 18,
     deposit: 100,
     area: "clapham",
-    photos: p("red-ball-gown"),
+    photos: p("red-ball-gown", 3),
     description:
       "A full, swishy satin skirt with a fitted halterneck bodice, made for galas, balls and twirling for photos. Concealed zip and fully lined. Steamed and bagged before every rental.",
     pickupNotes: "Clapham Common station or my flat five minutes away. Weekday evenings and Saturdays.",
@@ -271,7 +271,7 @@ export const LISTINGS: SeedListing[] = [
     price: 25,
     deposit: 150,
     area: "clapham",
-    photos: p("scarlet-train-gown"),
+    photos: p("scarlet-train-gown", 3),
     featured: true,
     description:
       "Statement long-sleeve gown with a thigh split and a dramatic train. Bought for a shoot and worn once. Perfect for awards nights, prom or a very extra birthday.",
@@ -288,7 +288,7 @@ export const LISTINGS: SeedListing[] = [
     price: 20,
     deposit: 120,
     area: "wembley",
-    photos: p("silk-saree"),
+    photos: p("silk-saree", 3),
     description:
       "Rich purple Banarasi silk with a heavy gold zari border and pallu. Comes with a matching stitched blouse (UK 8–10, adjustable) and petticoat. Happy to show you how to drape it at pickup.",
     pickupNotes: "Wembley Park station, Olympic Way exit. Evenings and weekends.",
@@ -307,7 +307,7 @@ export const LISTINGS: SeedListing[] = [
     price: 20,
     deposit: 300,
     area: "wembley",
-    photos: p("designer-bag"),
+    photos: p("designer-bag", 3),
     description:
       "Black chevron-quilted leather with the gold GG hardware and a sliding chain strap. Fits a phone, keys and a lipstick. Comes with its dust bag and authenticity card.",
     pickupNotes: "Wembley Park station, Olympic Way exit. Evenings and weekends.",
@@ -361,7 +361,7 @@ export const LISTINGS: SeedListing[] = [
     price: 22,
     deposit: 250,
     area: "camden",
-    photos: p("canon-80d"),
+    photos: p("canon-80d", 3),
     description:
       "Reliable DSLR with a flexible 18–135mm zoom. A great all-rounder for holidays, events and learning photography properly. Includes two batteries, charger and a 32GB card.",
     pickupNotes: "Camden Town station, Kentish Town Road exit. Evenings after 6pm and weekends.",
@@ -393,7 +393,7 @@ export const LISTINGS: SeedListing[] = [
     price: 8,
     deposit: 40,
     area: "hackney",
-    photos: p("polaroid"),
+    photos: p("polaroid", 2),
     description:
       "Point, shoot, wait for the magic. Perfect for weddings, birthdays and guest books. Takes i-Type film, and I can sell you a pack at cost if you need one.",
     pickupNotes: "Hackney Central station (Overground), Amhurst Road exit. Weekdays after 6pm, weekends any time.",
@@ -409,7 +409,7 @@ export const LISTINGS: SeedListing[] = [
     price: 25,
     deposit: 300,
     area: "bethnal-green",
-    photos: p("fuji-xt3"),
+    photos: p("fuji-xt3", 2),
     description:
       "Retro-styled mirrorless with proper dials and a sharp 18–55mm f/2.8–4 lens. Great for travel and for video (4K at 60fps). Comes with three batteries, a charger and a 64GB card.",
     pickupNotes: "Bethnal Green station (Central line), Museum exit. Weeknights after 7pm or weekend mornings.",
@@ -440,7 +440,7 @@ export const LISTINGS: SeedListing[] = [
     price: 18,
     deposit: 200,
     area: "hackney",
-    photos: p("creator-kit"),
+    photos: p("creator-kit", 3),
     description:
       "Everything you need to level up your videos: a Rode VideoMic, DJI phone gimbal, two LED panels with stands and a mini tripod, all in one hard case. Great for YouTube, course projects and short films.",
     pickupNotes: "Hackney Central station (Overground), Amhurst Road exit. Weekdays after 6pm, weekends any time.",
@@ -459,7 +459,7 @@ export const LISTINGS: SeedListing[] = [
     price: 15,
     deposit: 100,
     area: "walthamstow",
-    photos: p("mh-4p-tent"),
+    photos: p("mh-4p-tent", 2),
     featured: true,
     description:
       "Sturdy dome tent with two doors and two porches, so nobody climbs over anyone at 3am. It has survived Glastonbury mud and Welsh wind. Footprint, pegs and a spare guy line included.",
@@ -476,7 +476,7 @@ export const LISTINGS: SeedListing[] = [
     price: 12,
     deposit: 80,
     area: "clapham",
-    photos: p("2p-tent"),
+    photos: p("2p-tent", 2),
     description:
       "Bright yellow, quick to pitch and light enough for a train-and-hike weekend. Packs down to the size of a rolled-up yoga mat. Pegs and a repair kit included.",
     pickupNotes: "Clapham Common station or my flat five minutes away. Weekday evenings and Saturdays.",
@@ -493,7 +493,7 @@ export const LISTINGS: SeedListing[] = [
     price: 35,
     deposit: 200,
     area: "walthamstow",
-    photos: p("bell-tent"),
+    photos: p("bell-tent", 2),
     featured: true,
     description:
       "Proper glamping: a 5m cotton canvas bell tent with a zipped-in groundsheet. Fits a double airbed plus two singles. It weighs about 25 kg, so it's best with a car, and I'll help you load it.",
@@ -511,7 +511,7 @@ export const LISTINGS: SeedListing[] = [
     price: 20,
     deposit: 120,
     area: "brixton",
-    photos: p("tipi-tent"),
+    photos: p("tipi-tent", 2),
     description:
       "Single-pole tipi that looks magic lit up at night and pitches in ten minutes once you've done it once. Loads of headroom. Pole, pegs and guy lines included.",
     pickupNotes: "Brixton station, outside the Ritzy side. Most evenings.",
@@ -559,7 +559,7 @@ export const LISTINGS: SeedListing[] = [
     price: 25,
     deposit: 100,
     area: "stratford",
-    photos: p("festival-bundle"),
+    photos: p("festival-bundle", 2),
     description:
       "A whole festival setup in one bag: a 2-person pop-up tent, two self-inflating mats, two freshly washed sleeping bags, a lantern and a gas stove. Just add wellies and glitter.",
     pickupNotes: "Stratford station, by the Westfield entrance. Weekends are easiest.",
@@ -573,7 +573,7 @@ export const LISTINGS: SeedListing[] = [
     price: 10,
     deposit: 40,
     area: "brixton",
-    photos: p("fire-pit"),
+    photos: p("fire-pit", 2),
     description:
       "Steel fire bowl with a removable grill, great for garden evenings and campsites that allow fires. Marshmallow forks included, marshmallows not.",
     pickupNotes: "Brixton station, outside the Ritzy side. Most evenings.",
@@ -590,7 +590,7 @@ export const LISTINGS: SeedListing[] = [
     price: 12,
     deposit: 40,
     area: "peckham",
-    photos: p("skeletons"),
+    photos: p("skeletons", 3),
     featured: true,
     description:
       "Two poseable 1.6m skeletons. Sit them on the sofa, prop them in the window or leave them guarding the door. Comes with a set of purple fairy lights.",
@@ -606,7 +606,7 @@ export const LISTINGS: SeedListing[] = [
     price: 5,
     deposit: 15,
     area: "peckham",
-    photos: p("pumpkins"),
+    photos: p("pumpkins", 3),
     description:
       "Realistic carved-pumpkin lanterns with flickering LED candles. No carving, no mess and no mouldy pumpkin a week later. Batteries included.",
     pickupNotes: "Peckham Rye station, by the main entrance. Most evenings and Sunday afternoons.",
@@ -622,7 +622,7 @@ export const LISTINGS: SeedListing[] = [
     price: 8,
     deposit: 25,
     area: "peckham",
-    photos: p("clown"),
+    photos: p("clown", 2),
     description:
       "Latex clown mask with a ragged suit and gloves. Washed between rentals and the mask is sanitised. Guaranteed to clear the dance floor.",
     pickupNotes: "Peckham Rye station, by the main entrance. Most evenings and Sunday afternoons.",
@@ -637,7 +637,7 @@ export const LISTINGS: SeedListing[] = [
     price: 3,
     deposit: 40,
     area: "stratford",
-    photos: p("xmas-tree"),
+    photos: p("xmas-tree", 3),
     featured: true,
     description:
       "A full, realistic artificial tree that comes already decorated in red and gold with warm-white lights. No needles in the carpet and nothing to store in January. Fits in a large car or an Uber XL.",
@@ -653,7 +653,7 @@ export const LISTINGS: SeedListing[] = [
     price: 4,
     deposit: 50,
     area: "stratford",
-    photos: p("white-tree"),
+    photos: p("white-tree", 3),
     description:
       "Snowy white pre-lit tree with silver and white baubles. A showstopper for a big living room or a Christmas party, and it folds into two boxes.",
     pickupNotes: "Stratford station, by the Westfield entrance. Weekends are easiest.",
@@ -701,7 +701,7 @@ export const LISTINGS: SeedListing[] = [
     price: 18,
     deposit: 120,
     area: "greenwich",
-    photos: p("snowboard"),
+    photos: p("snowboard", 2),
     description:
       "Burton all-mountain board with medium bindings, suits riders around 65–85 kg. Waxed and edges sharpened this season. Board bag included.",
     pickupNotes: "Cutty Sark DLR station. Evenings and weekends.",
@@ -721,7 +721,7 @@ export const LISTINGS: SeedListing[] = [
     price: 10,
     deposit: 80,
     area: "notting-hill",
-    photos: p("camel-coat"),
+    photos: p("camel-coat", 3),
     description:
       "Long, belted wrap coat in a soft wool blend. Smart enough over a dress for a winter wedding, easy over jeans for a weekend in Edinburgh. Dry-cleaned between rentals.",
     pickupNotes: "Notting Hill Gate station, Pembridge Road exit. Weekday evenings and Saturday mornings.",
@@ -737,7 +737,7 @@ export const LISTINGS: SeedListing[] = [
     price: 9,
     deposit: 50,
     area: "peckham",
-    photos: p("red-floral-dress"),
+    photos: p("red-floral-dress", 3),
     description:
       "Full-skirted midi dress in a red ditsy floral, with flutter sleeves and a wide tan belt. Made for garden parties, summer weddings and the races. It twirls.",
     pickupNotes: "Peckham Rye station, by the main entrance. Most evenings and Sunday afternoons.",
@@ -753,7 +753,7 @@ export const LISTINGS: SeedListing[] = [
     price: 9,
     deposit: 80,
     area: "camden",
-    photos: p("suede-jacket"),
+    photos: p("suede-jacket", 2),
     description:
       "Soft tan suede with a shirt collar and snap front. Throw it over a black tee for a first date, a gig or an autumn wedding with a relaxed dress code. Proofed against light rain, but please don't test it.",
     pickupNotes: "Camden Town station, Kentish Town Road exit. Evenings after 6pm and weekends.",
@@ -769,7 +769,7 @@ export const LISTINGS: SeedListing[] = [
     price: 8,
     deposit: 50,
     area: "notting-hill",
-    photos: p("white-blazer-dress"),
+    photos: p("white-blazer-dress", 3),
     description:
       "Double-breasted blazer cut long enough to wear as a dress. The easy answer for an engagement party, a hen do or a registry office wedding. Looks great with boots or heels.",
     pickupNotes: "Notting Hill Gate station, Pembridge Road exit. Weekday evenings and Saturday mornings.",
@@ -806,7 +806,7 @@ export const LISTINGS: SeedListing[] = [
     price: 4,
     deposit: 40,
     area: "bethnal-green",
-    photos: p("round-sunglasses"),
+    photos: p("round-sunglasses", 2),
     description:
       "Thin gold metal frames with green G-15 lenses. The finishing touch for a festival, a holiday or a summer wedding. Comes in its case with a cleaning cloth.",
     pickupNotes: "Bethnal Green station (Central line), Museum exit. Weeknights after 7pm or weekend mornings.",
@@ -823,7 +823,7 @@ export const LISTINGS: SeedListing[] = [
     price: 3,
     deposit: 30,
     area: "greenwich",
-    photos: p("black-sunglasses"),
+    photos: p("black-sunglasses", 3),
     description:
       "The timeless black frame with polarised lenses, so they work on the slopes as well as on the beach. A couple of tiny marks on the arms, lenses are scratch-free.",
     pickupNotes: "Cutty Sark DLR station. Evenings and weekends.",
@@ -839,7 +839,7 @@ export const LISTINGS: SeedListing[] = [
     price: 3,
     deposit: 30,
     area: "notting-hill",
-    photos: p("check-scarf"),
+    photos: p("check-scarf", 2),
     description:
       "Warm, featherlight cashmere in a brown and cream check. Lifts a plain coat for a winter wedding or a Christmas market trip.",
     pickupNotes: "Notting Hill Gate station, Pembridge Road exit. Weekday evenings and Saturday mornings.",
@@ -858,7 +858,7 @@ export const LISTINGS: SeedListing[] = [
     price: 6,
     deposit: 40,
     area: "clapham",
-    photos: p("navy-heels"),
+    photos: p("navy-heels", 3),
     description:
       "Classic pointed courts in navy suede with a slim gold heel. Comfortable enough to last from the ceremony to the last dance. Soles are protected, and they come with a shoe bag.",
     pickupNotes: "Clapham Common station or my flat five minutes away. Weekday evenings and Saturdays.",
@@ -874,7 +874,7 @@ export const LISTINGS: SeedListing[] = [
     price: 6,
     deposit: 35,
     area: "wembley",
-    photos: p("floral-heels"),
+    photos: p("floral-heels", 3),
     description:
       "Statement stilettos in a bright blue tropical floral. They make a plain dress look planned. Worn twice, with heel tips replaced.",
     pickupNotes: "Wembley Park station, Olympic Way exit. Evenings and weekends.",
@@ -893,7 +893,7 @@ export const LISTINGS: SeedListing[] = [
     price: 12,
     deposit: 120,
     area: "clapham",
-    photos: p("red-top-handle-bag"),
+    photos: p("red-top-handle-bag", 3),
     description:
       "Structured red leather with a silver push-lock and a detachable shoulder strap. The pop of colour for a neutral wedding outfit. Comes with its dust bag.",
     pickupNotes: "Clapham Common station or my flat five minutes away. Weekday evenings and Saturdays.",
@@ -908,7 +908,7 @@ export const LISTINGS: SeedListing[] = [
     price: 8,
     deposit: 60,
     area: "notting-hill",
-    photos: p("woven-tote"),
+    photos: p("woven-tote", 3),
     description:
       "Soft woven tan leather with a gold chain strap. Holds a laptop and a change of shoes, so it works for a conference day that turns into dinner.",
     pickupNotes: "Notting Hill Gate station, Pembridge Road exit. Weekday evenings and Saturday mornings.",
@@ -926,7 +926,7 @@ export const LISTINGS: SeedListing[] = [
     price: 8,
     deposit: 120,
     area: "clapham",
-    photos: p("pearl-necklace"),
+    photos: p("pearl-necklace", 2),
     description:
       "A single strand of creamy freshwater pearls with a sparkly silver clasp. The perfect something borrowed, or the finishing touch for black tie. Comes in its box and is handed over in person.",
     pickupNotes: "Clapham Common station or my flat five minutes away. Weekday evenings and Saturdays.",
@@ -942,7 +942,7 @@ export const LISTINGS: SeedListing[] = [
     price: 5,
     deposit: 30,
     area: "peckham",
-    photos: p("crystal-earrings"),
+    photos: p("crystal-earrings", 3),
     description:
       "Statement chandelier earrings with deep blue crystals set in silver tone. Costume jewellery, not real sapphires, but nobody at the gala will know. Cleaned and sanitised between rentals.",
     pickupNotes: "Peckham Rye station, by the main entrance. Most evenings and Sunday afternoons.",
@@ -962,7 +962,7 @@ export const LISTINGS: SeedListing[] = [
     price: 7,
     deposit: 40,
     area: "shoreditch",
-    photos: p("monk-straps"),
+    photos: p("monk-straps", 2),
     description:
       "Polished brown calf with double buckles, Goodyear-welted and freshly resoled. The shoes that make a navy suit look intentional. Shoe trees and a cloth bag included.",
     pickupNotes: "Meet at Shoreditch High Street station (Braithwaite Street exit). Weekday evenings after 6.30pm or Saturday mornings.",
@@ -978,7 +978,7 @@ export const LISTINGS: SeedListing[] = [
     price: 15,
     deposit: 150,
     area: "wembley",
-    photos: p("bridal-set"),
+    photos: p("bridal-set", 3),
     featured: true,
     description:
       "Temple-style 22-carat gold-plated choker with ruby-red stones and matching jhumka earrings. Made for weddings, mehndi nights and Diwali, and it pairs beautifully with my purple silk saree. Handed over in person, in its velvet box.",
@@ -997,7 +997,7 @@ export const LISTINGS: SeedListing[] = [
     price: 22,
     deposit: 250,
     area: "notting-hill",
-    photos: p("rockstud-bag"),
+    photos: p("rockstud-bag", 3),
     featured: true,
     description:
       "Pale grey leather with the signature pyramid studs and a chain strap that converts to a handle. Big enough for a phone, cardholder and lipstick. Dust bag and authenticity card included.",
@@ -1016,7 +1016,7 @@ export const LISTINGS: SeedListing[] = [
     price: 9,
     deposit: 80,
     area: "greenwich",
-    photos: p("tissot-chrono"),
+    photos: p("tissot-chrono", 2),
     description:
       "Swiss quartz chronograph with a rose-gold case and a blush dial. Dressy enough for a wedding, sturdy enough to forget you're wearing it. Fresh battery, comes boxed.",
     pickupNotes: "Cutty Sark DLR station. Evenings and weekends.",
@@ -1032,7 +1032,7 @@ export const LISTINGS: SeedListing[] = [
     price: 4,
     deposit: 30,
     area: "camden",
-    photos: p("minimal-watch"),
+    photos: p("minimal-watch", 2),
     description:
       "Clean white dial, rose-gold case and a soft taupe strap. Quiet, elegant and goes with everything from a linen suit to a jumper.",
     pickupNotes: "Camden Town station, Kentish Town Road exit. Evenings after 6pm and weekends.",
@@ -1050,7 +1050,7 @@ export const LISTINGS: SeedListing[] = [
     price: 45,
     deposit: 1000,
     area: "shoreditch",
-    photos: p("explorer-watch"),
+    photos: p("explorer-watch", 3),
     featured: true,
     description:
       "Steel Oyster bracelet and the black 3-6-9 dial. Serviced last year and keeps perfect time. For a wedding, a big interview or a black-tie dinner. Comes with its box and papers; I hand it over in person and show you how to set it.",
