@@ -145,6 +145,7 @@ Resetting logs everyone out. If you're showing the site on a phone, log in again
 | Booking `/bookings/[id]` | The whole rental on one page: progress, the next step, the return ticket, pickup and return checks with photos, deposit claims (claim, accept, contest, review), ratings, activity timeline |
 | Profile `/users/[id]` | Verified badge, rating, items, reviews from renters and from owners |
 | Account `/account` | Edit profile and photo, simulated ID verification, log out |
+| Policies `/policies` | Booking, payments and fees, deposits, half deposits for trusted renters, handover checks, damage claims, cancellations, reviews and privacy, in plain English |
 | Log in, sign up | Email and password; one-tap demo accounts in demo mode |
 
 **Deposits.** Refundable deposit: held when the owner accepts, returned in full when the item comes back complete and undamaged. If the owner reports a problem at the return check, the deposit stays held and they can claim up to the full amount (damaged, parts missing, not cleaned or returned late) within 48 hours. The renter accepts or contests; contested claims are reviewed (in demo mode, by whoever is presenting). If the owner never confirms the return, or doesn't claim within 48 hours, the deposit is released automatically. Trusted renters (ID-verified, 3+ completed rentals, 4.5+ average from owners, no claim against them still open) pay half the deposit, unless the owner ticks *Always take the full deposit*. Owners can enter a replacement value to get a suggested deposit (25%, at least £20).

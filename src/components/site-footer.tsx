@@ -37,6 +37,7 @@ export function SiteFooter() {
             <li><Link href="/dashboard/listings" className="hover:text-ink">My listings</Link></li>
             <li><Link href="/dashboard/rentals" className="hover:text-ink">My rentals</Link></li>
             <li><Link href="/#how-it-works" className="hover:text-ink">How it works</Link></li>
+            <li><Link href="/policies" className="hover:text-ink">Policies</Link></li>
           </ul>
         </div>
       </div>

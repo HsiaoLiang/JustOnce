@@ -276,7 +276,12 @@ export function ListingForm({
               <input type="checkbox" name="fullDepositOnly" checked={v.fullDepositOnly} onChange={(e) => set("fullDepositOnly", e.target.checked)} className="mt-0.5 size-4 accent-[var(--color-ink)]" />
               <span>
                 <span className="block text-sm font-semibold">Always take the full deposit</span>
-                <span className="block text-xs text-muted">By default, verified renters with 3+ good reviews pay half.</span>
+                <span className="block text-xs text-muted">
+                  By default, verified renters with 3+ good reviews pay half.{" "}
+                  <a href="/policies#trusted-renters" target="_blank" className="underline underline-offset-2">
+                    Read the policy
+                  </a>
+                </span>
               </span>
             </label>
           </div>

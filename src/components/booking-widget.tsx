@@ -243,11 +243,16 @@ export function BookingTicket({ listingId, pricePerDay, deposit, depositInfo, ra
           </p>
           {depositInfo.message && <p className="mt-0.5 text-sm font-medium text-ink">{depositInfo.message}</p>}
           <p className="mt-0.5 text-sm text-ink-2">{DEPOSIT_PROMISE}</p>
-          {depositInfo.verifyNudge && (
-            <Link href="/account" className="mt-2 inline-block text-sm font-semibold underline decoration-accent decoration-2 underline-offset-4">
-              Verify your ID to halve deposits
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            {depositInfo.verifyNudge && (
+              <Link href="/account" className="font-semibold underline decoration-accent decoration-2 underline-offset-4">
+                Verify your ID to halve deposits
+              </Link>
+            )}
+            <Link href="/policies#deposits" className="font-medium text-ink-2 underline underline-offset-4 hover:text-ink">
+              How deposits work
             </Link>
-          )}
+          </div>
         </div>
       </div>
     </div>
