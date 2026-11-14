@@ -1,22 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { HeroSearch } from "@/components/hero-search";
-import { PhotoSearch } from "@/components/photo-search";
-import { SituationSearch } from "@/components/situation-search";
+import { FeaturedSection } from "@/components/home/featured";
+import { Hero } from "@/components/home/hero";
 import { ListingGrid } from "@/components/listing-card";
 import { Container, LinkButton, SectionHeading } from "@/components/ui";
 import { CATEGORY_GROUPS, categoriesInGroup, type CategoryInfo } from "@/lib/catalogue";
 import { formatGBP } from "@/lib/money";
 import { cn } from "@/lib/cn";
-import { getHomeData, type ListingCardData } from "@/server/queries";
+import { getHomeData } from "@/server/queries";
 import { aiEnabled } from "@/server/ai";
 import { getCurrentUser } from "@/server/auth";
 
 export const dynamic = "force-dynamic";
-
-const OCCASIONS = ["Black-tie wedding", "Festival weekend", "Sunrise shoot"];
-const DURATIONS = ["1 night", "3 days", "1 day"];
 
 export default async function HomePage() {
   const [{ featured, latest, counts, hero, stats }, user] = await Promise.all([getHomeData(), getCurrentUser()]);
@@ -24,51 +20,7 @@ export default async function HomePage() {
   return (
     <>
       {/* Hero: the occasion comes first, the item second. */}
-      <section className="overflow-hidden">
-        <Container className="pt-8 pb-12 md:pt-12 lg:pt-14 lg:pb-16">
-          <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[1fr_1.1fr] lg:gap-10">
-            <div className="min-w-0 animate-fade-up">
-              <h1 className="max-w-xl text-[2.5rem] leading-[1.02] font-semibold tracking-[-0.035em] sm:text-6xl lg:text-[4rem]">
-                Why buy it for <span className="relative inline-block">one weekend?<Underline /></span>
-              </h1>
-              <p className="mt-5 max-w-lg text-lg leading-relaxed text-ink-2">
-                Rent outfits, bags, jewellery, cameras and camping kit from people near you in London. Pick it up, use it, hand it back.
-              </p>
-              {stats.rentals > 0 && (
-                <p className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
-                  <span><span className="font-semibold text-ink">{stats.items}</span> items to rent</span>
-                  <span aria-hidden>·</span>
-                  <span><span className="font-semibold text-ink">{stats.rentals}</span> rentals completed</span>
-                  {stats.rating && (
-                    <>
-                      <span aria-hidden>·</span>
-                      <span><span className="font-semibold text-ink">{stats.rating}</span> average rating</span>
-                    </>
-                  )}
-                </p>
-              )}
-            </div>
-            <div className="order-last min-w-0 lg:order-none">
-              <TicketStack listings={hero} />
-            </div>
-            <div className="min-w-0 lg:col-span-2">
-              <HeroSearch />
-              {aiEnabled() && (
-                <>
-                  <SituationSearch />
-                  <PhotoSearch />
-                </>
-              )}
-              <p className="mt-4 text-sm text-muted">
-                Got something gathering dust?{" "}
-                <Link href={user ? "/listings/new" : "/signup?next=/listings/new"} className="font-semibold text-ink underline decoration-accent decoration-2 underline-offset-4">
-                  Lend it out
-                </Link>
-              </p>
-            </div>
-          </div>
-        </Container>
-      </section>
+      <Hero tickets={hero} stats={stats} lendHref={user ? "/listings/new" : "/signup?next=/listings/new"} ai={aiEnabled()} />
 
       <Container>
         <section aria-labelledby="categories" className="pt-2">
@@ -97,19 +49,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="mt-16 sm:mt-20" aria-labelledby="featured">
-          <SectionHeading
-            title="Popular with Londoners"
-            kicker="Featured"
-            action={
-              <Link href="/search" className="hidden items-center gap-1 text-sm font-semibold hover:underline sm:inline-flex">
-                See everything <ArrowRight className="size-4" aria-hidden />
-              </Link>
-            }
-          />
-          <h2 id="featured" className="sr-only">Featured items</h2>
-          <ListingGrid listings={featured} />
-        </section>
+        <FeaturedSection listings={featured} />
 
         <section className="mt-16 sm:mt-20" aria-labelledby="latest">
           <SectionHeading title="Just listed" kicker="New in" />
@@ -169,44 +109,6 @@ function CategoryTile({ category: c, count, wide, priority }: { category: Catego
         </p>
       </div>
     </Link>
-  );
-}
-
-function Underline() {
-  return (
-    <svg viewBox="0 0 300 18" preserveAspectRatio="none" aria-hidden className="absolute -bottom-2 left-0 h-3 w-full text-accent sm:-bottom-3 sm:h-4">
-      <path d="M3 13c48-8 98-11 150-9.5 52 1.4 98 4.8 144 3" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function TicketStack({ listings }: { listings: ListingCardData[] }) {
-  const fan = ["lg:-rotate-[4deg] lg:translate-y-4", "lg:rotate-[1.5deg] lg:-translate-y-1 lg:z-10", "lg:rotate-[5deg] lg:translate-y-5"];
-  return (
-    <div className="-mx-4 sm:-mx-6 lg:mx-0">
-      <ul className="scrollbar-none flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pt-2 pb-5 sm:px-6 lg:justify-between lg:gap-0 lg:overflow-visible lg:px-0 lg:py-4">
-        {listings.map((l, i) => (
-          <li
-            key={l.id}
-            className={cn("w-[66%] shrink-0 snap-center sm:w-[42%] lg:w-[32.5%]", fan[i], "transition-transform duration-300 lg:hover:z-20 lg:hover:-translate-y-2")}
-          >
-            <Link href={`/items/${l.id}`} className="ticket block p-2 shadow-lift">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-[0.85rem] bg-surface">
-                <Image src={l.photos[0]} alt={l.title} fill priority sizes="(min-width: 1024px) 240px, 66vw" className="object-cover" />
-                <span className="absolute bottom-2 left-2 rounded-full bg-paper px-2.5 py-1 text-xs font-semibold shadow-card">
-                  {formatGBP(l.pricePerDay)}
-                  <span className="font-normal text-muted">/day</span>
-                </span>
-              </div>
-              <div className="px-1.5 pt-2.5 pb-1">
-                <p className="font-mono text-[0.62rem] tracking-[0.14em] text-muted uppercase">For · {DURATIONS[i]}</p>
-                <p className="truncate font-display text-[1rem] leading-tight font-semibold">{OCCASIONS[i]}</p>
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }
 
