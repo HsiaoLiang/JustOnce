@@ -4,7 +4,10 @@ import { areasByRegion } from "@/lib/areas";
 import { todayInLondon } from "@/lib/dates";
 
 /** The home page search. A plain GET form, so it works before any JavaScript loads. */
-export function HeroSearch() {
+export type HeroCommunity = { slug: string; shortName: string; name: string; type: "UNIVERSITY" | "COMPANY" };
+
+/** `community` preselects the viewer's own verified community; the field always stays optional. */
+export function HeroSearch({ communities = [], community = "" }: { communities?: HeroCommunity[]; community?: string }) {
   const today = todayInLondon();
   const field = "flex flex-col justify-center px-5 py-2.5 md:py-0";
   const label = "text-[0.7rem] font-bold tracking-wide text-ink uppercase";
@@ -13,7 +16,7 @@ export function HeroSearch() {
     <Form
       action="/search"
       role="search"
-      className="grid overflow-hidden rounded-3xl border border-line-strong bg-paper shadow-card md:h-[4.5rem] md:grid-cols-[1.35fr_1fr_0.9fr_0.9fr_auto] md:rounded-full md:divide-x md:divide-line"
+      className="grid overflow-hidden rounded-3xl border border-line-strong bg-paper shadow-card md:h-[4.5rem] md:grid-cols-[1.3fr_1fr_1fr_0.85fr_0.85fr_auto] md:rounded-full md:divide-x md:divide-line"
     >
       <label className={`${field} border-b border-line md:border-b-0`}>
         <span className={label}>What</span>
@@ -33,6 +36,27 @@ export function HeroSearch() {
               ))}
             </optgroup>
           ))}
+        </select>
+      </label>
+      <label className={`${field} border-b border-line md:border-b-0`}>
+        <span className={label}>
+          Community <span className="font-medium tracking-normal text-muted normal-case">(optional)</span>
+        </span>
+        <select name="community" defaultValue={community} className={`${control} -ml-1 cursor-pointer appearance-none`}>
+          <option value="">Everyone in London</option>
+          {(["UNIVERSITY", "COMPANY"] as const).map((type) => {
+            const group = communities.filter((c) => c.type === type);
+            if (!group.length) return null;
+            return (
+              <optgroup key={type} label={type === "UNIVERSITY" ? "Schools" : "Companies"}>
+                {group.map((c) => (
+                  <option key={c.slug} value={c.slug}>
+                    {c.shortName} only
+                  </option>
+                ))}
+              </optgroup>
+            );
+          })}
         </select>
       </label>
       <div className="grid grid-cols-2 border-b border-line md:contents md:border-b-0">

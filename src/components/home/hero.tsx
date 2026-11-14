@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { HeroSearch } from "@/components/hero-search";
+import { HeroSearch, type HeroCommunity } from "@/components/hero-search";
+import { Building2, GraduationCap, ShieldCheck } from "lucide-react";
 import { PhotoSearch } from "@/components/photo-search";
 import { SituationSearch } from "@/components/situation-search";
 import { Container } from "@/components/ui";
@@ -34,7 +35,12 @@ export function Hero({
   stats,
   lendHref,
   ai,
+  communities,
+  viewerCommunity,
 }: {
+  communities: HeroCommunity[];
+  /** Slug of a community the viewer is verified in, if any. */
+  viewerCommunity: string;
   tickets: ListingCardData[];
   stats: { items: number; rentals: number; rating: string | null };
   lendHref: string;
@@ -62,8 +68,11 @@ export function Hero({
                 </span>
               </span>
             </h1>
-            <p data-hero-fade className="mt-6 max-w-lg text-lg leading-relaxed text-ink-2">
-              Rent outfits, bags, jewellery, cameras and camping kit from people near you in London. Pick it up, use it, hand it back.
+            <p data-hero-fade className="mt-5 inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold text-ink">
+              <ShieldCheck className="size-4" aria-hidden /> Borrow from verified classmates and colleagues
+            </p>
+            <p data-hero-fade className="mt-4 max-w-lg text-lg leading-relaxed text-ink-2">
+              Join your school or company community with your work or student email, then rent outfits, cameras and kit from people you already share a campus or office with.
             </p>
             {stats.rentals > 0 && (
               <p data-hero-fade className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
@@ -85,7 +94,28 @@ export function Hero({
           </div>
 
           <div data-hero-search className="min-w-0 lg:col-span-2">
-            <HeroSearch />
+            <HeroSearch communities={communities} community={viewerCommunity} />
+            {communities.length > 0 && (
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <span className="text-sm text-muted">Jump to a community:</span>
+                {communities.map((c) => {
+                  const Icon = c.type === "COMPANY" ? Building2 : GraduationCap;
+                  return (
+                    <Link
+                      key={c.slug}
+                      href={`/communities/${c.slug}`}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors",
+                        c.slug === viewerCommunity ? "border-ink bg-ink text-paper" : "border-line-strong hover:border-ink",
+                      )}
+                    >
+                      <Icon className="size-3.5" aria-hidden />
+                      {c.shortName}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
             {ai && (
               <>
                 <SituationSearch />
