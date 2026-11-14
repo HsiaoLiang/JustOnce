@@ -12,6 +12,7 @@ const ENTRANCE_DEADLINE_MS = 3500;
 const DEAL_ROTATION = [4, -1.5, -5]; // undoes the CSS fan, so the tickets start as one neat pile
 const PARALLAX_DEPTH = [-36, -84, -18];
 const ROLL = 0.6;
+const PARK = 140; // % of a word's height: where words wait above or below the line
 
 /**
  * Animates the server-rendered hero. Markup and content stay on the server; this only adds motion:
@@ -56,12 +57,22 @@ export function HeroMotion({ children }: { children: ReactNode }) {
             return;
           }
 
-          gsap.set(words.slice(1), { yPercent: 118, visibility: "visible" });
+          // Parked words sit well outside the line and are hidden outright: a deep descender (the "g" in
+          // "wedding") would otherwise peek into the roller's padding, just under the line above.
+          gsap.set(words.slice(1), { yPercent: PARK, autoAlpha: 0 });
 
           const show = contextSafe((index: number) => {
             if (index === current || !words[index]) return;
-            gsap.to(words[current], { yPercent: -118, duration: ROLL, ease: EASE_ROLL, overwrite: "auto" });
-            gsap.fromTo(words[index], { yPercent: 118 }, { yPercent: 0, duration: ROLL, ease: EASE_ROLL, overwrite: "auto" });
+            gsap.to(words[current], {
+              yPercent: -PARK,
+              duration: ROLL,
+              ease: EASE_ROLL,
+              overwrite: "auto",
+              onComplete() {
+                gsap.set(this.targets(), { autoAlpha: 0 });
+              },
+            });
+            gsap.fromTo(words[index], { yPercent: PARK, autoAlpha: 1 }, { yPercent: 0, duration: ROLL, ease: EASE_ROLL, overwrite: "auto" });
             if (underline) gsap.to(underline, { scaleX: ratio(index), duration: ROLL, ease: EASE_ROLL, overwrite: "auto" });
             tickets.forEach((t, i) => t.toggleAttribute("data-active", i === index - 1));
             current = index;

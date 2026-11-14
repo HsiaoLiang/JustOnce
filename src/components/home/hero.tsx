@@ -43,9 +43,9 @@ export function Hero({
   return (
     <HeroMotion>
       <Container className="pt-8 pb-12 md:pt-14 lg:pt-16 lg:pb-16">
-        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[1.08fr_1fr] lg:gap-10">
+        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-10 xl:grid-cols-[1.08fr_1fr]">
           <div className="min-w-0">
-            <h1 className="max-w-2xl text-[2.75rem] leading-[0.98] font-semibold tracking-[-0.04em] sm:text-[4.1rem] lg:text-[4.6rem] xl:text-[5.2rem]">
+            <h1 className="max-w-2xl text-[2.75rem] leading-[0.98] font-semibold tracking-[-0.04em] sm:text-[4.1rem] lg:text-[4rem] xl:text-[5.2rem]">
               <span className="sr-only">Why buy it for one weekend?</span>
               <span aria-hidden className="block">
                 <Word>Why</Word> <Word>buy</Word> <Word>it</Word> <Word>for</Word>{" "}
@@ -134,7 +134,10 @@ function TicketStack({ listings }: { listings: ListingCardData[] }) {
                 </div>
                 <div className="px-1.5 pt-2.5 pb-1">
                   <p className="hero-ticket-label font-mono text-[0.62rem] tracking-[0.14em] text-muted uppercase">For · {TICKETS[i]?.duration}</p>
-                  <p className="truncate font-display text-[1rem] leading-tight font-semibold">{TICKETS[i]?.occasion}</p>
+                  {/* Narrow desktops wrap the title onto two equal lines rather than cutting it off. */}
+                  <p className="truncate font-display text-[1rem] leading-tight font-semibold lg:min-h-[2.5em] lg:whitespace-normal xl:min-h-0 xl:whitespace-nowrap">
+                    {TICKETS[i]?.occasion}
+                  </p>
                 </div>
               </Link>
             </div>
