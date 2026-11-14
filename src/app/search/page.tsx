@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SearchX, X } from "lucide-react";
+import { SearchX, Sparkles, X } from "lucide-react";
 import { SearchResults } from "@/components/search-results";
 import { publicPin } from "@/lib/geo";
 import { SearchFilters } from "@/components/search-filters";
@@ -20,7 +20,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 export default async function SearchPage({ searchParams }: Props) {
-  const filters = parseSearch(await searchParams);
+  const raw = await searchParams;
+  const filters = parseSearch(raw);
+  const via = raw.via === "ai" || raw.via === "photo" ? raw.via : null;
   const listings = await searchListings({
     q: filters.q,
     category: filters.category,
@@ -79,6 +81,17 @@ export default async function SearchPage({ searchParams }: Props) {
           </div>
         )}
       </div>
+
+      {via && (
+        <p className="mb-6 flex items-start gap-2 rounded-xl bg-accent-soft px-4 py-3 text-sm text-ink-2">
+          <Sparkles className="mt-0.5 size-4 shrink-0 text-accent-ink" aria-hidden />
+          <span>
+            {via === "photo"
+              ? "These are items like the one in your photo. We matched on the kind of item, not the exact model, so remove or change any filter above that we got wrong."
+              : "We turned your description into the filters above. Remove or change any that we got wrong. Sizes aren't filtered yet, so check the size on each item."}
+          </span>
+        </p>
+      )}
 
       {listings.length > 0 ? (
         <SearchResults key={JSON.stringify(filters)} items={items} view={filters.view} query={filters.from && filters.to ? `start=${filters.from}&end=${filters.to}` : undefined} />
