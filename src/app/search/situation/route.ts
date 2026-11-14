@@ -6,7 +6,7 @@ import { MAX_SITUATION_LENGTH, SITUATION_JSON_SCHEMA, isEmptySearch, situationHr
 import { askVisionModel, aiEnabled } from "@/server/ai";
 import { relaxKeywords } from "@/server/situation-search";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 // Search is public, so this is too. A best-effort cap (in memory, per server) keeps the bill bounded.
 const MAX_PER_HOUR = 300;

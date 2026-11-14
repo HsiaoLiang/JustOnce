@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/server/auth";
 import { db } from "@/server/db";
 
 // The model call can take several seconds, plus one retry.
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const MAX_PHOTOS = 2;
 const MAX_PER_HOUR = 20;

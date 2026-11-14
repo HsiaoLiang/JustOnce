@@ -5,7 +5,7 @@ import { PHOTO_SEARCH_JSON_SCHEMA, isEmptySearch, photoSearchSchema, photoToSear
 import { askVisionModel, aiEnabled, devDetail } from "@/server/ai";
 import { relaxKeywords } from "@/server/situation-search";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const MAX_BYTES = 4 * 1024 * 1024;
 const UNAVAILABLE = "Couldn't read that photo. Try the search box instead.";

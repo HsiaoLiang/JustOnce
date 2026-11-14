@@ -8,7 +8,8 @@
 //   - Google Gemini (GEMINI_API_KEY), which has a free tier.
 // With both keys set, Anthropic is used unless AI_PROVIDER="gemini".
 
-const TIMEOUT_MS = 15_000;
+// Vision calls with a little model "thinking" can take well over ten seconds on a free tier.
+const TIMEOUT_MS = 25_000;
 
 type Provider = "anthropic" | "gemini";
 
@@ -119,8 +120,9 @@ async function askAnthropic({ system, prompt, images, schema }: AskOptions): Pro
 }
 
 async function askGemini({ system, prompt, images, schema }: AskOptions): Promise<unknown> {
+  const model = modelFor("gemini");
   const body = (await post(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelFor("gemini"))}:generateContent`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
     { "x-goog-api-key": process.env.GEMINI_API_KEY! },
     {
       system_instruction: { parts: [{ text: system }] },
@@ -130,7 +132,12 @@ async function askGemini({ system, prompt, images, schema }: AskOptions): Promis
           parts: [...images.map((image) => ({ inline_data: { mime_type: image.mimeType, data: base64(image) } })), { text: prompt }],
         },
       ],
-      generationConfig: { responseMimeType: "application/json", responseJsonSchema: schema.json },
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseJsonSchema: schema.json,
+        // These are quick look-and-label jobs. Gemini 3+ thinks at a medium level by default, which is slow.
+        ...(/^gemini-([3-9]|\d\d)/.test(model) ? { thinkingConfig: { thinkingLevel: "low" } } : {}),
+      },
     },
   )) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
   const text = body.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
@@ -154,8 +161,12 @@ export async function askVisionModel(options: AskOptions): Promise<unknown> {
   try {
     return await ask(options);
   } catch (first) {
-    // Timeouts and network errors are worth one more go; a rejected request is not.
+    // Server hiccups and dropped connections are worth one more go. A rejected request is not,
+    // and neither is a timeout: a second 25 seconds would outlast the page waiting for us.
     if (first instanceof AiUnavailableError && !first.retryable) throw first;
+    if (first instanceof Error && (first.name === "TimeoutError" || first.name === "AbortError")) {
+      throw new AiUnavailableError(`The AI provider took longer than ${TIMEOUT_MS / 1000} seconds to answer`);
+    }
     try {
       return await ask(options);
     } catch (second) {
