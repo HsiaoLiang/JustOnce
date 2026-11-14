@@ -80,6 +80,12 @@
   p {
     text-wrap: pretty;
   }
+  /* Let form controls shrink inside grid and flex rows instead of pushing them wider. */
+  input,
+  select,
+  textarea {
+    min-width: 0;
+  }
   input[type="date"]::-webkit-calendar-picker-indicator {
     opacity: 0.55;
     cursor: pointer;
@@ -330,5 +336,18 @@
 @keyframes reveal-failsafe {
   to {
     visibility: visible;
+  }
+}
+
+/*
+ * iOS Safari zooms the whole page when you focus a field whose text is smaller than 16px, and it doesn't zoom back.
+ * Our fields use 15.2px (text-[0.95rem]) and 14px (text-sm), so on phone-sized screens they're bumped to 16px.
+ * Deliberately outside any @layer: unlayered CSS wins over Tailwind's utility classes, which is the point here.
+ */
+@media (max-width: 767px) {
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"]),
+  select,
+  textarea {
+    font-size: 16px;
   }
 }
