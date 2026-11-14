@@ -355,14 +355,15 @@ export async function getPickupDetails(booking: Pick<BookingDetail, "status" | "
 
 // ---------------------------------------------------------------- profiles
 
-export async function getProfile(id: string) {
+/** A person's public profile. Their members-only items are only included for viewers allowed to see them. */
+export async function getProfile(id: string, viewer: { id: string; communityIds: string[] } | null = null) {
   const user = await db.user.findUnique({
     where: { id },
     select: { id: true, name: true, avatarUrl: true, verifiedAt: true, bio: true, area: true, createdAt: true, ratingCount: true, ratingSum: true },
   });
   if (!user) return null;
   const [listings, reviews, lentCount, rentedCount] = await Promise.all([
-    db.listing.findMany({ where: { ownerId: id, status: "ACTIVE" }, select: listingCardSelect, orderBy: { createdAt: "desc" } }),
+    db.listing.findMany({ where: { AND: [{ ownerId: id, status: "ACTIVE" }, visibleListingsWhere(viewer)] }, select: listingCardSelect, orderBy: { createdAt: "desc" } }),
     db.review.findMany({
       where: { subjectId: id },
       select: {

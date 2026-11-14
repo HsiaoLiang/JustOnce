@@ -29,6 +29,24 @@ export function maskEmail(email: string): string {
 
 export const EMAIL_CODE_TTL_MINUTES = 15;
 export const EMAIL_CODE_MAX_ATTEMPTS = 5;
+/** Minimum gap between two codes for the same membership, so codes can't be re-requested to reset the tries or flood an inbox. */
+export const EMAIL_CODE_RESEND_SECONDS = 60;
+
+/** Seconds until another code may be sent, given when the current one expires (0 when one can be sent now). */
+export function codeCooldownLeft(codeExpiresAt: Date | null, now: Date = new Date()): number {
+  if (!codeExpiresAt) return 0;
+  const issuedAt = codeExpiresAt.getTime() - EMAIL_CODE_TTL_MINUTES * 60_000;
+  return Math.max(0, Math.ceil((issuedAt + EMAIL_CODE_RESEND_SECONDS * 1000 - now.getTime()) / 1000));
+}
+
+export type CommunityKind = "UNIVERSITY" | "COMPANY";
+
+/** The words that change between a school and a company community. */
+export function communityWords(type: CommunityKind) {
+  return type === "COMPANY"
+    ? { email: "work email", idCard: "staff ID card", peers: "colleagues" }
+    : { email: "school email", idCard: "student ID card", peers: "classmates" };
+}
 
 export type CodeCheck = "ok" | "expired" | "too-many" | "wrong" | "missing";
 

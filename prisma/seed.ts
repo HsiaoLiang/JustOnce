@@ -23,7 +23,8 @@ async function main() {
   const started = Date.now();
   const summary = await seedDatabase(prisma);
   console.log(
-    `Seeded ${summary.users} users, ${summary.listings} listings, ${summary.bookings} bookings and ${summary.reviews} reviews ` +
+    `Seeded ${summary.users} users, ${summary.listings} listings, ${summary.bookings} bookings, ${summary.reviews} reviews, ` +
+      `${summary.communities} communities and ${summary.posts} board posts ` +
       `(dates relative to ${summary.today}) in ${((Date.now() - started) / 1000).toFixed(1)}s.`,
   );
   console.log(`Demo log-ins (password "${DEMO_PASSWORD}"): ${USERS.slice(0, 2).map((u) => u.email).join(", ")} and more in the README.`);

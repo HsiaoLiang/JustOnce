@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { canSeeListing, checkEmailCode, emailMatchesDomains, maskEmail, normaliseEmail } from "../communities";
+import { canSeeListing, checkEmailCode, codeCooldownLeft, communityWords, emailMatchesDomains, maskEmail, normaliseEmail } from "../communities";
 
 test("LBS addresses match, including subdomains and any case", () => {
   assert.equal(emailMatchesDomains("Martin.Hsiao@London.edu", ["london.edu"]), true);
@@ -45,4 +45,17 @@ test("members-only listings are visible to verified members and the owner", () =
 
 test("community listings that aren't members-only are public", () => {
   assert.equal(canSeeListing({ ...membersOnly, communityOnly: false }, null), true);
+});
+
+test("a new code can only be sent a minute after the last one", () => {
+  const issued = new Date("2026-11-14T12:00:00Z");
+  const expires = new Date(issued.getTime() + 15 * 60_000);
+  assert.equal(codeCooldownLeft(expires, new Date("2026-11-14T12:00:20Z")), 40);
+  assert.equal(codeCooldownLeft(expires, new Date("2026-11-14T12:01:00Z")), 0);
+  assert.equal(codeCooldownLeft(null, issued), 0);
+});
+
+test("companies get work wording, schools get school wording", () => {
+  assert.equal(communityWords("COMPANY").email, "work email");
+  assert.equal(communityWords("UNIVERSITY").idCard, "student ID card");
 });

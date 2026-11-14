@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { VerifyCommunityForms } from "@/components/community-forms";
 import { Container } from "@/components/ui";
-import { maskEmail } from "@/lib/communities";
+import { communityWords, maskEmail } from "@/lib/communities";
 import { requireUser } from "@/server/auth";
 import { getCommunityBySlug, getMembership } from "@/server/communities";
 
@@ -26,6 +26,8 @@ export default async function VerifyCommunityPage({ params }: Props) {
       ? maskEmail(membership.email)
       : null;
 
+  const words = communityWords(community.type);
+
   return (
     <Container className="py-8 md:py-12">
       <div className="mx-auto max-w-lg">
@@ -34,15 +36,16 @@ export default async function VerifyCommunityPage({ params }: Props) {
         </Link>
         <h1 className="mt-2 text-3xl font-semibold">Verify with {community.shortName}</h1>
         <p className="mt-2 text-muted">
-          Verified members get a {community.shortName} badge, can see members-only items, and can post on the exchange board. Your school email is never shown to anyone.
+          Verified members get a {community.shortName} badge, can see members-only items, and can post on the exchange board. Your {words.email} is never shown to anyone.
         </p>
         {membership?.status === "REJECTED" && (
-          <p className="mt-4 rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger">Your last ID card couldn&apos;t be approved. Try your school email, or upload a clearer photo.</p>
+          <p className="mt-4 rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger">Your last ID card couldn&apos;t be approved. Try your {words.email}, or upload a clearer photo.</p>
         )}
         <div className="mt-8">
           <VerifyCommunityForms
             slug={slug}
             shortName={community.shortName}
+            type={community.type}
             domains={community.domains}
             pendingEmail={pendingEmail}
             pendingIdCard={membership?.method === "ID_CARD" && membership.status === "PENDING"}

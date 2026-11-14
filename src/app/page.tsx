@@ -7,7 +7,7 @@ import { ListingGrid } from "@/components/listing-card";
 import { Container, LinkButton, SectionHeading } from "@/components/ui";
 import { CATEGORY_GROUPS, categoriesInGroup, type CategoryInfo } from "@/lib/catalogue";
 import { formatGBP } from "@/lib/money";
-import { cn } from "@/lib/cn";
+import { cn, plural } from "@/lib/cn";
 import { getHomeData } from "@/server/queries";
 import { aiEnabled } from "@/server/ai";
 import { getCurrentUser } from "@/server/auth";
@@ -221,7 +221,7 @@ function CommunitiesSection({ communities, mine }: { communities: CommunitySumma
                   <p className="mt-4 font-display text-xl leading-tight font-semibold">{c.shortName}</p>
                   <p className="mt-0.5 text-xs text-paper/65">{c.name}</p>
                   <p className="mt-auto flex items-center gap-1 pt-4 font-mono text-[0.7rem] tracking-[0.12em] text-paper/80 uppercase">
-                    {c._count.members} members · {c._count.listings} items · {c._count.posts} asks
+                    {plural(c._count.members, "member")} · {plural(c._count.listings, "item")} · {plural(c._count.posts, "open post")}
                     <ArrowRight className="ml-auto size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
                   </p>
                 </Link>

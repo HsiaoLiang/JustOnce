@@ -15,6 +15,8 @@ export interface SeedSummary {
   listings: number;
   bookings: number;
   reviews: number;
+  communities: number;
+  posts: number;
   today: ISODate;
 }
 
@@ -112,7 +114,16 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
 
   await recalculateRatings(prisma);
 
-  return { users: USERS.length, listings: LISTINGS.length, bookings: BOOKINGS.length, reviews, today };
+  // Counted from the database, so the communities' extra members, items and posts are included.
+  const [users, listings, bookings, reviewCount, communities, posts] = await Promise.all([
+    prisma.user.count(),
+    prisma.listing.count(),
+    prisma.booking.count(),
+    prisma.review.count(),
+    prisma.community.count(),
+    prisma.communityPost.count(),
+  ]);
+  return { users, listings, bookings, reviews: reviewCount, communities, posts, today };
 
   async function createSeedBooking(tx: PrismaClient, b: SeedBooking, index: number): Promise<number> {
     const listing = listingsById.get(b.listing);

@@ -7,8 +7,8 @@ import { Avatar, Container, EmptyState, LinkButton, Rating, Stars, VerifiedBadge
 import { areaName } from "@/lib/areas";
 import { formatMonthYear } from "@/lib/dates";
 import { firstName, formatRating, plural, shortName } from "@/lib/cn";
-import { getCurrentUser } from "@/server/auth";
 import { getProfile } from "@/server/queries";
+import { getViewer } from "@/server/communities";
 import { AreaMapClient } from "@/components/map/area-map-client";
 import { areaCircle } from "@/lib/geo";
 
@@ -22,7 +22,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProfilePage({ params }: Props) {
   const { id } = await params;
-  const [data, viewer] = await Promise.all([getProfile(id), getCurrentUser()]);
+  // Members-only items only show to the owner and verified members of that community.
+  const viewer = await getViewer();
+  const data = await getProfile(id, viewer);
   if (!data) notFound();
   const { user, listings, reviews, lentCount, rentedCount } = data;
   const isMe = viewer?.id === user.id;

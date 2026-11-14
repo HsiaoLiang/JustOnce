@@ -9,7 +9,9 @@ import { requireUser } from "../auth";
 import { setFlash } from "../flash";
 import {
   checkEmailCode,
+  codeCooldownLeft,
   COMMUNITY_SLUG_RE,
+  EMAIL_CODE_MAX_ATTEMPTS,
   EMAIL_CODE_TTL_MINUTES,
   emailMatchesDomains,
   maskEmail,
@@ -40,6 +42,10 @@ async function ownedUploads(userId: string, urls: string[]): Promise<boolean> {
   if (ids.some((id) => !id)) return false;
   const owned = await db.imageBlob.count({ where: { id: { in: ids as string[] }, ownerId: userId } });
   return owned === ids.length;
+}
+
+async function emailTakenElsewhere(communityId: string, email: string, userId: string) {
+  return (await db.communityMember.count({ where: { communityId, email, status: "VERIFIED", userId: { not: userId } } })) > 0;
 }
 
 async function requireMember(slug: unknown, returnTo: string) {
@@ -75,8 +81,11 @@ export async function requestEmailCode(_prev: VerifyState, formData: FormData): 
   if (existing?.status === "VERIFIED") redirect(`/communities/${community.slug}`);
 
   // Another account already verified with this address: one person, one membership.
-  const taken = await db.communityMember.count({ where: { communityId: community.id, email, status: "VERIFIED", userId: { not: user.id } } });
-  if (taken) return { error: "That email is already verified on another account." };
+  if (await emailTakenElsewhere(community.id, email, user.id)) return { error: "That email is already verified on another account." };
+
+  // One code a minute: otherwise asking again would reset the tries and could flood someone's inbox.
+  const wait = existing?.method === "EMAIL" && existing.status === "PENDING" ? codeCooldownLeft(existing.codeExpiresAt) : 0;
+  if (wait) return { error: `We've just sent a code. You can ask for another in ${wait} seconds.`, sentTo: existing?.email ? maskEmail(existing.email) : undefined };
 
   const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
   const data = {
@@ -117,19 +126,31 @@ export async function confirmEmailCode(_prev: VerifyState, formData: FormData): 
   const sentTo = entry.email ? maskEmail(entry.email) : undefined;
   if (!/^\d{6}$/.test(code)) return { error: "Enter the 6-digit code.", sentTo };
 
-  const result = checkEmailCode(entry, hashCode(code));
-  if (result === "missing") return { error: "Ask for a new code." };
-  if (result === "too-many") return { error: "Too many tries. Ask for a new code." };
-  if (result === "expired") return { error: "That code has expired. Ask for a new one." };
-  if (result === "wrong") {
-    await db.communityMember.update({ where: { id: entry.id }, data: { codeAttempts: { increment: 1 } } });
-    return { error: "That code isn't right. Check the email and try again.", sentTo };
-  }
+  if (!entry.codeHash) return { error: "Ask for a new code." };
 
-  await db.communityMember.update({
-    where: { id: entry.id },
+  // Use up a try before comparing, in one atomic update: guesses sent in parallel can't all read
+  // "0 tries so far" and slip past the limit.
+  const tried = await db.communityMember.updateMany({
+    where: { id: entry.id, codeHash: entry.codeHash, codeAttempts: { lt: EMAIL_CODE_MAX_ATTEMPTS } },
+    data: { codeAttempts: { increment: 1 } },
+  });
+  if (!tried.count) return { error: "Too many tries. Ask for a new code." };
+
+  // The try is already counted, so only the code and its expiry are checked here.
+  const result = checkEmailCode({ ...entry, codeAttempts: 0 }, hashCode(code));
+  if (result === "missing") return { error: "Ask for a new code." };
+  if (result === "expired") return { error: "That code has expired. Ask for a new one." };
+  if (result !== "ok") return { error: "That code isn't right. Check the email and try again.", sentTo };
+
+  // Two accounts could both have a code for the same address; only the first to confirm gets it.
+  if (entry.email && (await emailTakenElsewhere(community.id, entry.email, user.id))) {
+    return { error: "That email has just been verified on another account." };
+  }
+  const verified = await db.communityMember.updateMany({
+    where: { id: entry.id, codeHash: entry.codeHash },
     data: { status: "VERIFIED", verifiedAt: new Date(), codeHash: null, codeExpiresAt: null, codeAttempts: 0 },
   });
+  if (!verified.count) return { error: "Ask for a new code." };
   await setFlash(`You're verified at ${community.shortName}. Members-only items and the exchange board are open to you.`);
   revalidatePath(`/communities/${community.slug}`);
   revalidatePath("/communities");

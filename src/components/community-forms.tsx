@@ -12,22 +12,38 @@ import {
   type PostState,
   type VerifyState,
 } from "@/server/actions/communities";
-import { POST_TYPES } from "@/lib/communities";
+import { communityWords, POST_TYPES, type CommunityKind } from "@/lib/communities";
 import { cn } from "@/lib/cn";
 import { PhotoUploader } from "./photo-uploader";
 import { Button, FieldError, FormAlert, Input, Label, Textarea } from "./ui";
 
 // ------------------------------------------------------------ verification
 
-export function VerifyCommunityForms({ slug, shortName, domains, pendingIdCard, pendingEmail }: { slug: string; shortName: string; domains: string[]; pendingIdCard: boolean; pendingEmail: string | null }) {
+export function VerifyCommunityForms({
+  slug,
+  shortName,
+  type,
+  domains,
+  pendingIdCard,
+  pendingEmail,
+}: {
+  slug: string;
+  shortName: string;
+  type: CommunityKind;
+  domains: string[];
+  pendingIdCard: boolean;
+  pendingEmail: string | null;
+}) {
   const [tab, setTab] = useState<"email" | "id">(pendingIdCard ? "id" : "email");
+  const words = communityWords(type);
+  const sentence = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
   return (
     <div>
       <div role="tablist" aria-label="How to verify" className="grid grid-cols-2 gap-2 rounded-full bg-surface p-1">
         {(
           [
-            { id: "email", label: "School email", icon: Mail },
-            { id: "id", label: "Student ID card", icon: IdCard },
+            { id: "email", label: sentence(words.email), icon: Mail },
+            { id: "id", label: sentence(words.idCard), icon: IdCard },
           ] as const
         ).map((t) => (
           <button
@@ -43,7 +59,7 @@ export function VerifyCommunityForms({ slug, shortName, domains, pendingIdCard, 
           </button>
         ))}
       </div>
-      <div className="mt-6">{tab === "email" ? <EmailVerify slug={slug} shortName={shortName} domains={domains} pendingEmail={pendingEmail} /> : <IdCardVerify slug={slug} shortName={shortName} pending={pendingIdCard} />}</div>
+      <div className="mt-6">{tab === "email" ? <EmailVerify slug={slug} shortName={shortName} domains={domains} pendingEmail={pendingEmail} /> : <IdCardVerify slug={slug} shortName={shortName} idCard={words.idCard} pending={pendingIdCard} />}</div>
     </div>
   );
 }
@@ -52,6 +68,13 @@ function EmailVerify({ slug, shortName, domains, pendingEmail }: { slug: string;
   const [sent, sendAction, sending] = useActionState<VerifyState, FormData>(requestEmailCode, pendingEmail ? { sentTo: pendingEmail } : undefined);
   const [confirmed, confirmAction, confirming] = useActionState<VerifyState, FormData>(confirmEmailCode, undefined);
   const sentTo = sent?.sentTo ?? confirmed?.sentTo;
+  // Controlled, because React clears a form after its action runs and "Send a new code" needs the address again.
+  const [email, setEmail] = useState("");
+  // Demo mode shows the code on screen. Keep showing it if "Send a new code" is pressed during the cooldown.
+  const [demoCode, setDemoCode] = useState<string>();
+  useEffect(() => {
+    if (sent?.demoCode) setDemoCode(sent.demoCode);
+  }, [sent]);
 
   return (
     <div className="space-y-6">
@@ -62,7 +85,18 @@ function EmailVerify({ slug, shortName, domains, pendingEmail }: { slug: string;
             Your {shortName} email
           </Label>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <Input id="email" name="email" type="email" inputMode="email" autoComplete="email" required placeholder={`firstname@${domains[0] ?? "school.ac.uk"}`} className="flex-1" />
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={`firstname@${domains[0] ?? "example.com"}`}
+              className="flex-1"
+            />
             <Button type="submit" variant={sentTo ? "secondary" : "primary"} disabled={sending}>
               {sending && <LoaderCircle className="size-4 animate-spin" aria-hidden />}
               {sentTo ? "Send a new code" : "Send code"}
@@ -78,9 +112,9 @@ function EmailVerify({ slug, shortName, domains, pendingEmail }: { slug: string;
           <p className="text-sm text-ink-2">
             We sent a 6-digit code to <strong className="text-ink">{sentTo}</strong>. It works for 15 minutes.
           </p>
-          {sent?.demoCode && (
+          {demoCode && (
             <FormAlert tone="info">
-              Demo mode: email isn&apos;t connected yet, so here&apos;s your code: <strong className="font-mono tracking-widest">{sent.demoCode}</strong>
+              Demo mode: email isn&apos;t connected yet, so here&apos;s your code: <strong className="font-mono tracking-widest">{demoCode}</strong>
             </FormAlert>
           )}
           <div>
@@ -100,7 +134,7 @@ function EmailVerify({ slug, shortName, domains, pendingEmail }: { slug: string;
   );
 }
 
-function IdCardVerify({ slug, shortName, pending }: { slug: string; shortName: string; pending: boolean }) {
+function IdCardVerify({ slug, shortName, idCard, pending }: { slug: string; shortName: string; idCard: string; pending: boolean }) {
   const [state, action, submitting] = useActionState<VerifyState, FormData>(submitIdCard, pending ? { pending: true } : undefined);
   const [busy, setBusy] = useState(false);
   const [count, setCount] = useState(0);
@@ -115,7 +149,7 @@ function IdCardVerify({ slug, shortName, pending }: { slug: string; shortName: s
     <form action={action} className="space-y-4">
       <input type="hidden" name="slug" value={slug} />
       <p className="text-sm text-ink-2">
-        No {shortName} email? Upload a clear photo of the front of your student or staff card. Only our review team sees it, and you can cover your photo and card number.
+        No {shortName} email? Upload a clear photo of the front of your {idCard}. Only our review team sees it, and you can cover your photo and card number.
       </p>
       <PhotoUploader
         name="idCard"

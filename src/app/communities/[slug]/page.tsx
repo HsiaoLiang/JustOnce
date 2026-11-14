@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Clock, GraduationCap, MapPin, MessageCircle, Plus } from "lucide-react";
+import { Building2, Clock, GraduationCap, MapPin, MessageCircle, Plus } from "lucide-react";
 import { NewPostForm } from "@/components/community-forms";
 import { MemberTag } from "@/components/community-badge";
 import { ListingGrid } from "@/components/listing-card";
 import { Avatar, Container, EmptyState, LinkButton } from "@/components/ui";
 import { areaName } from "@/lib/areas";
 import { cn, plural, shortName as personShort } from "@/lib/cn";
-import { postTypeLabel } from "@/lib/communities";
+import { communityWords, postTypeLabel } from "@/lib/communities";
 import { formatDateTime, formatDay, todayInLondon, toISO } from "@/lib/dates";
 import { formatGBP } from "@/lib/money";
 import { getCurrentUser } from "@/server/auth";
@@ -33,12 +33,14 @@ export default async function CommunityPage({ params, searchParams }: Props) {
   const isMember = membership?.status === "VERIFIED";
   const { memberCount, posts, listings } = await getCommunityPage(community.id, { tab, type, viewer });
   const verifyHref = user ? `/communities/${slug}/verify` : `/login?next=${encodeURIComponent(`/communities/${slug}/verify`)}`;
+  const words = communityWords(community.type);
+  const TypeIcon = community.type === "COMPANY" ? Building2 : GraduationCap;
 
   return (
     <Container className="py-6 md:py-10">
       <header className="rounded-3xl bg-ink p-6 text-paper sm:p-8">
         <p className="inline-flex items-center gap-1.5 font-mono text-xs tracking-[0.14em] text-paper/70 uppercase">
-          <GraduationCap className="size-3.5" aria-hidden />
+          <TypeIcon className="size-3.5" aria-hidden />
           {community.type === "UNIVERSITY" ? "University" : "Company"} community
         </p>
         <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">{community.name}</h1>
@@ -54,7 +56,7 @@ export default async function CommunityPage({ params, searchParams }: Props) {
         <div className="mt-6 flex flex-wrap gap-2">
           {isMember ? (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-ink">
-              <GraduationCap className="size-4" aria-hidden /> You&apos;re a verified {community.shortName} member
+              <TypeIcon className="size-4" aria-hidden /> You&apos;re a verified {community.shortName} member
             </span>
           ) : membership?.status === "PENDING" && membership.method === "ID_CARD" ? (
             <span className="rounded-full bg-paper/15 px-4 py-2 text-sm font-semibold">ID card in review</span>
@@ -100,7 +102,7 @@ export default async function CommunityPage({ params, searchParams }: Props) {
           {listings.length ? (
             <ListingGrid listings={listings} />
           ) : (
-            <EmptyState title={`No ${community.shortName} items yet`} body="Be the first to list something for your classmates." />
+            <EmptyState title={`No ${community.shortName} items yet`} body={`Be the first to list something for your ${words.peers}.`} />
           )}
         </section>
       ) : (
