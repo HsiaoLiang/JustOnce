@@ -17,6 +17,9 @@ import { buyLinks, buyPriceFor } from "@/lib/market-price";
 import { buyPriceLookupDue } from "@/server/market-price";
 import { AreaMapClient } from "@/components/map/area-map-client";
 import { areaCircle } from "@/lib/geo";
+import { CommunityBadge } from "@/components/community-badge";
+import { canSeeListing } from "@/lib/communities";
+import { getViewerCommunityIds } from "@/server/communities";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -25,6 +28,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getListingDetail(id);
   if (!data) return { title: "Item not found" };
   const { listing } = data;
+  // Members-only items never reveal their title or photos in link previews.
+  if (listing.communityOnly) return { title: `${listing.community?.shortName ?? "Community"} members-only item`, robots: { index: false } };
   return {
     title: listing.title,
     description: `${formatGBP(listing.pricePerDay)} a day in ${areaName(listing.area)}. ${listing.description.slice(0, 140)}`,
@@ -36,6 +41,26 @@ export default async function ItemPage({ params, searchParams }: Props) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   const [data, user] = await Promise.all([getListingDetail(id), getCurrentUser()]);
   if (!data) notFound();
+  if (data.listing.communityOnly) {
+    const communityIds = user ? await getViewerCommunityIds() : [];
+    if (!canSeeListing(data.listing, user ? { id: user.id, communityIds } : null)) {
+      const c = data.listing.community;
+      return (
+        <Container className="py-16">
+          <div className="mx-auto max-w-md text-center">
+            <p className="font-mono text-xs tracking-[0.14em] text-muted uppercase">Members only</p>
+            <h1 className="mt-2 text-2xl font-semibold">This item is for verified {c?.shortName ?? "community"} members</h1>
+            <p className="mt-2 text-muted">Verify with your {c?.shortName ?? "community"} email or ID card to see it and book it.</p>
+            {c && (
+              <LinkButton href={user ? `/communities/${c.slug}/verify` : `/login?next=${encodeURIComponent(`/communities/${c.slug}/verify`)}`} className="mt-6">
+                Verify with {c.shortName}
+              </LinkButton>
+            )}
+          </div>
+        </Container>
+      );
+    }
+  }
   const { listing, reviews, ownerStats, today } = data;
   const owner = listing.owner;
   const isOwner = user?.id === owner.id;
@@ -87,6 +112,11 @@ export default async function ItemPage({ params, searchParams }: Props) {
           {areaName(listing.area)}
         </Link>
       </nav>
+      {listing.community && (
+        <div className="mt-3">
+          <CommunityBadge slug={listing.community.slug} shortName={listing.community.shortName} membersOnly={listing.communityOnly} />
+        </div>
+      )}
       <h1 className="mt-2 text-[1.9rem] leading-tight font-semibold sm:text-4xl">{listing.title}</h1>
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
         <Rating sum={listing.ratingSum} count={listing.ratingCount} showCount={false} newLabel="New listing" />

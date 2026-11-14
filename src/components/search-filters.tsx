@@ -32,6 +32,7 @@ export function SearchFilters({ filters, today, activeCount }: { filters: Parsed
     <Form ref={form} action="/search" className="mt-4" role="search" onSubmit={onSubmit}>
       {filters.categorySlug && <input type="hidden" name="category" value={filters.categorySlug} />}
       {filters.view === "map" && <input type="hidden" name="view" value="map" />}
+      {filters.community && <input type="hidden" name="community" value={filters.community} />}
       {filters.bbox && <input type="hidden" name="bbox" value={filters.bbox.map((n) => n.toFixed(4)).join(",")} />}
       <div className="flex gap-2 md:hidden">
         <Input name="q" defaultValue={filters.q} placeholder="Search items" aria-label="Search items" className="flex-1 rounded-full" />

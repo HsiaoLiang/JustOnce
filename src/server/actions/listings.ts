@@ -64,6 +64,13 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
     fieldErrors.replacementValue = "Enter a replacement value between £1 and £20,000, or leave it blank.";
   }
   const fullDepositOnly = formData.get("fullDepositOnly") === "on";
+  // Listing with a community needs a verified membership; members-only needs a community.
+  const communityId = String(formData.get("communityId") ?? "") || null;
+  const communityOnly = !!communityId && formData.get("communityOnly") === "on";
+  if (communityId) {
+    const member = await db.communityMember.count({ where: { userId: user.id, communityId, status: "VERIFIED" } });
+    if (!member) fieldErrors.communityId = "You can only list with a community you're verified in.";
+  }
   const handoverMethods = [...new Set(formData.getAll("handoverMethods").map(String))].filter((m): m is "MEET" | "COURIER" | "LOCKER" => m === "MEET" || m === "COURIER" || m === "LOCKER");
   if (handoverMethods.length === 0) fieldErrors.handoverMethods = "Choose at least one way to hand it over.";
 
@@ -134,6 +141,8 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
     marketPriceUrl: null,
     marketPriceCheckedAt: null,
     fullDepositOnly,
+    communityId,
+    communityOnly,
     pickupLat,
     pickupLng,
     handoverMethods,

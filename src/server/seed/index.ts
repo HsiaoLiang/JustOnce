@@ -7,6 +7,7 @@ import { addDays, toDate, todayInLondon, type ISODate } from "../../lib/dates";
 import { claimReasonLabel, deliveryFee, formatGBP, quote } from "../../lib/money";
 import { getLocker } from "../../lib/lockers";
 import { areaName } from "../../lib/areas";
+import { seedCommunities } from "./communities";
 import { BOOKINGS, CHECK_NOTES, DEMO_PASSWORD, LISTINGS, OWNER_PICKUP_POINTS, USERS, type SeedBooking } from "./data";
 
 export interface SeedSummary {
@@ -47,7 +48,7 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
   const later = (date: Date, minutes: number) => new Date(Math.min(date.getTime() + minutes * 60_000, now - 5 * 60_000));
 
   await prisma.$executeRawUnsafe(
-    `TRUNCATE TABLE "DepositClaim", "BookingEvent", "Review", "HandoverCheck", "Booking", "BlockedDate", "Listing", "Session", "ImageBlob", "User" CASCADE`,
+    `TRUNCATE TABLE "CommunityComment", "CommunityPost", "CommunityMember", "Community", "DepositClaim", "BookingEvent", "Review", "HandoverCheck", "Booking", "BlockedDate", "Listing", "Session", "ImageBlob", "User" CASCADE`,
   );
 
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
@@ -101,6 +102,8 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
     ),
   );
   if (blocked.length) await prisma.blockedDate.createMany({ data: blocked });
+
+  await seedCommunities(prisma, { today, passwordHash, now });
 
   let reviews = 0;
   for (const [index, b] of BOOKINGS.entries()) {

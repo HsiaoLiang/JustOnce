@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Search } from "lucide-react";
+import { GraduationCap, Search } from "lucide-react";
 import { getCurrentUser } from "@/server/auth";
 import { getAttentionCounts } from "@/server/queries";
 import { Logo } from "./logo";
@@ -28,6 +28,12 @@ export async function SiteHeader() {
               aria-label="Search"
             >
               <Search className="size-5" />
+            </Link>
+            <Link href="/communities" className="inline-flex size-10 items-center justify-center rounded-full hover:bg-surface md:hidden" aria-label="Communities">
+              <GraduationCap className="size-5" />
+            </Link>
+            <Link href="/communities" className="hidden rounded-full px-4 py-2 text-sm font-semibold hover:bg-surface md:inline-flex">
+              Communities
             </Link>
             {user ? (
               <>

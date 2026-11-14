@@ -5,11 +5,18 @@ import { emptyListingValues } from "@/lib/listing-form-values";
 import { todayInLondon } from "@/lib/dates";
 import { aiEnabled } from "@/server/ai";
 import { requireUser } from "@/server/auth";
+import { verifiedCommunitiesFor } from "@/server/communities";
 
 export const metadata: Metadata = { title: "List an item" };
 
-export default async function NewListingPage() {
+type Props = { searchParams: Promise<Record<string, string | undefined>> };
+
+export default async function NewListingPage({ searchParams }: Props) {
   const user = await requireUser("/listings/new");
+  const communities = await verifiedCommunitiesFor(user.id);
+  // /listings/new?community=lbs starts the form with that community picked, if the owner is verified in it.
+  const preset = (await searchParams).community;
+  const presetId = communities.find((c) => c.id === preset || c.slug === preset)?.id ?? "";
   const today = todayInLondon();
   return (
     <Container className="py-8 md:py-12">
@@ -18,7 +25,7 @@ export default async function NewListingPage() {
         <h1 className="mt-1 text-3xl font-semibold sm:text-4xl">List an item</h1>
         <p className="mt-2 text-muted">It takes about two minutes. You choose who rents it, and it&apos;s yours again after every rental.</p>
       </div>
-      <ListingForm mode="create" today={today} aiEnabled={aiEnabled()} initial={emptyListingValues(today, user.area)} />
+      <ListingForm mode="create" today={today} aiEnabled={aiEnabled()} communities={communities} initial={{ ...emptyListingValues(today, user.area), communityId: presetId }} />
     </Container>
   );
 }

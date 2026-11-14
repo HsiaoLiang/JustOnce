@@ -23,8 +23,23 @@ export const listingCardSelect = {
   featured: true,
   createdAt: true,
   status: true,
+  communityOnly: true,
+  community: { select: { slug: true, shortName: true } },
   owner: { select: { id: true, name: true, avatarUrl: true, verifiedAt: true } },
 } satisfies Prisma.ListingSelect;
+
+/**
+ * Hides members-only listings from anyone who isn't the owner or a verified member of the
+ * listing's community. Add it to every query that returns listings to other people.
+ */
+export function visibleListingsWhere(viewer: { id: string; communityIds: string[] } | null): Prisma.ListingWhereInput {
+  const allowed: Prisma.ListingWhereInput[] = [{ communityOnly: false }];
+  if (viewer) {
+    allowed.push({ ownerId: viewer.id });
+    if (viewer.communityIds.length) allowed.push({ communityId: { in: viewer.communityIds } });
+  }
+  return { OR: allowed };
+}
 
 export type ListingCardData = Prisma.ListingGetPayload<{ select: typeof listingCardSelect }>;
 
@@ -35,14 +50,14 @@ const HERO_IDS = ["black-tuxedo-satin-lapels", "mountain-hardwear-4-person-tent"
 export async function getHomeData() {
   const [featured, latest, categoryCounts, hero, completedRentals, ratings] = await Promise.all([
     db.listing.findMany({
-      where: { status: "ACTIVE", featured: true },
+      where: { status: "ACTIVE", featured: true, communityOnly: false },
       select: listingCardSelect,
       orderBy: [{ ratingCount: "desc" }, { createdAt: "desc" }],
       take: 8,
     }),
-    db.listing.findMany({ where: { status: "ACTIVE" }, select: listingCardSelect, orderBy: { createdAt: "desc" }, take: 4 }),
-    db.listing.groupBy({ by: ["category"], where: { status: "ACTIVE" }, _count: { _all: true } }),
-    db.listing.findMany({ where: { id: { in: HERO_IDS }, status: "ACTIVE" }, select: listingCardSelect }),
+    db.listing.findMany({ where: { status: "ACTIVE", communityOnly: false }, select: listingCardSelect, orderBy: { createdAt: "desc" }, take: 4 }),
+    db.listing.groupBy({ by: ["category"], where: { status: "ACTIVE", communityOnly: false }, _count: { _all: true } }),
+    db.listing.findMany({ where: { id: { in: HERO_IDS }, status: "ACTIVE", communityOnly: false }, select: listingCardSelect }),
     db.booking.count({ where: { status: "COMPLETED" } }),
     db.review.aggregate({ _avg: { rating: true } }),
   ]);
@@ -71,6 +86,10 @@ export interface SearchFilters {
   sort?: SortKey;
   bbox?: Bbox;
   delivery?: boolean;
+  /** Only listings posted with this community (its id). */
+  communityId?: string;
+  /** Who is searching; members-only listings are filtered by this. */
+  viewer?: { id: string; communityIds: string[] } | null;
 }
 
 // Typing "camera" or "halloween" should find the category even when titles don't say so.
@@ -127,6 +146,8 @@ export async function searchListings(filters: SearchFilters) {
       { blockedDates: { none: { date: { gte: from, lte: to } } } },
     );
   }
+  and.push(visibleListingsWhere(filters.viewer ?? null));
+  if (filters.communityId) where.communityId = filters.communityId;
   if (and.length) where.AND = and;
 
   const orderBy: Prisma.ListingOrderByWithRelationInput[] =
@@ -153,6 +174,7 @@ export async function getListingDetail(id: string) {
       owner: {
         select: { id: true, name: true, avatarUrl: true, verifiedAt: true, bio: true, area: true, createdAt: true, ratingCount: true, ratingSum: true },
       },
+      community: { select: { id: true, slug: true, name: true, shortName: true } },
       blockedDates: { where: { date: { gte: toDate(today) } }, select: { date: true }, orderBy: { date: "asc" } },
       bookings: {
         where: { status: { in: [...BLOCKING_STATUSES] }, endDate: { gte: toDate(today) } },
@@ -186,7 +208,7 @@ export async function getListingDetail(id: string) {
 
 export async function getMoreFromOwner(ownerId: string, excludeId: string) {
   return db.listing.findMany({
-    where: { ownerId, status: "ACTIVE", id: { not: excludeId } },
+    where: { ownerId, status: "ACTIVE", id: { not: excludeId }, communityOnly: false },
     select: listingCardSelect,
     orderBy: { ratingCount: "desc" },
     take: 4,

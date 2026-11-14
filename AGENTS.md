@@ -1,3 +1,5 @@
+- Members-only listings (`Listing.communityOnly`) must go through `visibleListingsWhere` (src/server/queries.ts) or `canSeeListing` (src/lib/communities.ts) in every query or page that shows listings to other people, so they never leak to non-members.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know

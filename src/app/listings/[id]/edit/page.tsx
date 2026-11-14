@@ -10,6 +10,7 @@ import { requireUser } from "@/server/auth";
 import { archiveListing, setListingStatus } from "@/server/actions/listings";
 import { getListingForEdit } from "@/server/queries";
 import { db } from "@/server/db";
+import { verifiedCommunitiesFor } from "@/server/communities";
 
 export const metadata: Metadata = { title: "Edit listing" };
 
@@ -26,6 +27,7 @@ export default async function EditListingPage({ params }: { params: Promise<{ id
   });
   const locked = booked.flatMap((b) => eachDay(toISO(b.startDate), toISO(b.endDate)));
   const paused = listing.status === "PAUSED";
+  const communities = await verifiedCommunitiesFor(user.id);
 
   return (
     <Container className="py-8 md:py-12">
@@ -57,6 +59,7 @@ export default async function EditListingPage({ params }: { params: Promise<{ id
         mode="edit"
         today={today}
         locked={locked}
+        communities={communities}
         initial={{
           id: listing.id,
           title: listing.title,
@@ -69,6 +72,8 @@ export default async function EditListingPage({ params }: { params: Promise<{ id
           deposit: penceToPoundsInput(listing.deposit),
           replacementValue: listing.replacementValue ? penceToPoundsInput(listing.replacementValue) : "",
           fullDepositOnly: listing.fullDepositOnly,
+          communityId: listing.communityId ?? "",
+          communityOnly: listing.communityOnly,
           area: listing.area,
           pickupNotes: listing.pickupNotes ?? "",
           handoverMethods: listing.handoverMethods,
