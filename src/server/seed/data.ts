@@ -720,6 +720,8 @@ export interface SeedBooking {
   /** For ACCEPTED/ACTIVE bookings: which sides have already done their check. */
   pickupDone?: ("OWNER" | "RENTER")[];
   returnDone?: ("OWNER" | "RENTER")[];
+  /** Photos both sides took at pickup, when they shouldn't be the listing photos (for the AI photo comparison demo). */
+  pickupPhotos?: string[];
   /** The renter's return photos, when they should differ from the pickup ones (for the AI photo comparison demo). */
   renterReturnPhotos?: string[];
   declineReason?: string;
@@ -865,6 +867,19 @@ export const BOOKINGS: SeedBooking[] = [
     returnDone: ["RENTER"],
     // The same flat lay as at pickup with the Rode microphone gone, so the AI comparison has a clear, checkable difference.
     renterReturnPhotos: ["/seed/checks/creator-kit-return-1.jpg"],
+  },
+  {
+    listing: "sony-a7-iii-28-70mm",
+    renter: "zara-ahmed",
+    start: -4,
+    end: -1,
+    status: "ACTIVE",
+    message: "Shooting a friend's supper club launch. I'll keep it in its bag between shots!",
+    pickupDone: ["OWNER", "RENTER"],
+    returnDone: ["RENTER"],
+    // The same photo as at pickup with a fine scratch added to the lens name ring: a subtle damage case for the AI comparison.
+    pickupPhotos: ["/seed/listings/sony-a7iii-1.jpg"],
+    renterReturnPhotos: ["/seed/checks/sony-a7iii-return-1.jpg"],
   },
   {
     listing: "sony-a7-iii-28-70mm",
