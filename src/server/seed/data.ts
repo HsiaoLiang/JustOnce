@@ -158,6 +158,8 @@ export interface SeedListing {
   /** Pounds. */
   replacementValue?: number;
   fullDepositOnly?: boolean;
+  /** Extra handover methods on top of meeting in person. */
+  delivery?: ("COURIER" | "LOCKER")[];
 }
 
 const p = (slug: string, count = 1) => Array.from({ length: count }, (_, i) => `/seed/listings/${slug}-${i + 1}.jpg`);
@@ -166,6 +168,7 @@ export const LISTINGS: SeedListing[] = [
   // Formalwear
   {
     id: "black-tuxedo-satin-lapels",
+    delivery: ["COURIER", "LOCKER"],
     replacementValue: 450,
     owner: "oliver-bennett",
     title: "Black tuxedo with satin lapels",
@@ -185,6 +188,7 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "blue-check-three-piece-suit",
+    delivery: ["LOCKER"],
     owner: "daniel-reyes",
     title: "Blue check three-piece suit",
     category: "FORMALWEAR",
@@ -217,6 +221,7 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "plum-off-shoulder-gown",
+    delivery: ["COURIER", "LOCKER"],
     owner: "amara-okafor",
     title: "Plum off-the-shoulder evening gown",
     category: "FORMALWEAR",
@@ -281,6 +286,7 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "quilted-leather-crossbody-bag",
+    delivery: ["COURIER"],
     replacementValue: 1500,
     fullDepositOnly: true,
     owner: "zara-ahmed",
@@ -301,6 +307,7 @@ export const LISTINGS: SeedListing[] = [
   // Cameras
   {
     id: "sony-a7-iii-28-70mm",
+    delivery: ["COURIER"],
     replacementValue: 1600,
     owner: "priya-shah",
     title: "Sony A7 III with 28–70mm lens",
@@ -319,6 +326,7 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "fujifilm-x100v",
+    delivery: ["COURIER", "LOCKER"],
     replacementValue: 1400,
     owner: "mei-chen",
     title: "Fujifilm X100V",
@@ -367,6 +375,7 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "polaroid-onestep-2",
+    delivery: ["LOCKER"],
     owner: "priya-shah",
     title: "Polaroid OneStep 2 instant camera",
     category: "CAMERAS",
@@ -413,6 +422,7 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "content-creator-kit",
+    delivery: ["COURIER"],
     owner: "priya-shah",
     title: "Content creator kit: mic, gimbal and lights",
     category: "CAMERAS",
@@ -515,6 +525,7 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "osprey-60l-rucksack",
+    delivery: ["LOCKER"],
     owner: "tom-hughes",
     title: "Osprey 60L trekking rucksack",
     category: "CAMPING",
@@ -578,6 +589,7 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "light-up-pumpkin-lanterns",
+    delivery: ["LOCKER"],
     owner: "amara-okafor",
     title: "Light-up pumpkin lanterns (set of 2)",
     category: "SEASONAL",
@@ -592,6 +604,7 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "creepy-clown-mask-costume",
+    delivery: ["LOCKER"],
     owner: "amara-okafor",
     title: "Creepy clown mask and costume",
     category: "SEASONAL",
@@ -638,6 +651,7 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "christmas-decorations-box",
+    delivery: ["COURIER"],
     owner: "sam-taylor",
     title: "Christmas decorations box",
     category: "SEASONAL",
@@ -652,6 +666,7 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "ski-kit-skis-poles-helmet",
+    delivery: ["COURIER"],
     owner: "callum-reid",
     title: "Ski kit: skis, poles and helmet",
     category: "SEASONAL",
@@ -706,6 +721,8 @@ export interface SeedBooking {
   pickupDone?: ("OWNER" | "RENTER")[];
   returnDone?: ("OWNER" | "RENTER")[];
   declineReason?: string;
+  /** Delivered instead of meeting in person. */
+  handover?: { method: "COURIER"; area: string; address: string } | { method: "LOCKER"; lockerId: string };
   /** A deposit claim after the owner flagged a problem at the return check. */
   claim?: {
     /** Pounds. */
@@ -771,6 +788,7 @@ export const BOOKINGS: SeedBooking[] = [
     start: 20,
     end: 26,
     status: "ACCEPTED",
+    handover: { method: "COURIER", area: "islington", address: "Flat 4, 27 Upper Street, N1" },
     message: "Off to the Alps with friends! I'm 168 cm, so hopefully the skis are about right.",
   },
   {
@@ -1059,6 +1077,7 @@ export const BOOKINGS: SeedBooking[] = [
     start: 16,
     end: 17,
     status: "ACCEPTED",
+    handover: { method: "LOCKER", lockerId: "brixton-station" },
     message: "Black-tie Christmas party. You're a lifesaver.",
   },
   {
@@ -1077,4 +1096,12 @@ export const CHECK_NOTES = {
   pickupRenter: ["Looks great, exactly as described.", "All there and in lovely condition.", "Checked everything at pickup, no issues."],
   returnOwner: ["Back in the same condition. Thanks!", "All present and correct.", "Returned clean and on time."],
   returnRenter: ["Returned everything as it came.", "All packed back up, thanks again!", "Handed back in person, all good."],
+};
+
+/** Exact pickup points (station exits), shown to renters only once a booking is accepted. */
+export const OWNER_PICKUP_POINTS: Record<string, [number, number]> = {
+  "priya-shah": [51.5471, -0.0561], // Hackney Central
+  "mei-chen": [51.5273, -0.0553], // Bethnal Green
+  "tom-hughes": [51.5829, -0.0197], // Walthamstow Central
+  "callum-reid": [51.4827, -0.0096], // Cutty Sark DLR
 };

@@ -9,6 +9,8 @@ import { formatMonthYear } from "@/lib/dates";
 import { firstName, formatRating, plural, shortName } from "@/lib/cn";
 import { getCurrentUser } from "@/server/auth";
 import { getProfile } from "@/server/queries";
+import { AreaMapClient } from "@/components/map/area-map-client";
+import { areaCircle } from "@/lib/geo";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -84,6 +86,20 @@ export default async function ProfilePage({ params }: Props) {
               />
             )}
           </section>
+
+          {listings.length > 0 && (
+            <section aria-labelledby="where-heading">
+              <h2 id="where-heading" className="text-2xl font-semibold">
+                Where {first}&apos;s items are
+              </h2>
+              <p className="mt-1 text-sm text-muted">Neighbourhoods only. Exact pickup points are shared once a booking is accepted.</p>
+              <AreaMapClient
+                circles={areaCircle(...listings.map((l) => l.area))}
+                label={`Map of the areas where ${first} lends items`}
+                className="mt-4 h-64 w-full overflow-hidden rounded-2xl border border-line bg-surface"
+              />
+            </section>
+          )}
 
           <section aria-labelledby="reviews-heading">
             <h2 id="reviews-heading" className="flex items-center gap-3 text-2xl font-semibold">

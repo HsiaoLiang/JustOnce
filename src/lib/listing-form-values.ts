@@ -16,6 +16,8 @@ export interface ListingFormValues {
   fullDepositOnly: boolean;
   area: string;
   pickupNotes: string;
+  pickupPoint: { lat: number; lng: number } | null;
+  handoverMethods: ("MEET" | "COURIER" | "LOCKER")[];
   photos: string[];
   availableFrom: ISODate;
   availableTo: ISODate;
@@ -36,6 +38,8 @@ export function emptyListingValues(today: ISODate, area: string | null): Listing
     fullDepositOnly: false,
     area: area ?? "",
     pickupNotes: "",
+    pickupPoint: null,
+    handoverMethods: ["MEET"],
     photos: [],
     availableFrom: today,
     availableTo: addDays(today, 90),

@@ -1,3 +1,5 @@
+import { getArea } from "./areas";
+
 // All amounts are integer pence. Payments are simulated: nothing here talks to
 // a payment provider, it only works out the numbers shown to people.
 
@@ -20,17 +22,20 @@ export interface Quote {
   days: number;
   pricePerDay: number;
   subtotal: number;
+  /** Charged on the rental subtotal only, never on delivery. */
   serviceFee: number;
+  /** Simulated delivery, both ways. 0 for meeting in person. */
+  delivery: number;
   /** What the renter is charged when the owner accepts. */
   total: number;
   /** Held separately and released after the return check. */
   deposit: number;
 }
 
-export function quote(pricePerDay: number, deposit: number, days: number): Quote {
+export function quote(pricePerDay: number, deposit: number, days: number, delivery = 0): Quote {
   const subtotal = pricePerDay * days;
   const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);
-  return { days, pricePerDay, subtotal, serviceFee, total: subtotal + serviceFee, deposit };
+  return { days, pricePerDay, subtotal, serviceFee, delivery, total: subtotal + serviceFee + delivery, deposit };
 }
 
 /** Parses "12", "12.5" or "£12.50" into pence. Returns null for anything else. */
@@ -101,4 +106,40 @@ export type ClaimReasonId = (typeof CLAIM_REASONS)[number]["id"];
 
 export function claimReasonLabel(id: string): string {
   return CLAIM_REASONS.find((r) => r.id === id)?.label ?? id;
+}
+
+// ---------------------------------------------------------------- delivery (simulated)
+
+export type HandoverMethodId = "MEET" | "COURIER" | "LOCKER";
+
+export const HANDOVER_METHODS: { id: HandoverMethodId; label: string; short: string; hint: string }[] = [
+  { id: "MEET", label: "Meet in person", short: "Meet in person", hint: "Hand it over face to face" },
+  { id: "COURIER", label: "Courier", short: "Courier", hint: "Delivered to the renter's door and collected again" },
+  { id: "LOCKER", label: "Parcel locker", short: "Locker", hint: "Dropped at a locker for the renter to collect" },
+];
+
+export function handoverLabel(id: string): string {
+  return HANDOVER_METHODS.find((m) => m.id === id)?.label ?? id;
+}
+
+export const LOCKER_FEE = 300;
+export const COURIER_FEE_SAME_REGION = 600;
+export const COURIER_FEE_CROSS_REGION = 900;
+
+/**
+ * Demo pricing for one way: locker £3; courier £6 within the same London region
+ * (both areas in East London, say), £9 across regions.
+ */
+export function deliveryFeeEachWay(method: HandoverMethodId, ownerArea: string, renterArea: string | undefined): number {
+  if (method === "LOCKER") return LOCKER_FEE;
+  if (method === "COURIER") {
+    const same = getArea(ownerArea)?.region !== undefined && getArea(ownerArea)?.region === getArea(renterArea)?.region;
+    return same ? COURIER_FEE_SAME_REGION : COURIER_FEE_CROSS_REGION;
+  }
+  return 0;
+}
+
+/** The return uses the same method, so delivery is charged both ways. */
+export function deliveryFee(method: HandoverMethodId, ownerArea: string, renterArea: string | undefined): number {
+  return deliveryFeeEachWay(method, ownerArea, renterArea) * 2;
 }

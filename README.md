@@ -101,7 +101,7 @@ Every demo account uses the password **`justonce`**. In demo mode the log-in pag
 | Leo Martins | `leo@example.com` | Renter and owner, Brixton | Waiting on Priya's answer about the Sony; a tuxedo booked for a black-tie party |
 | Tom Hughes | `tom@example.com` | Owner, Walthamstow | Tents and camping kit; a bell-tent booking next week |
 
-Also seeded: `hannah@`, `callum@`, `oliver@`, `daniel@`, `zara@`, `mei@` and `sam@example.com` (Sam isn't ID-verified, so you can show the unverified state and the "Verify your ID to halve deposits" prompt). Leo qualifies as a trusted renter, so he's quoted half deposits. Daniel's Fujifilm X-T3 rental shows a settled claim (£25 kept for a missing lens hood). In total: 12 people, 32 listings across the four categories, 35 bookings in every state and 45 reviews. All dates are relative to the day you seed, so the demo always looks current.
+Also seeded: `hannah@`, `callum@`, `oliver@`, `daniel@`, `zara@`, `mei@` and `sam@example.com` (Sam isn't ID-verified, so you can show the unverified state and the "Verify your ID to halve deposits" prompt). Leo qualifies as a trusted renter, so he's quoted half deposits, and his tuxedo booking goes through a parcel locker; Sophie's ski kit comes by courier. Daniel's Fujifilm X-T3 rental shows a settled claim (£25 kept for a missing lens hood). In total: 12 people, 32 listings across the four categories, 35 bookings in every state and 45 reviews. All dates are relative to the day you seed, so the demo always looks current.
 
 ## Suggested demo script
 
@@ -137,8 +137,8 @@ Resetting logs everyone out. If you're showing the site on a phone, log in again
 | Page | What it does |
 | --- | --- |
 | Home `/` | Search (item, area, dates), categories with live counts, featured items, newest listings, how it works, an earnings pitch for owners |
-| Search `/search` | Filters for category, dates (only shows items free on those dates), area (a neighbourhood or a whole region such as East London), price and sort |
-| Item `/items/[id]` | Large photo gallery, availability calendar (booked and blocked days crossed out), price breakdown, deposit, owner profile and reviews |
+| Search `/search` | Filters for category, dates (only shows items free on those dates), area (a neighbourhood or a whole region such as East London), price, delivery available and sort; List / Map toggle with price pins and "Search this area"; "Near me" sorts by distance (location stays in the browser) |
+| Item `/items/[id]` | Large photo gallery, availability calendar (booked and blocked days crossed out), map of the pickup neighbourhood, handover choice (meet, courier or locker), price breakdown, deposit, owner profile and reviews |
 | List an item `/listings/new`, edit `/listings/[id]/edit` | Photos (resized in the browser), **AI draft from a photo**, category, condition, price, deposit, pickup area and private pickup details, availability window plus days blocked out; pause, resume or remove a listing |
 | My rentals `/dashboard/rentals` | Renter view: what needs you, what's on rent, upcoming, past |
 | My listings `/dashboard/listings` | Owner view: requests to accept or decline in place, what needs you, earnings, your items, past bookings |
@@ -202,7 +202,7 @@ e2e/                 Playwright end-to-end tests
 
 ## Data model and the future swap option
 
-Main tables: `User`, `Session`, `Listing`, `BlockedDate`, `Booking`, `HandoverCheck` (one per side per stage, with photos), `DepositClaim`, `Review`, `BookingEvent` (the timeline) and `ImageBlob` (uploaded photos). Money is stored in pence; rental dates are Postgres `date` values.
+Listings store their handover methods and an optional exact pickup point (only ever sent to a renter with an accepted booking); bookings store the chosen method, delivery fee, address or locker. Main tables: `User`, `Session`, `Listing`, `BlockedDate`, `Booking`, `HandoverCheck` (one per side per stage, with photos), `DepositClaim`, `Review`, `BookingEvent` (the timeline) and `ImageBlob` (uploaded photos). Money is stored in pence; rental dates are Postgres `date` values.
 
 Swaps aren't built, but the model is ready for them:
 
@@ -227,7 +227,7 @@ npm run test:e2e
 ```
 
 - `npm test` runs unit tests for the pricing, deposit, date and booking rules (`src/lib/__tests__`).
-- `npm run test:e2e` drives the real app with Playwright through the whole journey in two browsers: an owner signs up and lists an item with a photo upload, a renter searches and books, the owner accepts, both confirm pickup and return, the deposit is released, both leave reviews, and overlapping requests are declined automatically. `e2e/deposits.spec.ts` covers damage claims (claim → accept, claim → contest → resolve) and half deposits for trusted renters. A last test checks the phone layout. It starts `npm run dev` if nothing is running; to test another server, set `E2E_BASE_URL`. First-time setup: `npx playwright install chromium`. **The tests create data, so run `npm run db:seed` afterwards.**
+- `npm run test:e2e` drives the real app with Playwright through the whole journey in two browsers: an owner signs up and lists an item with a photo upload, a renter searches and books, the owner accepts, both confirm pickup and return, the deposit is released, both leave reviews, and overlapping requests are declined automatically. `e2e/map.spec.ts` checks pins match the results, "Near me" with location allowed and refused, and that pickup details stay private until acceptance. `e2e/delivery.spec.ts` books with a courier and checks the server rejects a method the listing doesn't offer. `e2e/deposits.spec.ts` covers damage claims (claim → accept, claim → contest → resolve) and half deposits for trusted renters. A last test checks the phone layout. It starts `npm run dev` if nothing is running; to test another server, set `E2E_BASE_URL`. First-time setup: `npx playwright install chromium`. **The tests create data, so run `npm run db:seed` afterwards.**
 
 ## Scripts and environment variables
 
@@ -261,7 +261,9 @@ This is a competition demo, so some things are deliberately simulated or left ou
 - **AI drafts are suggestions:** photo-to-listing can misread an item, so nothing is published until the owner has checked it. The photos used for a draft are sent to the AI provider (Google or Anthropic, whichever key is set). On Gemini's free tier, Google may use what is sent to improve its products, so use a paid key for anything beyond a demo. Drafts aren't logged yet, and there is no saved fallback response for a demo with bad wifi.
 - **Photo search** matches on category and keywords, not on how the item looks, so results are "the same kind of thing" and not visual lookalikes. The photo is sent to the AI provider.
 - **Describe-what-you-need search** picks filters only: it doesn't filter by size, suggest bundles or post "wanted" requests yet, and budgets map to the nearest price filter at or below what was asked.
-- **Not built yet:** in-app messages, a real support team for contested deposit claims, email and push notifications, map search, and the swap option described above.
+- **Delivery:** couriers and lockers are simulated, with demo prices and timeline steps. A real version would call a courier API and a locker network.
+- **Maps:** OpenStreetMap tiles are fine for a demo; switch to a tile provider with a usage plan for real traffic.
+- **Not built yet:** in-app messages, a real support team for contested deposit claims, email and push notifications, and the swap option described above.
 - **Demo mode** publishes the demo password and adds one-tap log-ins. Set `NEXT_PUBLIC_DEMO_MODE=false` for anything beyond a demo.
 
 Photos come from [Unsplash](https://unsplash.com) under the Unsplash License (details in [`public/seed/CREDITS.md`](public/seed/CREDITS.md)). The people, listings and reviews are made up.

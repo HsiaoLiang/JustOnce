@@ -6,7 +6,7 @@ import { formatGBP } from "@/lib/money";
 import type { ListingCardData } from "@/server/queries";
 import { Rating } from "./ui";
 
-export function ListingCard({ listing, priority = false, href }: { listing: ListingCardData; priority?: boolean; href?: string }) {
+export function ListingCard({ listing, priority = false, href, distance }: { listing: ListingCardData; priority?: boolean; href?: string; distance?: string }) {
   return (
     <Link href={href ?? `/items/${listing.id}`} className="group block rounded-2xl">
       <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-surface">
@@ -31,6 +31,7 @@ export function ListingCard({ listing, priority = false, href }: { listing: List
       <p className="mt-0.5 text-sm text-muted">
         {areaName(listing.area)} · {conditionLabel(listing.condition)}
       </p>
+      {distance && <p className="mt-0.5 text-sm font-medium text-ink-2">{distance}</p>}
       <p className="mt-1 text-[0.95rem]">
         <span className="font-semibold">{formatGBP(listing.pricePerDay)}</span> <span className="text-muted">per day</span>
       </p>

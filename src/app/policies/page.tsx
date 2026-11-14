@@ -2,7 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Container } from "@/components/ui";
-import { CLAIM_REASONS, CLAIM_WINDOW_HOURS, DEPOSIT_PROMISE, MAX_RENTAL_DAYS, SERVICE_FEE_RATE, TRUSTED_RENTER } from "@/lib/money";
+import {
+  CLAIM_REASONS,
+  CLAIM_WINDOW_HOURS,
+  COURIER_FEE_CROSS_REGION,
+  COURIER_FEE_SAME_REGION,
+  DEPOSIT_PROMISE,
+  formatGBP,
+  LOCKER_FEE,
+  MAX_RENTAL_DAYS,
+  SERVICE_FEE_RATE,
+  TRUSTED_RENTER,
+} from "@/lib/money";
 
 export const metadata: Metadata = {
   title: "Policies",
@@ -19,6 +30,7 @@ const SECTIONS = [
   { id: "deposits", title: "Deposits" },
   { id: "trusted-renters", title: "Half deposits for trusted renters" },
   { id: "handovers", title: "Pickup and return checks" },
+  { id: "delivery", title: "Delivery" },
   { id: "damage-claims", title: "Damage claims" },
   { id: "cancellations", title: "Cancellations" },
   { id: "reviews", title: "Reviews and verification" },
@@ -103,6 +115,20 @@ export default function PoliciesPage() {
             <Rule>These photos are the record if anyone has a question about the deposit later, so take clear ones.</Rule>
           </Section>
 
+          <Section id="delivery" title="Delivery">
+            <Rule>Owners choose how each item can change hands: meeting in person (the default), a courier, or a parcel locker. Renters pick one of those when they ask.</Rule>
+            <Rule>
+              Delivery is charged each way, and the return uses the same method: {formatGBP(LOCKER_FEE)} for a locker, {formatGBP(COURIER_FEE_SAME_REGION)} for a
+              courier within the same part of London, {formatGBP(COURIER_FEE_CROSS_REGION)} across. It appears as its own line in the price, and the service fee is
+              never charged on it.
+            </Rule>
+            <Rule>
+              Photo checks still happen: the person sending takes photos when it leaves, and the person receiving when it arrives, both ways. You just don&apos;t
+              have to be in the same place at the same time.
+            </Rule>
+            <Rule>A courier delivery address is only shown to the owner once they accept.</Rule>
+          </Section>
+
           <Section id="damage-claims" title="Damage claims">
             <Rule>
               If an item comes back {reasons}, the owner says so at the return check, with photos and a note. The deposit then stays held instead of being returned.
@@ -137,6 +163,10 @@ export default function PoliciesPage() {
 
           <Section id="privacy" title="Your details">
             <Rule>Renters see an item&apos;s pickup area from the start. The owner&apos;s exact pickup details are only shown once a booking is accepted.</Rule>
+            <Rule>
+              Maps before a booking only ever show an approximate spot in the neighbourhood, never anyone&apos;s address. &ldquo;Near me&rdquo; uses your location in
+              your browser to sort results; it isn&apos;t sent to us or stored.
+            </Rule>
             <Rule>Photos you upload are resized in your browser first, which also removes hidden location data from phone photos.</Rule>
           </Section>
 
