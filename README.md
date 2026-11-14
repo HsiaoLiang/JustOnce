@@ -157,7 +157,7 @@ Resetting logs everyone out. If you're showing the site on a phone, log in again
 
 | Page | What it does |
 | --- | --- |
-| Home `/` | Search (item, area, dates), categories grouped into Fashion and Kit and occasions with live counts, featured items, newest listings, how it works, an earnings pitch for owners |
+| Home `/` | Search (item, area, an optional community that starts on your own, dates), chips to jump to each community, a communities band (verify, filter, ask the board), categories grouped into Fashion and Kit and occasions with live counts, featured items, newest listings, how it works, an earnings pitch for owners |
 | Search `/search` | A community row ("LBS only" and so on) and filters for category, dates (only shows items free on those dates), area (a neighbourhood or a whole region such as East London), price, delivery available and sort; List / Map toggle with price pins and "Search this area"; "Near me" sorts by distance (location stays in the browser) |
 | Item `/items/[id]` | Large photo gallery, availability calendar (booked and blocked days crossed out), map of the pickup neighbourhood, handover choice (meet, courier or locker), price breakdown, deposit, owner profile and reviews |
 | List an item `/listings/new`, edit `/listings/[id]/edit` | Photos (resized in the browser), **AI draft from a photo**, category, condition, price, deposit, pickup area and private pickup details, availability window plus days blocked out; pause, resume or remove a listing |
