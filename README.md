@@ -1,6 +1,6 @@
 # Just Once
 
-**Rent the things you only need once.** Just Once is a peer-to-peer rental marketplace for London: formalwear for a wedding, a camera for a weekend away, a tent for a festival, a Santa suit for the office party. Owners earn from things sitting in a cupboard; renters don't buy something they'll use once and then store in a small flat.
+**Rent the things you only need once.** Just Once is a peer-to-peer rental marketplace for London: an outfit, a designer bag or a watch for a wedding, a camera for a weekend away, a tent for a festival, a Santa suit for the office party. Owners earn from things sitting in a cupboard; renters don't buy something they'll use once and then store in a small flat.
 
 Built for AI Cup, Track B (Creativity & Commerce). The core journey works end to end: list → search → book → accept → pickup check → return check → deposit back → ratings.
 
@@ -97,11 +97,12 @@ Every demo account uses the password **`justonce`**. In demo mode the log-in pag
 | --- | --- | --- | --- |
 | **Sophie Clarke** | `sophie@example.com` | Renter, Islington | A camera on rent to return (Fujifilm X100V, due tomorrow), an open deposit claim from Sam to accept or contest, a ski kit booked for next month, a gown request waiting on Amara, past rentals with reviews |
 | **Priya Shah** | `priya@example.com` | Owner, Hackney | Two *overlapping* requests for her Sony A7 III, a Polaroid pickup due today, two returns to confirm for the AI photo comparison (the content-creator kit, where the renter's return photo is missing the microphone, and a Sony A7 III rental to Zara, where it shows a scratch across the lens ring), a review to write |
-| Amara Okafor | `amara@example.com` | Owner, Peckham | Sophie's request for the plum evening gown; Halloween props |
+| Amara Okafor | `amara@example.com` | Owner, Peckham | Sophie's request for the plum evening gown; dresses, costumes and Halloween props |
 | Leo Martins | `leo@example.com` | Renter and owner, Brixton | Waiting on Priya's answer about the Sony; a tuxedo booked for a black-tie party |
 | Tom Hughes | `tom@example.com` | Owner, Walthamstow | Tents and camping kit; a bell-tent booking next week |
+| Oliver Bennett | `oliver@example.com` | Owner, Shoreditch | Callum's request for his Rolex Explorer (full deposit only, £1,000); suits and monk straps |
 
-Also seeded: `hannah@`, `callum@`, `oliver@`, `daniel@`, `zara@`, `mei@` and `sam@example.com` (Sam isn't ID-verified, so you can show the unverified state and the "Verify your ID to halve deposits" prompt). Leo qualifies as a trusted renter, so he's quoted half deposits, and his tuxedo booking goes through a parcel locker; Sophie's ski kit comes by courier. Daniel's Fujifilm X-T3 rental shows a settled claim (£25 kept for a missing lens hood). In total: 12 people, 32 listings across the four categories, 36 bookings in every state and 45 reviews. All dates are relative to the day you seed, so the demo always looks current.
+Also seeded: `hannah@`, `callum@`, `daniel@`, `zara@`, `mei@`, `isla@` and `sam@example.com` (Sam isn't ID-verified, so you can show the unverified state and the "Verify your ID to halve deposits" prompt). Leo qualifies as a trusted renter, so he's quoted half deposits, and his tuxedo booking goes through a parcel locker; Sophie's ski kit comes by courier. Daniel's Fujifilm X-T3 rental shows a settled claim (£25 kept for a missing lens hood). In total: 13 people, 52 listings across 11 categories, 46 bookings in every state and 59 reviews. The categories come in two groups: **Fashion** (formalwear, clothing, shoes, bags, jewellery, watches, accessories and costumes) and **Kit and occasions** (cameras, camping and seasonal). All dates are relative to the day you seed, so the demo always looks current.
 
 ## Suggested demo script
 
@@ -109,7 +110,7 @@ About 6 minutes. Use **two screens** so the judges watch both sides of the same 
 
 **Setup:** reset the demo data, log the laptop in as **Priya** (owner) and the phone in as **Sophie** (renter). Have one or two photos of a camera on the laptop.
 
-1. **The pitch (30 s), home page.** "Why buy it for one weekend?" Point out the three occasion tickets, the four categories and the search by item, area and dates.
+1. **The pitch (30 s), home page.** "Why buy it for one weekend?" Point out the three occasion tickets, the categories (Fashion, then Kit and occasions) and the search by item, area and dates.
 2. **An owner lists an item (75 s), laptop as Priya.** Click **List an item**. Upload a photo of a camera and press **Fill in from photo**: within a few seconds the title, category, condition and description fill in, with a suggested price and deposit and the reason for each. Point out the *Suggested* marks, correct one field so its mark disappears, and choose pickup area **Hackney**. (No AI key set? Fill it in by hand: *Canon EOS R6 body*, **Cameras**, **Like new**, **£40 a day**, **£500 deposit**.) In the calendar, tap two days to block them out. Watch the live preview on the right, then **Publish listing**. It's live straight away and appears in *Just listed* on the home page.
 3. **A renter books it (60 s), phone as Sophie.** Search *Canon*, or tap Cameras and filter to East London, and open the new item. Tap a pickup day and a return day: the "return ticket" fills in with the out and back dates, £40 × days, the 10% service fee and, on the tear-off stub, the refundable deposit. Add a note and **Request to book**. Sophie sees *Waiting for Priya to respond* and hasn't been charged.
 4. **The owner accepts (30 s), laptop.** The *My listings* badge shows a new request. **Accept request**: the toast confirms Sophie has paid and the deposit is held (simulated). Those dates are now locked, and the phone flips to the pickup check on its own.
@@ -138,7 +139,7 @@ Resetting logs everyone out. If you're showing the site on a phone, log in again
 
 | Page | What it does |
 | --- | --- |
-| Home `/` | Search (item, area, dates), categories with live counts, featured items, newest listings, how it works, an earnings pitch for owners |
+| Home `/` | Search (item, area, dates), categories grouped into Fashion and Kit and occasions with live counts, featured items, newest listings, how it works, an earnings pitch for owners |
 | Search `/search` | Filters for category, dates (only shows items free on those dates), area (a neighbourhood or a whole region such as East London), price, delivery available and sort; List / Map toggle with price pins and "Search this area"; "Near me" sorts by distance (location stays in the browser) |
 | Item `/items/[id]` | Large photo gallery, availability calendar (booked and blocked days crossed out), map of the pickup neighbourhood, handover choice (meet, courier or locker), price breakdown, deposit, owner profile and reviews |
 | List an item `/listings/new`, edit `/listings/[id]/edit` | Photos (resized in the browser), **AI draft from a photo**, category, condition, price, deposit, pickup area and private pickup details, availability window plus days blocked out; pause, resume or remove a listing |
