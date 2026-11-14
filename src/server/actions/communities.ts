@@ -18,6 +18,7 @@ import {
 import { isISODate, todayInLondon, toDate } from "@/lib/dates";
 import { parsePounds } from "@/lib/money";
 import { isAllowedPhotoUrl } from "@/lib/photos";
+import { emailConfigured, sendVerificationCode } from "../email";
 
 export type VerifyState =
   | { error?: string; sentTo?: string; /** Demo only: shown on screen because no email provider is configured. */ demoCode?: string; pending?: boolean }
@@ -92,9 +93,16 @@ export async function requestEmailCode(_prev: VerifyState, formData: FormData): 
     update: data,
   });
 
-  // TODO(email): send `code` to `email` with your provider (e.g. Resend). Until one is configured
-  // (RESEND_API_KEY unset), the demo shows the code on screen, like the simulated ID check.
-  const demo = !process.env.RESEND_API_KEY;
+  // With RESEND_API_KEY set, the code goes to the member's inbox. Without it (local demos) it's shown on screen.
+  if (emailConfigured()) {
+    try {
+      await sendVerificationCode({ to: email, code, communityName: community.name, minutes: EMAIL_CODE_TTL_MINUTES });
+    } catch (e) {
+      console.error("Verification email failed", e);
+      return { error: "We couldn't send the email just now. Try again in a minute, or verify with your ID card." };
+    }
+  }
+  const demo = !emailConfigured();
   return { sentTo: maskEmail(email), demoCode: demo ? code : undefined };
 }
 

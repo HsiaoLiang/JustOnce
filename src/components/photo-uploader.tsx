@@ -73,7 +73,7 @@ export function PhotoUploader({
       className={cn("rounded-2xl transition-colors", dragging && "bg-accent-soft ring-2 ring-accent")}
     >
       <input type="hidden" name={name} value={JSON.stringify(urls)} />
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <ul className={cn("grid gap-3", max === 1 ? "grid-cols-1 max-w-sm" : items.length === 0 ? "grid-cols-1" : "grid-cols-[repeat(auto-fill,minmax(min(100%,9rem),1fr))]")}>
         {items.map((item, index) => (
           <li key={item.key} className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-line bg-surface">
             {item.url ? (
@@ -122,11 +122,11 @@ export function PhotoUploader({
           <li>
             <label
               htmlFor={inputId}
-              className="flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-line-strong text-center text-sm font-semibold text-ink-2 transition-colors hover:border-ink hover:bg-surface focus-within:border-ink"
+              className={cn("flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed px-4", items.length === 0 ? "min-h-36 py-6 sm:min-h-40" : "aspect-[4/3]", " border-line-strong text-center text-sm font-semibold text-ink-2 transition-colors hover:border-ink hover:bg-surface focus-within:border-ink")}
             >
               <ImagePlus className="size-6" aria-hidden />
               {label}
-              <span className="text-xs font-normal text-muted">or drop them here</span>
+              <span className="text-xs font-normal text-muted">{max === 1 ? "or drop it here" : `or drop them here · up to ${max}`}</span>
               <input
                 id={inputId}
                 type="file"

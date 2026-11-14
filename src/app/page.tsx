@@ -11,11 +11,13 @@ import { cn } from "@/lib/cn";
 import { getHomeData } from "@/server/queries";
 import { aiEnabled } from "@/server/ai";
 import { getCurrentUser } from "@/server/auth";
+import { listCommunities } from "@/server/communities";
+import { Building2, GraduationCap } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [{ featured, latest, counts, hero, stats }, user] = await Promise.all([getHomeData(), getCurrentUser()]);
+  const [{ featured, latest, counts, hero, stats }, user, communities] = await Promise.all([getHomeData(), getCurrentUser(), listCommunities()]);
 
   return (
     <>
@@ -48,6 +50,8 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
+
+        <CommunitiesSection communities={communities} />
 
         <FeaturedSection listings={featured} />
 
@@ -160,5 +164,49 @@ function Earning({ label, value }: { label: string; value: number }) {
       <dt className="text-xs leading-snug text-white/65">{label}</dt>
       <dd className="mt-1 font-display text-2xl font-semibold">{formatGBP(value)}</dd>
     </div>
+  );
+}
+
+type CommunitySummary = Awaited<ReturnType<typeof listCommunities>>[number];
+
+function CommunitiesSection({ communities }: { communities: CommunitySummary[] }) {
+  if (!communities.length) return null;
+  return (
+    <section className="mt-16 sm:mt-20" aria-labelledby="communities-heading">
+      <SectionHeading
+        title="Borrow from your school or office"
+        kicker="Communities"
+        action={
+          <Link href="/communities" className="inline-flex items-center gap-1 text-sm font-semibold whitespace-nowrap hover:underline">
+            All communities <ArrowRight className="size-4" aria-hidden />
+          </Link>
+        }
+      />
+      <h2 id="communities-heading" className="sr-only">Communities</h2>
+      <p className="-mt-2 mb-5 max-w-2xl text-sm text-muted">
+        Verify with your school or work email to see members-only items and ask classmates or colleagues for what you need.
+      </p>
+      <div className="scrollbar-none -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 lg:grid-cols-5">
+        {communities.map((c) => {
+          const Icon = c.type === "COMPANY" ? Building2 : GraduationCap;
+          return (
+            <Link
+              key={c.id}
+              href={`/communities/${c.slug}`}
+              className="group flex w-[72vw] max-w-72 shrink-0 snap-start flex-col rounded-2xl border border-line bg-paper p-5 transition-colors hover:border-ink sm:w-auto sm:max-w-none"
+            >
+              <span className="flex size-10 items-center justify-center rounded-full bg-accent-soft text-ink">
+                <Icon className="size-5" aria-hidden />
+              </span>
+              <p className="mt-4 font-display text-lg leading-tight font-semibold">{c.shortName}</p>
+              <p className="mt-0.5 text-xs text-muted">{c.name}</p>
+              <p className="mt-auto pt-4 font-mono text-[0.7rem] tracking-[0.12em] text-ink-2 uppercase">
+                {c._count.members} members · {c._count.listings} items · {c._count.posts} asks
+              </p>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }

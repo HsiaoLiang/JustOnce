@@ -167,7 +167,8 @@ Payments, deposits and payouts are **simulated**: the app shows every amount and
 
 People can verify that they belong to a school or company and then use that community as a filter and a meeting place. London Business School is seeded as the first community.
 
-- **Verify** at `/communities/lbs/verify`: enter an `@london.edu` email and type back the 6-digit code (15 minutes, 5 tries), or upload a student ID card for manual review. Without an email provider (`RESEND_API_KEY` unset) the code is shown on screen, like the other simulated checks.
+- **Verify** at `/communities/lbs/verify`: enter an `@london.edu` email and type back the 6-digit code (15 minutes, 5 tries), or upload a student ID card for manual review. With `RESEND_API_KEY` and `EMAIL_FROM` set (Vercel → Settings → Environment Variables), the code is emailed through Resend; without them it's shown on screen, like the other simulated checks.
+- **Other demo communities:** Imperial, UCL, Google UK and Meta London each have seeded members, items and board posts. The log-in page groups the quick-login accounts by community.
 - **Filter**: search has a Community row (`/search?community=lbs`). Listings can be listed with a community and optionally made **members only**: those are hidden from search, the home page, owner pages and link previews for anyone who isn't a verified member, and only members can book them.
 - **Exchange board** at `/communities/lbs`: verified members post what they're *looking for* or *have to lend*, with an optional date, budget/price and photos, and reply to each other. Authors can mark posts as sorted or turn an offer into a listing.
 - Demo login: `martin@example.com` / `justonce` is a verified LBS member (Sophie, Oliver and Mei are too). Any other demo account can try verifying.
