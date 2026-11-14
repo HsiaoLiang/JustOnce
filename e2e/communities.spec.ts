@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { loginWithPassword } from "./helpers";
 
-const MEMBERS_ONLY_TITLE = "Navy interview suit for recruiting season"; // Martin's LBS members-only item
+const MEMBERS_ONLY_TITLE = "Navy interview suit for recruiting season"; // Oliver's LBS members-only item
 
 test("members-only items stay hidden from people outside the community, profile pages included", async ({ page }) => {
   // Signed out: not on the owner's profile, and the item page shows the members-only gate instead.
-  await page.goto("/users/martin-hsiao");
+  await page.goto("/users/oliver-bennett");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByText(MEMBERS_ONLY_TITLE)).toHaveCount(0);
   await page.goto("/items/lbs-interview-navy-suit");
@@ -13,7 +13,7 @@ test("members-only items stay hidden from people outside the community, profile 
   await expect(page.getByText(MEMBERS_ONLY_TITLE)).toHaveCount(0);
 
   // A verified LBS member sees it on the same profile.
-  await loginWithPassword(page, "sophie@example.com", "/users/martin-hsiao");
+  await loginWithPassword(page, "sophie@example.com", "/users/oliver-bennett");
   await expect(page.getByText(MEMBERS_ONLY_TITLE).first()).toBeVisible();
 });
 

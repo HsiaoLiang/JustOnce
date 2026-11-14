@@ -4,16 +4,6 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { addDays, toDate, type ISODate } from "../../lib/dates";
 
-export const LBS_DEMO_USER = {
-  id: "martin-hsiao",
-  name: "Martin Hsiao",
-  email: "martin@example.com",
-  /** School email used for the seeded verification; never shown to other members. */
-  schoolEmail: "mhsiao@london.edu",
-  area: "camden",
-  bio: "MBA student at London Business School. Happy to lend my calculator and interview suit to classmates.",
-};
-
 type SeedCommunity = {
   id: string;
   slug: string;
@@ -87,7 +77,7 @@ export const COMMUNITIES: SeedCommunity[] = [
 
 /** Demo users who are verified members of each community. */
 export const COMMUNITY_MEMBERS: Record<string, string[]> = {
-  lbs: [LBS_DEMO_USER.id, "sophie-clarke", "oliver-bennett", "mei-chen"],
+  lbs: ["sophie-clarke", "oliver-bennett", "mei-chen"],
   imperial: ["priya-shah", "tom-hughes", "callum-reid"],
   ucl: ["amara-okafor", "hannah-brooks", "kwame-asante"],
   "google-uk": ["leo-martins", "isla-fraser", "zara-ahmed"],
@@ -115,7 +105,7 @@ const ph = (slug: string, n: number) => Array.from({ length: n }, (_, i) => `/se
 
 const COMMUNITY_LISTINGS: SeedCommunityListing[] = [
   // LBS
-  { id: "lbs-interview-navy-suit", community: "lbs", owner: LBS_DEMO_USER.id, title: "Navy interview suit for recruiting season", category: "FORMALWEAR", condition: "LIKE_NEW", brand: "Hugo Boss", size: "40R jacket, 32R trousers", price: 12, deposit: 60, photos: ph("navy-suit", 2), description: "Slim navy two-piece I wore for consulting final rounds. Freshly pressed, comes with a garment bag. Perfect for MBB and banking interviews.", pickupNotes: "Sammy Ofer Centre reception, weekdays 12–2pm.", membersOnly: true },
+  { id: "lbs-interview-navy-suit", community: "lbs", owner: "oliver-bennett", title: "Navy interview suit for recruiting season", category: "FORMALWEAR", condition: "LIKE_NEW", brand: "Hugo Boss", size: "40R jacket, 32R trousers", price: 12, deposit: 60, photos: ph("navy-suit", 2), description: "My spare slim navy two-piece from recruiting season. Freshly pressed, comes with a garment bag. Perfect for MBB and banking interviews.", pickupNotes: "Sammy Ofer Centre reception, weekdays 12–2pm.", membersOnly: true },
   { id: "lbs-gala-tuxedo", community: "lbs", owner: "oliver-bennett", title: "Black tie tuxedo for the LBS Gala", category: "FORMALWEAR", condition: "LIKE_NEW", brand: "Moss", size: "40R jacket, 34R trousers", price: 20, deposit: 90, photos: ph("tuxedo", 3), description: "Dinner suit with satin lapels and a silk bow tie. Ideal for the Gala, club dinners and Sloan balls.", pickupNotes: "Sussex Place entrance, evenings after 6pm.", membersOnly: false },
   { id: "lbs-canon-80d-headshots", community: "lbs", owner: "mei-chen", title: "Canon 80D kit for LinkedIn headshots", category: "CAMERAS", condition: "GOOD", brand: "Canon", price: 15, deposit: 120, photos: ph("canon-80d", 3), description: "Canon 80D with 50mm f/1.8, two batteries and a 64GB card. Great for club headshot days in the library courtyard.", pickupNotes: "Library reception, any weekday.", membersOnly: true },
   { id: "lbs-studio-lighting-kit", community: "lbs", owner: "sophie-clarke", title: "Studio lighting kit for club events", category: "CAMERAS", condition: "GOOD", brand: "Neewer", price: 10, deposit: 50, photos: ph("studio-lighting-kit", 2), description: "Two softboxes and stands. Used for Entrepreneurship Club pitch night recordings.", pickupNotes: "Sammy Ofer Centre reception.", membersOnly: false },
@@ -152,10 +142,10 @@ type SeedPost = {
 
 const COMMUNITY_POSTS: SeedPost[] = [
   // LBS
-  { id: "lbs-post-ba-ii-plus", community: "lbs", author: LBS_DEMO_USER.id, type: "REQUEST", title: "Need a TI BA II Plus for the Corporate Finance midterm", body: "Mine died this morning. Need it Thursday 9am–12pm, happy to pay £5 or buy you a coffee at the Hub.", neededIn: 3, price: 5, daysAgo: 0, comments: [{ author: "sophie-clarke", body: "I have a spare one! I'm at Sussex Place until 5pm today.", hoursLater: 2 }] },
+  { id: "lbs-post-ba-ii-plus", community: "lbs", author: "mei-chen", type: "REQUEST", title: "Need a TI BA II Plus for the Corporate Finance midterm", body: "Mine died this morning. Need it Thursday 9am–12pm, happy to pay £5 or buy you a coffee at the Hub.", neededIn: 3, price: 5, daysAgo: 0, comments: [{ author: "sophie-clarke", body: "I have a spare one! I'm at Sussex Place until 5pm today.", hoursLater: 2 }] },
   { id: "lbs-post-garment-steamer", community: "lbs", author: "oliver-bennett", type: "REQUEST", title: "Garment steamer before consulting interviews", body: "Anyone in Marylebone or Baker Street with a steamer I can borrow tomorrow afternoon? Final rounds on Friday.", neededIn: 1, daysAgo: 1 },
   { id: "lbs-post-dell-monitor", community: "lbs", author: "mei-chen", type: "OFFER", title: "27-inch Dell USB-C monitor free to borrow this term", body: "Moving out of student accommodation for Term 2 exchange. Free to a classmate who can collect it from Marylebone.", neededIn: 7, price: 0, daysAgo: 2 },
-  { id: "lbs-post-graduation-gown", community: "lbs", author: "sophie-clarke", type: "OFFER", title: "Master's gown and hood for graduation photos", body: "Available for the graduation photoshoot weekend. Pick up from the Sammy Ofer Centre.", price: 8, daysAgo: 4, status: "FULFILLED", comments: [{ author: LBS_DEMO_USER.id, body: "Took it for Saturday, thanks Sophie!", hoursLater: 5 }] },
+  { id: "lbs-post-graduation-gown", community: "lbs", author: "sophie-clarke", type: "OFFER", title: "Master's gown and hood for graduation photos", body: "Available for the graduation photoshoot weekend. Pick up from the Sammy Ofer Centre.", price: 8, daysAgo: 4, status: "FULFILLED", comments: [{ author: "mei-chen", body: "Took it for Saturday, thanks Sophie!", hoursLater: 5 }] },
   { id: "lbs-post-ski-trip", community: "lbs", author: "oliver-bennett", type: "REQUEST", title: "Ski jacket and goggles for the LBS ski trip", body: "First time skiing, going to Val Thorens with the Ski Club. Size M jacket, any goggles. Will return clean!", neededIn: 20, price: 15, daysAgo: 3, comments: [{ author: "mei-chen", body: "I have goggles you can have for the week.", hoursLater: 4 }] },
   // Imperial
   { id: "imperial-post-arduino", community: "imperial", author: "callum-reid", type: "REQUEST", title: "Arduino starter kit for a design project", body: "Need an Uno with breadboard and sensors for two weeks. Happy to pay a few pounds.", neededIn: 4, price: 10, daysAgo: 1, comments: [{ author: "priya-shah", body: "I have one in my lab locker, message me!", hoursLater: 3 }] },
@@ -174,22 +164,9 @@ const COMMUNITY_POSTS: SeedPost[] = [
   { id: "meta-post-camera", community: "meta-uk", author: "daniel-reyes", type: "OFFER", title: "Canon DSLR for hack week demo videos", body: "Bring your own SD card, I'll lend the camera and tripod for the week.", price: 0, daysAgo: 2, comments: [{ author: "ruby-patel", body: "Amazing, I'd love it for Thursday's demo!", hoursLater: 2 }] },
 ];
 
-export async function seedCommunities(prisma: PrismaClient | Prisma.TransactionClient, opts: { today: ISODate; passwordHash: string; now: number }) {
-  const { today, passwordHash, now } = opts;
+export async function seedCommunities(prisma: PrismaClient | Prisma.TransactionClient, opts: { today: ISODate; now: number }) {
+  const { today, now } = opts;
   const ago = (days: number, hours = 0) => new Date(now - days * 86_400_000 - 3_600_000 + hours * 3_600_000);
-
-  await prisma.user.create({
-    data: {
-      id: LBS_DEMO_USER.id,
-      email: LBS_DEMO_USER.email,
-      name: LBS_DEMO_USER.name,
-      passwordHash,
-      area: LBS_DEMO_USER.area,
-      bio: LBS_DEMO_USER.bio,
-      verifiedAt: ago(60),
-      createdAt: ago(90),
-    },
-  });
 
   await prisma.community.createMany({ data: COMMUNITIES });
 
@@ -201,7 +178,7 @@ export async function seedCommunities(prisma: PrismaClient | Prisma.TransactionC
         communityId,
         method: "EMAIL" as const,
         status: "VERIFIED" as const,
-        email: userId === LBS_DEMO_USER.id ? LBS_DEMO_USER.schoolEmail : `${userId.split("-")[0]}@${domainOf[communityId]}`,
+        email: `${userId.split("-")[0]}@${domainOf[communityId]}`,
         verifiedAt: ago(30 - i),
       })),
     ),

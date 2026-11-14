@@ -105,7 +105,7 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
   );
   if (blocked.length) await prisma.blockedDate.createMany({ data: blocked });
 
-  await seedCommunities(prisma, { today, passwordHash, now });
+  await seedCommunities(prisma, { today, now });
 
   let reviews = 0;
   for (const [index, b] of BOOKINGS.entries()) {

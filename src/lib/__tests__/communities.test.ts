@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { canSeeListing, checkEmailCode, codeCooldownLeft, communityWords, emailMatchesDomains, maskEmail, normaliseEmail } from "../communities";
 
 test("LBS addresses match, including subdomains and any case", () => {
-  assert.equal(emailMatchesDomains("Martin.Hsiao@London.edu", ["london.edu"]), true);
+  assert.equal(emailMatchesDomains("Mei.Chen@London.edu", ["london.edu"]), true);
   assert.equal(emailMatchesDomains("m@student.london.edu", ["london.edu"]), true);
 });
 
@@ -15,7 +15,7 @@ test("look-alike and personal domains don't match", () => {
 });
 
 test("emails are masked", () => {
-  assert.equal(maskEmail("martin@london.edu"), "ma•••@london.edu");
+  assert.equal(maskEmail("mei.chen@london.edu"), "me•••@london.edu");
 });
 
 const now = new Date("2026-11-14T12:00:00Z");
