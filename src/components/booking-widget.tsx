@@ -217,16 +217,17 @@ export function BookingTicket({ listingId, pricePerDay, deposit, depositInfo, bu
           </p>
         )}
         {buyPricePending && <BuyPriceRunner listingId={listingId} quiet={!!buyPrice} />}
-        {buyLinks && !isOwner && (
+        {buyLinks && buyLinks.stores.length > 0 && !isOwner && (
           <p className="mt-1 text-xs text-muted" data-testid="buy-links">
-            Rather own it? See it on{" "}
-            <a href={buyLinks.amazon} target="_blank" rel="sponsored noopener noreferrer" className="font-medium text-ink-2 underline underline-offset-2 hover:text-ink">
-              Amazon
-            </a>{" "}
-            or{" "}
-            <a href={buyLinks.ebay} target="_blank" rel="sponsored noopener noreferrer" className="font-medium text-ink-2 underline underline-offset-2 hover:text-ink">
-              eBay
-            </a>
+            Rather own it? See it at{" "}
+            {buyLinks.stores.map((store, i) => (
+              <span key={store.name}>
+                {i > 0 && (i === buyLinks.stores.length - 1 ? " or " : ", ")}
+                <a href={store.url} target="_blank" rel="sponsored noopener noreferrer" className="font-medium text-ink-2 underline underline-offset-2 hover:text-ink">
+                  {store.name}
+                </a>
+              </span>
+            ))}
             .{buyLinks.affiliate && " As an Amazon Associate and eBay partner, Just Once earns from qualifying purchases."}
           </p>
         )}

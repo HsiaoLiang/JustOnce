@@ -122,35 +122,118 @@ export function buyPriceFromEstimate(estimate: unknown, ownerEstimate: number | 
 
 // ---------------------------------------------------------------- links to buy it instead
 
-/** Where a renter can go to buy the item, with our affiliate IDs on the links when they are set. */
+export interface BuyStore {
+  name: string;
+  url: string;
+}
+
+/** Where a renter can go to buy the item: shops that actually sell that kind of product. */
 export interface BuyLinks {
-  amazon: string;
-  ebay: string;
+  stores: BuyStore[];
   /** True when at least one link carries an affiliate ID, so the commission notice is shown. */
   affiliate: boolean;
+}
+
+/**
+ * Designer and luxury names. These aren't sold new on Amazon, so their listings
+ * link to department stores that stock them instead. Matched as whole words in
+ * the brand or title, ignoring case and accents.
+ */
+export const LUXURY_BRANDS = [
+  "Gucci", "Chanel", "Louis Vuitton", "Hermes", "Prada", "Dior", "Fendi", "Celine", "Loewe", "Balenciaga", "Bottega Veneta",
+  "Saint Laurent", "YSL", "Burberry", "Valentino", "Givenchy", "Versace", "Dolce & Gabbana", "Alexander McQueen", "Tom Ford",
+  "Moncler", "Max Mara", "Miu Miu", "Mulberry", "Vivienne Westwood", "Jimmy Choo", "Manolo Blahnik", "Christian Louboutin",
+  "Louboutin", "Rolex", "Cartier", "Omega", "Tag Heuer", "Breitling", "IWC", "Patek Philippe", "Audemars Piguet",
+  "Tiffany", "Bulgari", "Bvlgari", "Van Cleef", "Chopard", "Boodles", "Graff",
+];
+
+const plainText = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const LUXURY_PATTERN = new RegExp(`(^|[^a-z0-9])(${LUXURY_BRANDS.map((b) => plainText(b).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})($|[^a-z0-9])`);
+
+export function isLuxuryBrand(listing: { title: string; brand?: string | null }): boolean {
+  return LUXURY_PATTERN.test(plainText(`${listing.brand ?? ""} ${listing.title}`));
+}
+
+type StoreId = "amazon" | "ebay" | "selfridges" | "harrods" | "johnlewis" | "asos" | "decathlon";
+
+const STORE_NAMES: Record<StoreId, string> = {
+  amazon: "Amazon",
+  ebay: "eBay",
+  selfridges: "Selfridges",
+  harrods: "Harrods",
+  johnlewis: "John Lewis",
+  asos: "ASOS",
+  decathlon: "Decathlon",
+};
+
+/** Which shops fit a listing: luxury names go to department stores, everything else by category. */
+export function storesFor(listing: { title: string; brand?: string | null; category?: string | null }): StoreId[] {
+  if (isLuxuryBrand(listing)) return ["selfridges", "harrods"];
+  switch (listing.category) {
+    case "FORMALWEAR":
+    case "CLOTHING":
+    case "SHOES":
+    case "BAGS":
+    case "ACCESSORIES":
+      return ["johnlewis", "asos"];
+    case "JEWELLERY":
+    case "WATCHES":
+      return ["johnlewis", "ebay"];
+    case "CAMPING":
+      return ["decathlon", "amazon"];
+    default:
+      // Cameras, seasonal kit, costumes and anything new: the general marketplaces.
+      return ["amazon", "ebay"];
+  }
 }
 
 /** eBay Partner Network rotation ID for ebay.co.uk. */
 const EBAY_UK_ROTATION = "710-53481-19255-0";
 
 /**
- * Search links on amazon.co.uk and ebay.co.uk for a listing. `amazonTag` is an Amazon
+ * Search links for a listing on the shops that suit it. `amazonTag` is an Amazon
  * Associates tracking ID (e.g. "justonce-21"); `ebayCampaignId` is an eBay Partner
  * Network campaign ID. Without them the links still work, they just earn nothing.
+ * The other shops' links are plain: their affiliate schemes run through networks we haven't joined.
  */
-export function buyLinks(listing: { title: string; brand?: string | null }, ids: { amazonTag?: string | null; ebayCampaignId?: string | null } = {}): BuyLinks {
+export function buyLinks(
+  listing: { title: string; brand?: string | null; category?: string | null },
+  ids: { amazonTag?: string | null; ebayCampaignId?: string | null } = {},
+): BuyLinks {
   const query = marketQuery(listing);
   const amazonTag = ids.amazonTag?.trim();
   const ebayCampaignId = ids.ebayCampaignId?.trim();
-  const amazon = new URLSearchParams({ k: query });
-  if (amazonTag) amazon.set("tag", amazonTag);
-  const ebay = new URLSearchParams({ _nkw: query, LH_BIN: "1" });
-  if (ebayCampaignId) {
-    for (const [key, value] of Object.entries({ mkcid: "1", mkrid: EBAY_UK_ROTATION, siteid: "3", campid: ebayCampaignId, toolid: "10001", mkevt: "1" })) ebay.set(key, value);
-  }
-  return {
-    amazon: `https://www.amazon.co.uk/s?${amazon}`,
-    ebay: `https://www.ebay.co.uk/sch/i.html?${ebay}`,
-    affiliate: Boolean(amazonTag || ebayCampaignId),
+  let affiliate = false;
+  const url = (store: StoreId): string => {
+    switch (store) {
+      case "amazon": {
+        const params = new URLSearchParams({ k: query });
+        if (amazonTag) {
+          params.set("tag", amazonTag);
+          affiliate = true;
+        }
+        return `https://www.amazon.co.uk/s?${params}`;
+      }
+      case "ebay": {
+        const params = new URLSearchParams({ _nkw: query, LH_BIN: "1" });
+        if (ebayCampaignId) {
+          for (const [key, value] of Object.entries({ mkcid: "1", mkrid: EBAY_UK_ROTATION, siteid: "3", campid: ebayCampaignId, toolid: "10001", mkevt: "1" })) params.set(key, value);
+          affiliate = true;
+        }
+        return `https://www.ebay.co.uk/sch/i.html?${params}`;
+      }
+      case "selfridges":
+        return `https://www.selfridges.com/GB/en/cat/?${new URLSearchParams({ freeText: query })}`;
+      case "harrods":
+        return `https://www.harrods.com/en-gb/search?${new URLSearchParams({ searchTerm: query })}`;
+      case "johnlewis":
+        return `https://www.johnlewis.com/search?${new URLSearchParams({ "search-term": query })}`;
+      case "asos":
+        return `https://www.asos.com/search/?${new URLSearchParams({ q: query })}`;
+      case "decathlon":
+        return `https://www.decathlon.co.uk/search?${new URLSearchParams({ Ntt: query })}`;
+    }
   };
+  const stores = storesFor(listing).map((store) => ({ name: STORE_NAMES[store], url: url(store) }));
+  return { stores, affiliate };
 }

@@ -16,7 +16,7 @@
 // a failure, the page falls back to the owner's replacement value.
 
 import { categoryLabel } from "@/lib/catalogue";
-import { MARKET_PRICE_TTL_HOURS, buyPriceFromEstimate, marketPriceIsStale, marketQuery, plausibleMarketPrice, typicalPrice, type MarketPriceSource } from "@/lib/market-price";
+import { MARKET_PRICE_TTL_HOURS, buyPriceFromEstimate, isLuxuryBrand, marketPriceIsStale, marketQuery, plausibleMarketPrice, typicalPrice, type MarketPriceSource } from "@/lib/market-price";
 import { aiEnabled, askWithWebSearch } from "./ai";
 import { db } from "./db";
 
@@ -92,7 +92,7 @@ export async function lookupMarketPrice(listing: { title: string; brand?: string
 // ---------------------------------------------------------------- AI estimate, with a web search behind it
 
 const ESTIMATE_SYSTEM = `You help a UK rental marketplace show renters what an item would cost to buy new instead of renting it.
-Search for current UK prices of the item described. Prefer listings for the same product on amazon.co.uk and ebay.co.uk, then other UK retailers.
+Search for current UK prices of the item described, at the kind of shop that sells it new: the brand's own UK store and department stores (Selfridges, Harrods, John Lewis) for designer and luxury goods; amazon.co.uk, ebay.co.uk and specialist UK retailers for electronics, camping and everyday items. Never price a designer item from a marketplace listing that is far below the brand's own price: that is a used item or a copy.
 
 Rules:
 - Price the same product, new, in pounds sterling. If the exact model isn't sold new any more, price its closest current equivalent.
@@ -136,6 +136,7 @@ async function estimateWithAi(listing: ListingToPrice): Promise<FoundPrice | nul
     `Item: ${marketQuery(listing)}`,
     listing.brand ? `Brand: ${listing.brand}` : "",
     `Category: ${categoryLabel(listing.category)}`,
+    isLuxuryBrand(listing) ? "This is a designer or luxury brand: use the brand's own UK price." : "",
     listing.size ? `Size: ${listing.size}` : "",
     "What does it typically cost to buy new in the UK today?",
   ]

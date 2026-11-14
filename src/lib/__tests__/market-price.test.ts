@@ -1,7 +1,7 @@
 // Unit tests for the rent-versus-buy rules. Run with: npm test
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buyLinks, buyPriceFor, buyPriceFromEstimate, marketPriceIsStale, marketQuery, plausibleMarketPrice, savingVsBuying, typicalPrice } from "../market-price";
+import { buyLinks, buyPriceFor, isLuxuryBrand, storesFor, buyPriceFromEstimate, marketPriceIsStale, marketQuery, plausibleMarketPrice, savingVsBuying, typicalPrice } from "../market-price";
 
 test("the marketplace search is the brand and title, tidied", () => {
   assert.equal(marketQuery({ title: "EOS R6 with 24-105mm lens", brand: "Canon" }), "Canon EOS R6 with 24-105mm lens");
@@ -71,14 +71,44 @@ test("an AI estimate is only used when it is confident and believable", () => {
   assert.equal(buyPriceFromEstimate(null, null), null);
 });
 
-test("buy links search Amazon and eBay UK, with affiliate IDs only when set", () => {
-  const plain = buyLinks({ title: "A7 III with 28-70mm lens", brand: "Sony" });
-  assert.equal(plain.amazon, "https://www.amazon.co.uk/s?k=Sony+A7+III+with+28-70mm+lens");
-  assert.equal(plain.ebay, "https://www.ebay.co.uk/sch/i.html?_nkw=Sony+A7+III+with+28-70mm+lens&LH_BIN=1");
+test("luxury names are spotted in the brand or the title", () => {
+  assert.equal(isLuxuryBrand({ title: "GG Marmont quilted crossbody bag", brand: "Gucci" }), true);
+  assert.equal(isLuxuryBrand({ title: "Hermès silk scarf", brand: null }), true);
+  assert.equal(isLuxuryBrand({ title: "Submariner", brand: "ROLEX" }), true);
+  assert.equal(isLuxuryBrand({ title: "Sony A7 III with 28-70mm lens", brand: "Sony" }), false);
+  // Whole words only, and no brand names that are also everyday words.
+  assert.equal(isLuxuryBrand({ title: "Omegaverse party banner" }), false);
+  assert.equal(isLuxuryBrand({ title: "Tudor queen costume" }), false);
+});
+
+test("the shops match the product: no Amazon for luxury", () => {
+  assert.deepEqual(storesFor({ title: "GG Marmont bag", brand: "Gucci", category: "BAGS" }), ["selfridges", "harrods"]);
+  assert.deepEqual(storesFor({ title: "Rolex Datejust", category: "WATCHES" }), ["selfridges", "harrods"]);
+  assert.deepEqual(storesFor({ title: "Black tuxedo", brand: "Moss", category: "FORMALWEAR" }), ["johnlewis", "asos"]);
+  assert.deepEqual(storesFor({ title: "Casio watch", category: "WATCHES" }), ["johnlewis", "ebay"]);
+  assert.deepEqual(storesFor({ title: "4-person tent", category: "CAMPING" }), ["decathlon", "amazon"]);
+  assert.deepEqual(storesFor({ title: "Sony A7 III", category: "CAMERAS" }), ["amazon", "ebay"]);
+  assert.deepEqual(storesFor({ title: "Santa suit", category: "COSTUMES" }), ["amazon", "ebay"]);
+});
+
+test("buy links carry affiliate IDs only when set, and only on Amazon and eBay", () => {
+  const plain = buyLinks({ title: "A7 III with 28-70mm lens", brand: "Sony", category: "CAMERAS" });
+  assert.deepEqual(plain.stores, [
+    { name: "Amazon", url: "https://www.amazon.co.uk/s?k=Sony+A7+III+with+28-70mm+lens" },
+    { name: "eBay", url: "https://www.ebay.co.uk/sch/i.html?_nkw=Sony+A7+III+with+28-70mm+lens&LH_BIN=1" },
+  ]);
   assert.equal(plain.affiliate, false);
-  const tagged = buyLinks({ title: "Sony A7 III" }, { amazonTag: " justonce-21 ", ebayCampaignId: "5330000000" });
-  assert.equal(tagged.amazon, "https://www.amazon.co.uk/s?k=Sony+A7+III&tag=justonce-21");
-  assert.ok(tagged.ebay.includes("campid=5330000000") && tagged.ebay.includes("mkrid=710-53481-19255-0") && tagged.ebay.includes("mkevt=1"));
+
+  const tagged = buyLinks({ title: "Sony A7 III", category: "CAMERAS" }, { amazonTag: " justonce-21 ", ebayCampaignId: "5330000000" });
+  assert.equal(tagged.stores[0].url, "https://www.amazon.co.uk/s?k=Sony+A7+III&tag=justonce-21");
+  assert.ok(tagged.stores[1].url.includes("campid=5330000000") && tagged.stores[1].url.includes("mkrid=710-53481-19255-0"));
   assert.equal(tagged.affiliate, true);
-  assert.equal(buyLinks({ title: "Sony A7 III" }, { amazonTag: "", ebayCampaignId: null }).affiliate, false);
+  assert.equal(buyLinks({ title: "Sony A7 III", category: "CAMERAS" }, { amazonTag: "", ebayCampaignId: null }).affiliate, false);
+
+  const luxury = buyLinks({ title: "GG Marmont quilted crossbody bag", brand: "Gucci", category: "BAGS" }, { amazonTag: "justonce-21" });
+  assert.deepEqual(luxury.stores.map((s) => s.name), ["Selfridges", "Harrods"]);
+  assert.equal(luxury.stores[0].url, "https://www.selfridges.com/GB/en/cat/?freeText=Gucci+GG+Marmont+quilted+crossbody+bag");
+  assert.equal(luxury.stores[1].url, "https://www.harrods.com/en-gb/search?searchTerm=Gucci+GG+Marmont+quilted+crossbody+bag");
+  // No Amazon link, so no commission notice even with a tag set.
+  assert.equal(luxury.affiliate, false);
 });
