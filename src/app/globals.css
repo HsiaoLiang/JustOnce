@@ -34,6 +34,9 @@
   --shadow-card: 0 1px 2px rgb(22 22 29 / 0.05), 0 6px 20px rgb(22 22 29 / 0.06);
   --shadow-lift: 0 2px 4px rgb(22 22 29 / 0.06), 0 16px 40px rgb(22 22 29 / 0.12);
 
+  /* Motion language: fast out of the machine, long settle. Matches GSAP's expo.out. */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
   --animate-stamp: stamp 420ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
   --animate-fade-up: fade-up 360ms ease-out both;
 
@@ -145,6 +148,101 @@
   .scrollbar-none {
     scrollbar-width: none;
   }
+
+  /* A line of type that words can rise into. The padding keeps ascenders and descenders unclipped. */
+  .word-mask {
+    display: inline-block;
+    overflow: clip;
+    padding-block: 0.08em 0.14em;
+    margin-block: -0.08em -0.14em;
+    vertical-align: top;
+  }
+
+  /* The hero's rolling occasion: every word sits in the same cell, so the line never reflows. */
+  .roller {
+    display: inline-grid;
+    justify-items: start;
+    overflow: clip;
+    padding-block: 0.08em 0.14em;
+    margin-block: -0.08em -0.14em;
+    vertical-align: top;
+  }
+  .roller > * {
+    grid-area: 1 / 1;
+  }
+  .roller-idle {
+    visibility: hidden;
+  }
+  [data-underline] path {
+    stroke-dasharray: 1;
+  }
+
+  .hero-ticket {
+    transition:
+      translate 500ms var(--ease-out-expo),
+      box-shadow 500ms var(--ease-out-expo);
+  }
+  .hero-ticket-label {
+    transition: color 300ms ease;
+  }
+  [data-ticket][data-active] .hero-ticket {
+    translate: 0 -12px;
+    box-shadow: 0 4px 8px rgb(22 22 29 / 0.08), 0 28px 60px rgb(22 22 29 / 0.18);
+  }
+  [data-ticket][data-active] .hero-ticket-label {
+    color: var(--color-accent-ink);
+  }
+  @media (hover: hover) {
+    .hero-ticket:hover {
+      translate: 0 -12px;
+    }
+  }
+
+  /* Featured cards: swap to the close-up on hover or focus. */
+  .feature-img {
+    transition:
+      opacity 700ms var(--ease-out-expo),
+      transform 1100ms var(--ease-out-expo);
+  }
+  .feature-img-b {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+  .feature-cta {
+    opacity: 0;
+    translate: 0 8px;
+    transition:
+      opacity 300ms ease,
+      translate 450ms var(--ease-out-expo);
+  }
+  .feature-card:focus-visible .feature-img-b {
+    opacity: 1;
+    transform: none;
+  }
+  .feature-card:focus-visible .feature-cta {
+    opacity: 1;
+    translate: 0 0;
+  }
+  @media (hover: hover) {
+    .feature-card:hover .feature-img-a {
+      transform: scale(1.04);
+    }
+    .feature-card:hover .feature-img-b {
+      opacity: 1;
+      transform: none;
+    }
+    .feature-card:hover .feature-cta {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  .link-arrow svg {
+    transition: translate 300ms var(--ease-out-expo);
+  }
+  .link-arrow:hover svg {
+    translate: 3px 0;
+  }
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
@@ -215,5 +313,22 @@
   }
   .leaflet-container {
     font-family: var(--font-sans);
+  }
+}
+
+/*
+ * No flash before the hero's entrance: when JavaScript is on and motion is allowed, the animated parts start hidden
+ * until GSAP has set their starting positions (it then marks the hero data-motion="ready"). If the script never
+ * arrives, the failsafe shows everything after a few seconds. Without JavaScript, nothing is ever hidden.
+ */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  [data-hero]:not([data-motion="ready"]) :is([data-word], [data-roller-word="0"], [data-hero-fade], [data-ticket], [data-underline]) {
+    visibility: hidden;
+    animation: reveal-failsafe 0s linear 3.5s forwards;
+  }
+}
+@keyframes reveal-failsafe {
+  to {
+    visibility: visible;
   }
 }
