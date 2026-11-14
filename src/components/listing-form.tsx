@@ -77,7 +77,8 @@ export function ListingForm({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ photos: draftPhotos }),
       });
-      const body = (await response.json().catch(() => null)) as (ListingDraftResponse & { error?: string }) | null;
+      const body = (await response.json().catch(() => null)) as (ListingDraftResponse & { error?: string; detail?: string }) | null;
+      if (body?.detail) console.error("Fill in from photo failed:", body.detail);
       if (!response.ok || !body?.draft) throw new Error(body?.error ?? "Couldn't read the photo. Fill it in by hand.");
 
       const { draft, pricing } = body;

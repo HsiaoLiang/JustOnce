@@ -1,6 +1,8 @@
 // AI situation search: a renter describes what they need in a sentence and we
 // turn it into the ordinary search filters. The model only picks filters; the
 // results always come from the database through the normal search page.
+// Enum values are never empty strings (Gemini rejects those): "none" and
+// "anywhere" stand for "no filter" and are dropped by parseSearch like any unknown value.
 import { z } from "zod";
 import { AREAS, REGIONS } from "./areas";
 import { CATEGORIES } from "./catalogue";
@@ -29,8 +31,8 @@ export const SITUATION_JSON_SCHEMA = {
   type: "object",
   properties: {
     keywords: { type: "string", description: "At most two plain words naming the item itself, e.g. 'tent' or 'tuxedo'. Empty if the category alone covers it or several different items would suit." },
-    category: { type: "string", enum: ["", ...CATEGORIES.map((c) => c.slug)], description: "Empty if none fits." },
-    area: { type: "string", enum: ["", ...REGIONS.map((r) => r.id), ...AREAS.map((a) => a.slug)], description: "A London region or neighbourhood, only if the person names one. Empty otherwise." },
+    category: { type: "string", enum: ["none", ...CATEGORIES.map((c) => c.slug)], description: "Use 'none' if no category fits." },
+    area: { type: "string", enum: ["anywhere", ...REGIONS.map((r) => r.id), ...AREAS.map((a) => a.slug)], description: "A London region or neighbourhood, only if the person names one. Use 'anywhere' otherwise." },
     from: { type: "string", description: "Pickup date as YYYY-MM-DD, only if the person gives a date or day. Empty otherwise." },
     to: { type: "string", description: "Return date as YYYY-MM-DD. Same as 'from' for a one-day need. Empty if no date was given." },
     maxPricePerDayPounds: { type: "number", description: "Daily budget in pounds, only if the person states one. Leave out otherwise." },

@@ -21,7 +21,8 @@ export function PhotoSearch() {
       const body = new FormData();
       body.append("file", blob, "photo.jpg");
       const response = await fetch("/api/ai/photo-search", { method: "POST", body });
-      const data = (await response.json().catch(() => ({}))) as { href?: string; item?: string; error?: string };
+      const data = (await response.json().catch(() => ({}))) as { href?: string; item?: string; error?: string; detail?: string };
+      if (data.detail) console.error("Photo search failed:", data.detail);
       if (!response.ok || !data.href) throw new Error(data.error ?? "Couldn't read that photo. Try the search box instead.");
       setMessage({ tone: "info", text: `Looks like: ${data.item}. Finding similar items…` });
       router.push(data.href);

@@ -52,8 +52,8 @@ export const MODEL_DRAFT_JSON_SCHEMA = {
   type: "object",
   properties: {
     title: { type: "string", description: "Listing title, at most 80 characters, e.g. 'Navy three-piece suit, 40R'. Empty if the item is unclear." },
-    category: { type: "string", enum: ["", ...categoryIds], description: "Empty if none of the categories fits." },
-    condition: { type: "string", enum: ["", ...conditionIds], description: "Empty if wear can't be judged from the photos." },
+    category: { type: "string", enum: ["UNKNOWN", ...categoryIds], description: "UNKNOWN if none of the categories fits." },
+    condition: { type: "string", enum: ["UNKNOWN", ...conditionIds], description: "UNKNOWN if wear can't be judged from the photos." },
     brand: { type: "string", description: "Only if a logo or label is actually visible. Otherwise empty." },
     size: { type: "string", description: "Only if visible on a label or obvious from the item (e.g. 'sleeps 4'). Otherwise empty." },
     description: { type: "string", description: "Two or three plain sentences: what it is, what appears to be included, what it suits." },

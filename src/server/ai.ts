@@ -39,6 +39,12 @@ export function aiProvider(): Provider | null {
   return null;
 }
 
+/** The underlying reason for a failed call, for the browser's network tab. Only in development, never in production. */
+export function devDetail(error: unknown): string | undefined {
+  if (process.env.NODE_ENV === "production") return undefined;
+  return error instanceof Error ? error.message.slice(0, 400) : String(error).slice(0, 400);
+}
+
 /** AI features hide themselves when this is false. */
 export function aiEnabled(): boolean {
   return aiProvider() !== null;
