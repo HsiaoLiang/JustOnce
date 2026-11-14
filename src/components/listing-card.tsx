@@ -5,6 +5,7 @@ import { conditionLabel } from "@/lib/catalogue";
 import { formatGBP } from "@/lib/money";
 import type { ListingCardData } from "@/server/queries";
 import { Rating } from "./ui";
+import { CommunityBadge } from "./community-badge";
 
 export function ListingCard({ listing, priority = false, href, distance }: { listing: ListingCardData; priority?: boolean; href?: string; distance?: string }) {
   return (
@@ -19,6 +20,9 @@ export function ListingCard({ listing, priority = false, href, distance }: { lis
             sizes="(min-width: 1280px) 300px, (min-width: 1024px) 31vw, (min-width: 640px) 46vw, 92vw"
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.035]"
           />
+        )}
+        {listing.community && (
+          <CommunityBadge slug={listing.community.slug} shortName={listing.community.shortName} membersOnly={listing.communityOnly} link={false} className="absolute right-3 bottom-3 shadow-card" />
         )}
         {listing.status === "PAUSED" && (
           <span className="absolute top-3 left-3 rounded-full bg-paper/95 px-2.5 py-1 text-xs font-semibold shadow-card">Paused</span>

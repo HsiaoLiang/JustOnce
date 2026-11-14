@@ -11,6 +11,7 @@ import { formatRange, todayInLondon } from "@/lib/dates";
 import { cn, plural } from "@/lib/cn";
 import { parseSearch, searchHref } from "@/lib/search-params";
 import { searchListings } from "@/server/queries";
+import { communityOptions, getViewer } from "@/server/communities";
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -23,7 +24,11 @@ export default async function SearchPage({ searchParams }: Props) {
   const raw = await searchParams;
   const filters = parseSearch(raw);
   const via = raw.via === "ai" || raw.via === "photo" ? raw.via : null;
+  const [communities, viewer] = await Promise.all([communityOptions(), getViewer()]);
+  const community = communities.find((c) => c.slug === filters.community);
   const listings = await searchListings({
+    communityId: community?.id,
+    viewer,
     q: filters.q,
     category: filters.category,
     area: filters.area,
@@ -46,6 +51,7 @@ export default async function SearchPage({ searchParams }: Props) {
     filters.max && { label: `Up to £${filters.max}/day`, href: searchHref(filters, { max: undefined }) },
     filters.bbox && { label: "Map area", href: searchHref(filters, { bbox: undefined }) },
     filters.delivery && { label: "Delivery available", href: searchHref(filters, { delivery: undefined }) },
+    community && { label: `${community.shortName} community`, href: searchHref(filters, { community: undefined }) },
   ].filter(Boolean) as { label: string; href: string }[];
 
   return (
@@ -56,6 +62,16 @@ export default async function SearchPage({ searchParams }: Props) {
           <CategoryChip key={c.id} href={searchHref(filters, { category: c.slug })} active={filters.category === c.id} label={c.label} />
         ))}
       </nav>
+
+      {communities.length > 0 && (
+        <nav aria-label="Communities" className="scrollbar-none -mx-4 mt-3 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+          <span className="shrink-0 font-mono text-[0.7rem] tracking-[0.14em] text-muted uppercase">Community</span>
+          <CategoryChip href={searchHref(filters, { community: undefined })} active={!community} label="All London" />
+          {communities.map((c) => (
+            <CategoryChip key={c.id} href={searchHref(filters, { community: c.slug })} active={community?.id === c.id} label={`${c.shortName} only`} />
+          ))}
+        </nav>
+      )}
 
       <SearchFilters filters={filters} today={todayInLondon()} activeCount={active.filter((a) => !a.label.startsWith("“")).length} />
 

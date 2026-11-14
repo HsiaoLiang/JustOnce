@@ -14,6 +14,10 @@ export interface ListingFormValues {
   deposit: string;
   replacementValue: string;
   fullDepositOnly: boolean;
+  /** Community the item is listed with ("" for none). */
+  communityId: string;
+  /** Only verified members of that community can see and book it. */
+  communityOnly: boolean;
   area: string;
   pickupNotes: string;
   pickupPoint: { lat: number; lng: number } | null;
@@ -36,6 +40,8 @@ export function emptyListingValues(today: ISODate, area: string | null): Listing
     deposit: "",
     replacementValue: "",
     fullDepositOnly: false,
+    communityId: "",
+    communityOnly: false,
     area: area ?? "",
     pickupNotes: "",
     pickupPoint: null,

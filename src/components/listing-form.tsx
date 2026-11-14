@@ -44,6 +44,7 @@ export function ListingForm({
   locked = [],
   mode,
   aiEnabled = false,
+  communities = [],
 }: {
   initial: ListingFormValues;
   today: ISODate;
@@ -51,6 +52,8 @@ export function ListingForm({
   mode: "create" | "edit";
   /** Shows "Fill in from photo". False when no AI key is configured, so the form is exactly as before. */
   aiEnabled?: boolean;
+  /** Communities the owner is verified in; the item can be listed with one of them. */
+  communities?: { id: string; name: string; shortName: string }[];
 }) {
   const [state, formAction, pending] = useActionState<ListingFormState, FormData>(saveListing, undefined);
   const [v, setV] = useState(initial);
@@ -305,6 +308,45 @@ export function ListingForm({
               : "Tip: look at similar items in search to pick a price that gets booked."}
           </p>
         </Section>
+
+        {(communities.length > 0 || v.communityId) && (
+          <Section title="Community">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="communityId" hint="Shows your community badge on the item">List with</Label>
+                <Select
+                  id="communityId"
+                  name="communityId"
+                  value={v.communityId}
+                  onChange={(e) => setV((prev) => ({ ...prev, communityId: e.target.value, communityOnly: e.target.value ? prev.communityOnly : false }))}
+                  aria-invalid={!!errors.communityId}
+                >
+                  <option value="">Everyone in London</option>
+                  {communities.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </Select>
+                <FieldError>{errors.communityId}</FieldError>
+              </div>
+              <label className={cn("flex cursor-pointer items-start gap-3 self-end rounded-2xl border border-line-strong p-3.5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink", !v.communityId && "opacity-50")}>
+                <input
+                  type="checkbox"
+                  name="communityOnly"
+                  disabled={!v.communityId}
+                  checked={v.communityOnly}
+                  onChange={(e) => setV((prev) => ({ ...prev, communityOnly: e.target.checked }))}
+                  className="mt-0.5 size-4 accent-[var(--color-ink)]"
+                />
+                <span>
+                  <span className="block text-sm font-semibold">Members only</span>
+                  <span className="block text-xs text-muted">Only verified members of this community can see and book it.</span>
+                </span>
+              </label>
+            </div>
+          </Section>
+        )}
 
         <Section title="Pickup and delivery">
           <div className="space-y-5">

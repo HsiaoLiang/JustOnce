@@ -107,6 +107,33 @@ enum CheckStage {
   RETURN
 }
 
+enum CommunityType {
+  UNIVERSITY
+  COMPANY
+}
+
+/// How a member proved they belong: a code sent to their school/work email, or a photo of their ID card.
+enum CommunityVerificationMethod {
+  EMAIL
+  ID_CARD
+}
+
+enum CommunityMemberStatus {
+  PENDING  // email code sent but not entered, or ID card waiting for review
+  VERIFIED
+  REJECTED
+}
+
+enum CommunityPostType {
+  REQUEST // "Looking for"
+  OFFER   // "Have to lend"
+}
+
+enum CommunityPostStatus {
+  OPEN
+  FULFILLED
+}
+
 enum Party {
   OWNER
   RENTER
@@ -136,6 +163,9 @@ model User {
   checks          HandoverCheck[]
   events          BookingEvent[]
   images          ImageBlob[]
+  communities     CommunityMember[]
+  communityPosts  CommunityPost[]
+  communityComments CommunityComment[]
 }
 
 model Session {
@@ -195,6 +225,12 @@ model Listing {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
+  /// Optional school or company the item is listed with.
+  communityId   String?
+  /// When true, only verified members of `communityId` can see and book it.
+  communityOnly Boolean        @default(false)
+  community     Community?     @relation(fields: [communityId], references: [id], onDelete: SetNull)
+
   owner        User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   blockedDates BlockedDate[]
   bookings     Booking[]     @relation("BookedListing")
@@ -202,6 +238,7 @@ model Listing {
 
   @@index([status, category])
   @@index([ownerId])
+  @@index([communityId])
 }
 
 /// A single day the owner has marked as unavailable inside the availability window.
@@ -353,4 +390,88 @@ model ImageBlob {
   height    Int?
   createdAt DateTime @default(now())
   owner     User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+}
+
+/// A school or company people can verify into, e.g. London Business School.
+model Community {
+  id          String        @id @default(cuid())
+  /// URL slug, e.g. "lbs".
+  slug        String        @unique
+  name        String
+  shortName   String
+  type        CommunityType
+  /// Email domains that prove membership, e.g. ["london.edu"]. Subdomains also match.
+  domains     String[]
+  /// Neighbourhood slug from src/lib/areas.ts for the main campus or office.
+  area        String
+  /// Where members usually hand things over, e.g. "Sammy Ofer Centre reception".
+  handoverSpot String?
+  description String
+  createdAt   DateTime      @default(now())
+
+  members  CommunityMember[]
+  listings Listing[]
+  posts    CommunityPost[]
+}
+
+model CommunityMember {
+  id          String                      @id @default(cuid())
+  userId      String
+  communityId String
+  method      CommunityVerificationMethod
+  status      CommunityMemberStatus       @default(PENDING)
+  /// The school/work email the code was sent to. Never shown to other members.
+  email       String?
+  /// SHA-256 of the 6-digit email code; cleared once used.
+  codeHash    String?
+  codeExpiresAt DateTime?
+  codeAttempts Int                        @default(0)
+  /// Uploaded ID card photo (/api/images/...). Only the member and reviewers see it.
+  idCardPhoto String?
+  verifiedAt  DateTime?
+  createdAt   DateTime                    @default(now())
+  updatedAt   DateTime                    @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, communityId])
+  @@index([communityId, status])
+}
+
+/// A "looking for" or "have to lend" post on a community's exchange board.
+model CommunityPost {
+  id          String              @id @default(cuid())
+  communityId String
+  authorId    String
+  type        CommunityPostType
+  title       String
+  body        String
+  /// Optional date the item is needed by (requests) or available from (offers).
+  neededBy    DateTime?           @db.Date
+  /// Optional budget (requests) or asking price per day (offers), in pence.
+  pricePence  Int?
+  photos      String[]            @default([])
+  status      CommunityPostStatus @default(OPEN)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  community Community          @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  author    User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments  CommunityComment[]
+
+  @@index([communityId, status, createdAt])
+}
+
+model CommunityComment {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  post   CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
 }

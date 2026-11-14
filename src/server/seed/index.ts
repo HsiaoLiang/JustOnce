@@ -7,6 +7,7 @@ import { addDays, toDate, todayInLondon, type ISODate } from "../../lib/dates";
 import { claimReasonLabel, deliveryFee, formatGBP, quote } from "../../lib/money";
 import { getLocker } from "../../lib/lockers";
 import { areaName } from "../../lib/areas";
+import { seedCommunities } from "./communities";
 import { BOOKINGS, CHECK_NOTES, DEMO_PASSWORD, LISTINGS, OWNER_PICKUP_POINTS, USERS, type SeedBooking } from "./data";
 
 export interface SeedSummary {
@@ -14,6 +15,8 @@ export interface SeedSummary {
   listings: number;
   bookings: number;
   reviews: number;
+  communities: number;
+  posts: number;
   today: ISODate;
 }
 
@@ -47,7 +50,7 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
   const later = (date: Date, minutes: number) => new Date(Math.min(date.getTime() + minutes * 60_000, now - 5 * 60_000));
 
   await prisma.$executeRawUnsafe(
-    `TRUNCATE TABLE "DepositClaim", "BookingEvent", "Review", "HandoverCheck", "Booking", "BlockedDate", "Listing", "Session", "ImageBlob", "User" CASCADE`,
+    `TRUNCATE TABLE "CommunityComment", "CommunityPost", "CommunityMember", "Community", "DepositClaim", "BookingEvent", "Review", "HandoverCheck", "Booking", "BlockedDate", "Listing", "Session", "ImageBlob", "User" CASCADE`,
   );
 
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
@@ -102,6 +105,8 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
   );
   if (blocked.length) await prisma.blockedDate.createMany({ data: blocked });
 
+  await seedCommunities(prisma, { today, passwordHash, now });
+
   let reviews = 0;
   for (const [index, b] of BOOKINGS.entries()) {
     reviews += await createSeedBooking(prisma, b, index);
@@ -109,7 +114,16 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
 
   await recalculateRatings(prisma);
 
-  return { users: USERS.length, listings: LISTINGS.length, bookings: BOOKINGS.length, reviews, today };
+  // Counted from the database, so the communities' extra members, items and posts are included.
+  const [users, listings, bookings, reviewCount, communities, posts] = await Promise.all([
+    prisma.user.count(),
+    prisma.listing.count(),
+    prisma.booking.count(),
+    prisma.review.count(),
+    prisma.community.count(),
+    prisma.communityPost.count(),
+  ]);
+  return { users, listings, bookings, reviews: reviewCount, communities, posts, today };
 
   async function createSeedBooking(tx: PrismaClient, b: SeedBooking, index: number): Promise<number> {
     const listing = listingsById.get(b.listing);

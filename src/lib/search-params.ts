@@ -26,6 +26,8 @@ export interface ParsedSearch {
   delivery: boolean;
   /** Map area the results are limited to ("Search this area"). */
   bbox?: Bbox;
+  /** Community slug, e.g. "lbs": only items listed with that school or company. */
+  community: string;
 }
 
 type Raw = Record<string, string | string[] | undefined>;
@@ -51,11 +53,13 @@ export function parseSearch(raw: Raw): ParsedSearch {
   const view = one(raw.view) === "map" ? "map" : "list";
   const bbox = parseBbox(one(raw.bbox)) ?? undefined;
   const delivery = one(raw.delivery) === "1";
-  return { q, categorySlug: category?.slug ?? "", category: category?.id, area, from, to, max, sort, view, bbox, delivery };
+  const communityRaw = one(raw.community).toLowerCase();
+  const community = /^[a-z0-9-]{2,40}$/.test(communityRaw) ? communityRaw : "";
+  return { q, categorySlug: category?.slug ?? "", category: category?.id, area, from, to, max, sort, view, bbox, delivery, community };
 }
 
 /** Builds a /search URL from the current filters with some values replaced. */
-export function searchHref(current: ParsedSearch, changes: Partial<Record<"q" | "category" | "area" | "from" | "to" | "max" | "sort" | "view" | "bbox" | "delivery", string | undefined>>): string {
+export function searchHref(current: ParsedSearch, changes: Partial<Record<"q" | "category" | "area" | "from" | "to" | "max" | "sort" | "view" | "bbox" | "delivery" | "community", string | undefined>>): string {
   const values: Record<string, string | undefined> = {
     q: current.q || undefined,
     category: current.categorySlug || undefined,
@@ -67,6 +71,7 @@ export function searchHref(current: ParsedSearch, changes: Partial<Record<"q" | 
     view: current.view === "map" ? "map" : undefined,
     bbox: current.bbox ? formatBbox(current.bbox) : undefined,
     delivery: current.delivery ? "1" : undefined,
+    community: current.community || undefined,
     ...changes,
   };
   const params = new URLSearchParams();

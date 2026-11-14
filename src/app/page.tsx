@@ -7,23 +7,30 @@ import { ListingGrid } from "@/components/listing-card";
 import { Container, LinkButton, SectionHeading } from "@/components/ui";
 import { CATEGORY_GROUPS, categoriesInGroup, type CategoryInfo } from "@/lib/catalogue";
 import { formatGBP } from "@/lib/money";
-import { cn } from "@/lib/cn";
+import { cn, plural } from "@/lib/cn";
 import { getHomeData } from "@/server/queries";
 import { aiEnabled } from "@/server/ai";
 import { getCurrentUser } from "@/server/auth";
+import { getViewerCommunityIds, listCommunities } from "@/server/communities";
+import { BadgeCheck, Building2, GraduationCap, MessagesSquare, SlidersHorizontal } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [{ featured, latest, counts, hero, stats }, user] = await Promise.all([getHomeData(), getCurrentUser()]);
+  const [{ featured, latest, counts, hero, stats }, user, communities, mine] = await Promise.all([getHomeData(), getCurrentUser(), listCommunities(), getViewerCommunityIds()]);
+  const viewerCommunity = communities.find((c) => mine.includes(c.id))?.slug ?? "";
 
   return (
     <>
       {/* Hero: the occasion comes first, the item second. */}
-      <Hero tickets={hero} stats={stats} lendHref={user ? "/listings/new" : "/signup?next=/listings/new"} ai={aiEnabled()} />
+      <Hero tickets={hero} stats={stats} lendHref={user ? "/listings/new" : "/signup?next=/listings/new"} ai={aiEnabled()} communities={communities} viewerCommunity={viewerCommunity} />
 
       <Container>
-        <section aria-labelledby="categories" className="pt-2">
+        <CommunitiesSection communities={communities} mine={mine} />
+      </Container>
+
+      <Container>
+        <section aria-labelledby="categories" className="pt-16 sm:pt-20">
           <SectionHeading title="What do you need it for?" kicker="Browse" />
           <h2 id="categories" className="sr-only">Categories</h2>
           <div className="space-y-8 sm:space-y-10">
@@ -160,5 +167,69 @@ function Earning({ label, value }: { label: string; value: number }) {
       <dt className="text-xs leading-snug text-white/65">{label}</dt>
       <dd className="mt-1 font-display text-2xl font-semibold">{formatGBP(value)}</dd>
     </div>
+  );
+}
+
+type CommunitySummary = Awaited<ReturnType<typeof listCommunities>>[number];
+
+function CommunitiesSection({ communities, mine }: { communities: CommunitySummary[]; mine: string[] }) {
+  if (!communities.length) return null;
+  const steps = [
+    { icon: BadgeCheck, title: "Verify once", body: "Use your school or work email, or upload your ID card." },
+    { icon: SlidersHorizontal, title: "Filter to your people", body: "Search everyone in London, or only your community." },
+    { icon: MessagesSquare, title: "Ask the board", body: "Post what you need or what you can lend this week." },
+  ];
+  return (
+    <section className="overflow-hidden rounded-3xl bg-ink text-paper" aria-labelledby="communities-heading">
+      <div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-[1fr_1.35fr] lg:gap-12 lg:p-12">
+        <div>
+          <p className="font-mono text-xs tracking-[0.14em] text-accent uppercase">Communities</p>
+          <h2 id="communities-heading" className="mt-2 text-3xl font-semibold sm:text-4xl">Borrow from people on your campus or in your office.</h2>
+          <ol className="mt-6 space-y-4">
+            {steps.map((s) => (
+              <li key={s.title} className="flex gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-ink">
+                  <s.icon className="size-4" aria-hidden />
+                </span>
+                <div>
+                  <p className="font-semibold">{s.title}</p>
+                  <p className="text-sm text-paper/70">{s.body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <LinkButton href="/communities" className="mt-7">
+            Find your community
+          </LinkButton>
+        </div>
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {communities.map((c) => {
+            const Icon = c.type === "COMPANY" ? Building2 : GraduationCap;
+            const joined = mine.includes(c.id);
+            return (
+              <li key={c.id}>
+                <Link
+                  href={`/communities/${c.slug}`}
+                  className="group flex h-full flex-col rounded-2xl bg-paper/[0.06] p-5 ring-1 ring-paper/10 transition-colors hover:bg-paper/[0.12]"
+                >
+                  <span className="flex items-center justify-between">
+                    <span className="flex size-10 items-center justify-center rounded-full bg-paper/10">
+                      <Icon className="size-5" aria-hidden />
+                    </span>
+                    {joined && <span className="rounded-full bg-accent px-2 py-0.5 text-[0.7rem] font-semibold text-ink">You&apos;re in</span>}
+                  </span>
+                  <p className="mt-4 font-display text-xl leading-tight font-semibold">{c.shortName}</p>
+                  <p className="mt-0.5 text-xs text-paper/65">{c.name}</p>
+                  <p className="mt-auto flex items-center gap-1 pt-4 font-mono text-[0.7rem] tracking-[0.12em] text-paper/80 uppercase">
+                    {plural(c._count.members, "member")} · {plural(c._count.listings, "item")} · {plural(c._count.posts, "open post")}
+                    <ArrowRight className="ml-auto size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                  </p>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
   );
 }

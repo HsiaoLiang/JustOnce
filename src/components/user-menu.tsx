@@ -51,6 +51,7 @@ export function UserMenu({ user }: { user: { id: string; name: string; avatarUrl
           <MenuLink href="/dashboard/rentals" onClick={() => setOpen(false)}>My rentals</MenuLink>
           <MenuLink href="/dashboard/listings" onClick={() => setOpen(false)}>My listings</MenuLink>
           <MenuLink href="/listings/new" onClick={() => setOpen(false)}>List an item</MenuLink>
+          <MenuLink href="/communities" onClick={() => setOpen(false)}>My communities</MenuLink>
           <MenuLink href={`/users/${user.id}`} onClick={() => setOpen(false)}>Public profile</MenuLink>
           <MenuLink href="/account" onClick={() => setOpen(false)}>Account settings</MenuLink>
           {DEMO_MODE && (

@@ -51,6 +51,10 @@ export async function requestBooking(_prev: RequestState, formData: FormData): P
   const listing = await db.listing.findUnique({ where: { id: listingId }, include: { owner: { select: { name: true } } } });
   if (!listing || listing.status !== "ACTIVE") return { error: "This item isn't available to book right now." };
   if (listing.ownerId === user.id) return { error: "This is your own listing, so there's nothing to book." };
+  if (listing.communityOnly && listing.communityId) {
+    const member = await db.communityMember.count({ where: { userId: user.id, communityId: listing.communityId, status: "VERIFIED" } });
+    if (!member) return { error: "Only verified members of this item's community can book it." };
+  }
 
   // The method must be one the owner offers, and the fee is always recalculated here.
   if (!HANDOVER_METHODS.some((m) => m.id === method) || !listing.handoverMethods.includes(method)) {
