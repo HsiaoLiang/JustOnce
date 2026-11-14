@@ -28,13 +28,28 @@ await fs.mkdir(path.join(out, "listings"), { recursive: true });
 await fs.mkdir(path.join(out, "categories"), { recursive: true });
 await fs.mkdir(path.join(out, "avatars"), { recursive: true });
 
-for (const [slug, ids] of Object.entries(manifest.listings)) {
-  for (const [i, id] of ids.entries()) {
+// A listing photo is an Unsplash id, or { id, crop: [left, top, width, height] } (fractions of the
+// original) for a close-up detail of the same photo, so a gallery always shows the same item.
+async function listingPhoto(entry) {
+  const { id, crop } = typeof entry === "string" ? { id: entry } : entry;
+  if (!crop) return sharp(await download(id, 1600)).rotate();
+  const { data, info } = await sharp(await download(id, 2400)).rotate().toBuffer({ resolveWithObject: true });
+  const [l, t, w, h] = crop;
+  const left = Math.round(l * info.width);
+  const top = Math.round(t * info.height);
+  const width = Math.min(Math.round(w * info.width), info.width - left);
+  const height = Math.min(Math.round(h * info.height), info.height - top);
+  return sharp(data).extract({ left, top, width, height });
+}
+
+for (const [slug, entries] of Object.entries(manifest.listings)) {
+  for (const [i, entry] of entries.entries()) {
     const file = path.join(out, "listings", `${slug}-${i + 1}.jpg`);
-    credits.push(`| /seed/listings/${slug}-${i + 1}.jpg | https://images.unsplash.com/photo-${id} |`);
+    const id = typeof entry === "string" ? entry : entry.id;
+    const note = typeof entry === "string" ? "" : " (detail crop)";
+    credits.push(`| /seed/listings/${slug}-${i + 1}.jpg | https://images.unsplash.com/photo-${id}${note} |`);
     if (await skip(file)) continue;
-    const buf = await download(id, 1600);
-    await jpeg(sharp(buf).rotate().resize(1400, 1400, { fit: "inside", withoutEnlargement: true })).toFile(file);
+    await jpeg((await listingPhoto(entry)).resize(1400, 1400, { fit: "inside", withoutEnlargement: true })).toFile(file);
     console.log("listing", slug, i + 1);
   }
 }
