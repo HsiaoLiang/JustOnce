@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SearchX, X } from "lucide-react";
-import { ListingGrid } from "@/components/listing-card";
+import { SearchResults } from "@/components/search-results";
+import { publicPin } from "@/lib/geo";
 import { SearchFilters } from "@/components/search-filters";
 import { Container, LinkButton } from "@/components/ui";
 import { areaFilterLabel } from "@/lib/areas";
@@ -28,7 +29,10 @@ export default async function SearchPage({ searchParams }: Props) {
     to: filters.to,
     maxPrice: filters.max ? filters.max * 100 : undefined,
     sort: filters.sort,
+    bbox: filters.bbox,
   });
+  // Approximate public pins only: no exact pickup point is ever selected here.
+  const items = listings.map((l) => ({ ...l, pin: publicPin(l.id, l.area) }));
 
   const areaLabel = areaFilterLabel(filters.area);
   const heading = `${filters.category ? categoryLabel(filters.category) : filters.q ? `“${filters.q}”` : "Everything"} ${areaLabel ? `in ${areaLabel}` : "in London"}`;
@@ -37,6 +41,7 @@ export default async function SearchPage({ searchParams }: Props) {
     areaLabel && { label: areaLabel, href: searchHref(filters, { area: undefined }) },
     filters.from && filters.to && { label: formatRange(filters.from, filters.to), href: searchHref(filters, { from: undefined, to: undefined }) },
     filters.max && { label: `Up to £${filters.max}/day`, href: searchHref(filters, { max: undefined }) },
+    filters.bbox && { label: "Map area", href: searchHref(filters, { bbox: undefined }) },
   ].filter(Boolean) as { label: string; href: string }[];
 
   return (
@@ -74,7 +79,7 @@ export default async function SearchPage({ searchParams }: Props) {
       </div>
 
       {listings.length > 0 ? (
-        <ListingGrid listings={listings} priorityCount={4} query={filters.from && filters.to ? `start=${filters.from}&end=${filters.to}` : undefined} />
+        <SearchResults key={JSON.stringify(filters)} items={items} view={filters.view} query={filters.from && filters.to ? `start=${filters.from}&end=${filters.to}` : undefined} />
       ) : (
         <div className="flex flex-col items-center rounded-3xl border border-dashed border-line-strong px-6 py-16 text-center">
           <SearchX className="size-8 text-muted" aria-hidden />

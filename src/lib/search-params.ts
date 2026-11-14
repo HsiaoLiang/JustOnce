@@ -1,6 +1,7 @@
 import { areaFilterSlugs } from "./areas";
 import { categoryBySlug, type CategoryId } from "./catalogue";
 import { isISODate, todayInLondon, type ISODate } from "./dates";
+import { formatBbox, parseBbox, type Bbox } from "./geo";
 
 export type SortKey = "recommended" | "price-asc" | "price-desc" | "newest";
 export const SORTS: { id: SortKey; label: string }[] = [
@@ -20,6 +21,9 @@ export interface ParsedSearch {
   to?: ISODate;
   max?: number;
   sort: SortKey;
+  view: "list" | "map";
+  /** Map area the results are limited to ("Search this area"). */
+  bbox?: Bbox;
 }
 
 type Raw = Record<string, string | string[] | undefined>;
@@ -42,11 +46,13 @@ export function parseSearch(raw: Raw): ParsedSearch {
   const max = MAX_PRICES.includes(maxRaw) ? maxRaw : undefined;
   const sortRaw = one(raw.sort) as SortKey;
   const sort = SORTS.some((s) => s.id === sortRaw) ? sortRaw : "recommended";
-  return { q, categorySlug: category?.slug ?? "", category: category?.id, area, from, to, max, sort };
+  const view = one(raw.view) === "map" ? "map" : "list";
+  const bbox = parseBbox(one(raw.bbox)) ?? undefined;
+  return { q, categorySlug: category?.slug ?? "", category: category?.id, area, from, to, max, sort, view, bbox };
 }
 
 /** Builds a /search URL from the current filters with some values replaced. */
-export function searchHref(current: ParsedSearch, changes: Partial<Record<"q" | "category" | "area" | "from" | "to" | "max" | "sort", string | undefined>>): string {
+export function searchHref(current: ParsedSearch, changes: Partial<Record<"q" | "category" | "area" | "from" | "to" | "max" | "sort" | "view" | "bbox", string | undefined>>): string {
   const values: Record<string, string | undefined> = {
     q: current.q || undefined,
     category: current.categorySlug || undefined,
@@ -55,6 +61,8 @@ export function searchHref(current: ParsedSearch, changes: Partial<Record<"q" | 
     to: current.to,
     max: current.max ? String(current.max) : undefined,
     sort: current.sort !== "recommended" ? current.sort : undefined,
+    view: current.view === "map" ? "map" : undefined,
+    bbox: current.bbox ? formatBbox(current.bbox) : undefined,
     ...changes,
   };
   const params = new URLSearchParams();

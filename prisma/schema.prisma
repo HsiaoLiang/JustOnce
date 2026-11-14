@@ -154,6 +154,9 @@ model Listing {
   area          String
   /// Shared with the renter only once a booking is accepted.
   pickupNotes   String?
+  /// Optional exact pickup point. Like pickupNotes, only ever sent to a renter with an accepted booking.
+  pickupLat     Float?
+  pickupLng     Float?
   /// Ordered photo URLs; the first one is the cover.
   photos        String[]
   availableFrom DateTime       @db.Date

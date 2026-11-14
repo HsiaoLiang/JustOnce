@@ -19,7 +19,9 @@ import { requireUser } from "@/server/auth";
 import { db } from "@/server/db";
 import { settleOverdueDeposits } from "@/server/deposits";
 import { releaseHeldDeposit, resolveClaim } from "@/server/actions/deposits";
-import { getBookingDetail, toFlow, type BookingDetail } from "@/server/queries";
+import { getBookingDetail, getPickupDetails, toFlow, type BookingDetail } from "@/server/queries";
+import { AreaMapClient } from "@/components/map/area-map-client";
+import { areaCircle, directionsUrl } from "@/lib/geo";
 
 export const metadata: Metadata = { title: "Booking" };
 
@@ -44,6 +46,8 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
           where: { listingId: b.listingId, id: { not: b.id }, status: "REQUESTED", startDate: { lte: b.endDate }, endDate: { gte: b.startDate } },
         })
       : 0;
+  // Exact point and notes are fetched only for accepted bookings, so they never reach a renter earlier.
+  const pickup = await getPickupDetails(b);
   const otherCompleted = await db.booking.count({ where: { [viewer === "OWNER" ? "renterId" : "ownerId"]: other.id, status: "COMPLETED" } });
 
   return (
@@ -85,14 +89,30 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
         <aside className="space-y-4 lg:sticky lg:top-24 lg:col-start-2 lg:row-span-4 lg:row-start-1 lg:self-start">
           <BookingTicketSummary booking={b} viewer={viewer} />
           <PersonCard person={other} role={viewer === "OWNER" ? "Renter" : "Owner"} completed={otherCompleted} />
-          {(b.status === "ACCEPTED" || b.status === "ACTIVE") && (
+          {pickup && (
             <Card className="p-5">
               <p className="flex items-center gap-2 font-semibold">
                 <MapPin className="size-4" aria-hidden /> Pickup in {areaName(b.listing.area)}
               </p>
-              <p className="mt-2 text-sm leading-relaxed text-ink-2">
-                {b.listing.pickupNotes || `${firstName(b.owner.name)} will confirm the exact spot.`}
-              </p>
+              <div className="mt-3">
+                <AreaMapClient
+                  label={pickup.pickupLat !== null ? "Map of the exact pickup point" : `Map of ${areaName(b.listing.area)}`}
+                  circles={pickup.pickupLat !== null ? [] : areaCircle(b.listing.area)}
+                  pin={pickup.pickupLat !== null && pickup.pickupLng !== null ? { lat: pickup.pickupLat, lng: pickup.pickupLng, label: "Pickup point" } : null}
+                  className="h-44 w-full overflow-hidden rounded-xl border border-line bg-surface"
+                />
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-ink-2">{pickup.pickupNotes || `${firstName(b.owner.name)} will confirm the exact spot.`}</p>
+              {pickup.pickupLat !== null && pickup.pickupLng !== null && (
+                <a
+                  href={directionsUrl({ lat: pickup.pickupLat, lng: pickup.pickupLng })}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex text-sm font-semibold underline decoration-accent decoration-2 underline-offset-4"
+                >
+                  Get directions
+                </a>
+              )}
               <p className="mt-2 text-xs text-muted">Only shown to you both once the booking is confirmed.</p>
             </Card>
           )}

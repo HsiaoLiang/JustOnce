@@ -1078,3 +1078,11 @@ export const CHECK_NOTES = {
   returnOwner: ["Back in the same condition. Thanks!", "All present and correct.", "Returned clean and on time."],
   returnRenter: ["Returned everything as it came.", "All packed back up, thanks again!", "Handed back in person, all good."],
 };
+
+/** Exact pickup points (station exits), shown to renters only once a booking is accepted. */
+export const OWNER_PICKUP_POINTS: Record<string, [number, number]> = {
+  "priya-shah": [51.5471, -0.0561], // Hackney Central
+  "mei-chen": [51.5273, -0.0553], // Bethnal Green
+  "tom-hughes": [51.5829, -0.0197], // Walthamstow Central
+  "callum-reid": [51.4827, -0.0096], // Cutty Sark DLR
+};

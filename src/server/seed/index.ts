@@ -5,7 +5,7 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { addDays, toDate, todayInLondon, type ISODate } from "../../lib/dates";
 import { claimReasonLabel, formatGBP, quote } from "../../lib/money";
-import { BOOKINGS, CHECK_NOTES, DEMO_PASSWORD, LISTINGS, USERS, type SeedBooking } from "./data";
+import { BOOKINGS, CHECK_NOTES, DEMO_PASSWORD, LISTINGS, OWNER_PICKUP_POINTS, USERS, type SeedBooking } from "./data";
 
 export interface SeedSummary {
   users: number;
@@ -85,6 +85,8 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
       availableTo: toDate(day(180)),
       featured: Boolean(l.featured),
       replacementValue: l.replacementValue ? l.replacementValue * 100 : null,
+      pickupLat: OWNER_PICKUP_POINTS[l.owner]?.[0] ?? null,
+      pickupLng: OWNER_PICKUP_POINTS[l.owner]?.[1] ?? null,
       fullDepositOnly: Boolean(l.fullDepositOnly),
       createdAt: at(-170 + i, "12:00"),
     })),

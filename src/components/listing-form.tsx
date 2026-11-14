@@ -11,7 +11,13 @@ import type { ListingFormValues } from "@/lib/listing-form-values";
 import { DEPOSIT_PROMISE, formatGBP, parsePounds, penceToPoundsInput, suggestedDeposit } from "@/lib/money";
 import { MAX_LISTING_PHOTOS } from "@/lib/photos";
 import { cn, plural } from "@/lib/cn";
+import dynamic from "next/dynamic";
 import { Calendar } from "./calendar";
+
+const PinPicker = dynamic(() => import("./map/pin-picker").then((m) => m.PinPicker), {
+  ssr: false,
+  loading: () => <div className="h-56 w-full animate-pulse rounded-2xl bg-surface" />,
+});
 import { PhotoUploader } from "./photo-uploader";
 import { Button, FieldError, FormAlert, Input, Label, Select, Textarea, inputClass } from "./ui";
 
@@ -221,6 +227,14 @@ export function ListingForm({ initial, today, locked = [], mode }: { initial: Li
                 placeholder="e.g. Meet at Hackney Central station, weekday evenings after 6pm."
               />
               <FieldError>{errors.pickupNotes}</FieldError>
+            </div>
+            <div>
+              <p className="mb-1.5 text-sm font-semibold">
+                Exact pickup point <span className="font-normal text-muted">Optional, only shared once you accept</span>
+              </p>
+              <PinPicker area={v.area} initial={initial.pickupPoint} />
+              <p className="mt-1 text-xs text-muted">Public maps only ever show a rough spot in your neighbourhood, never your address.</p>
+              <FieldError>{errors.pickupPoint}</FieldError>
             </div>
           </div>
         </Section>

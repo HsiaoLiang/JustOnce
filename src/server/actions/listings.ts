@@ -65,6 +65,21 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
   }
   const fullDepositOnly = formData.get("fullDepositOnly") === "on";
 
+  const latRaw = String(formData.get("pickupLat") ?? "").trim();
+  const lngRaw = String(formData.get("pickupLng") ?? "").trim();
+  let pickupLat: number | null = null;
+  let pickupLng: number | null = null;
+  if (latRaw || lngRaw) {
+    const lat = Number(latRaw);
+    const lng = Number(lngRaw);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < 51.25 || lat > 51.72 || lng < -0.6 || lng > 0.35) {
+      fieldErrors.pickupPoint = "Put the pickup pin somewhere in London, or remove it.";
+    } else {
+      pickupLat = Math.round(lat * 1e5) / 1e5;
+      pickupLng = Math.round(lng * 1e5) / 1e5;
+    }
+  }
+
   const today = todayInLondon();
   const from = String(formData.get("availableFrom") ?? "");
   const to = String(formData.get("availableTo") ?? "");
@@ -111,6 +126,8 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
     deposit: deposit!,
     replacementValue,
     fullDepositOnly,
+    pickupLat,
+    pickupLng,
     photos: photos as string[],
     availableFrom: toDate(from),
     availableTo: toDate(to),
