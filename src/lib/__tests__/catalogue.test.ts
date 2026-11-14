@@ -26,11 +26,12 @@ test("the fashion categories are searchable by slug", () => {
   }
 });
 
-test("the demo seed has at least two listings in every category, with photos on disk", () => {
+test("the demo seed has at least two listings in every category, each with a photo gallery on disk", () => {
   for (const c of CATEGORIES) {
     assert.ok(LISTINGS.filter((l) => l.category === c.id).length >= 2, `${c.label} needs at least two seed listings`);
   }
   for (const l of LISTINGS) {
+    assert.ok(l.photos.length >= 2, `${l.id} needs a gallery of at least two photos`);
     for (const photo of l.photos) assert.ok(existsSync(path.join(publicDir, photo)), `missing ${photo}`);
   }
   assert.equal(new Set(LISTINGS.map((l) => l.id)).size, LISTINGS.length);

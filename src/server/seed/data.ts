@@ -361,7 +361,7 @@ export const LISTINGS: SeedListing[] = [
     price: 22,
     deposit: 250,
     area: "camden",
-    photos: p("canon-80d"),
+    photos: p("canon-80d", 3),
     description:
       "Reliable DSLR with a flexible 18–135mm zoom. A great all-rounder for holidays, events and learning photography properly. Includes two batteries, charger and a 32GB card.",
     pickupNotes: "Camden Town station, Kentish Town Road exit. Evenings after 6pm and weekends.",
@@ -393,7 +393,7 @@ export const LISTINGS: SeedListing[] = [
     price: 8,
     deposit: 40,
     area: "hackney",
-    photos: p("polaroid"),
+    photos: p("polaroid", 2),
     description:
       "Point, shoot, wait for the magic. Perfect for weddings, birthdays and guest books. Takes i-Type film, and I can sell you a pack at cost if you need one.",
     pickupNotes: "Hackney Central station (Overground), Amhurst Road exit. Weekdays after 6pm, weekends any time.",
@@ -409,7 +409,7 @@ export const LISTINGS: SeedListing[] = [
     price: 25,
     deposit: 300,
     area: "bethnal-green",
-    photos: p("fuji-xt3"),
+    photos: p("fuji-xt3", 2),
     description:
       "Retro-styled mirrorless with proper dials and a sharp 18–55mm f/2.8–4 lens. Great for travel and for video (4K at 60fps). Comes with three batteries, a charger and a 64GB card.",
     pickupNotes: "Bethnal Green station (Central line), Museum exit. Weeknights after 7pm or weekend mornings.",
@@ -440,7 +440,7 @@ export const LISTINGS: SeedListing[] = [
     price: 18,
     deposit: 200,
     area: "hackney",
-    photos: p("creator-kit"),
+    photos: p("creator-kit", 3),
     description:
       "Everything you need to level up your videos: a Rode VideoMic, DJI phone gimbal, two LED panels with stands and a mini tripod, all in one hard case. Great for YouTube, course projects and short films.",
     pickupNotes: "Hackney Central station (Overground), Amhurst Road exit. Weekdays after 6pm, weekends any time.",
@@ -459,7 +459,7 @@ export const LISTINGS: SeedListing[] = [
     price: 15,
     deposit: 100,
     area: "walthamstow",
-    photos: p("mh-4p-tent"),
+    photos: p("mh-4p-tent", 2),
     featured: true,
     description:
       "Sturdy dome tent with two doors and two porches, so nobody climbs over anyone at 3am. It has survived Glastonbury mud and Welsh wind. Footprint, pegs and a spare guy line included.",
@@ -476,7 +476,7 @@ export const LISTINGS: SeedListing[] = [
     price: 12,
     deposit: 80,
     area: "clapham",
-    photos: p("2p-tent"),
+    photos: p("2p-tent", 2),
     description:
       "Bright yellow, quick to pitch and light enough for a train-and-hike weekend. Packs down to the size of a rolled-up yoga mat. Pegs and a repair kit included.",
     pickupNotes: "Clapham Common station or my flat five minutes away. Weekday evenings and Saturdays.",
@@ -493,7 +493,7 @@ export const LISTINGS: SeedListing[] = [
     price: 35,
     deposit: 200,
     area: "walthamstow",
-    photos: p("bell-tent"),
+    photos: p("bell-tent", 2),
     featured: true,
     description:
       "Proper glamping: a 5m cotton canvas bell tent with a zipped-in groundsheet. Fits a double airbed plus two singles. It weighs about 25 kg, so it's best with a car, and I'll help you load it.",
@@ -511,7 +511,7 @@ export const LISTINGS: SeedListing[] = [
     price: 20,
     deposit: 120,
     area: "brixton",
-    photos: p("tipi-tent"),
+    photos: p("tipi-tent", 2),
     description:
       "Single-pole tipi that looks magic lit up at night and pitches in ten minutes once you've done it once. Loads of headroom. Pole, pegs and guy lines included.",
     pickupNotes: "Brixton station, outside the Ritzy side. Most evenings.",
@@ -559,7 +559,7 @@ export const LISTINGS: SeedListing[] = [
     price: 25,
     deposit: 100,
     area: "stratford",
-    photos: p("festival-bundle"),
+    photos: p("festival-bundle", 2),
     description:
       "A whole festival setup in one bag: a 2-person pop-up tent, two self-inflating mats, two freshly washed sleeping bags, a lantern and a gas stove. Just add wellies and glitter.",
     pickupNotes: "Stratford station, by the Westfield entrance. Weekends are easiest.",
@@ -573,7 +573,7 @@ export const LISTINGS: SeedListing[] = [
     price: 10,
     deposit: 40,
     area: "brixton",
-    photos: p("fire-pit"),
+    photos: p("fire-pit", 2),
     description:
       "Steel fire bowl with a removable grill, great for garden evenings and campsites that allow fires. Marshmallow forks included, marshmallows not.",
     pickupNotes: "Brixton station, outside the Ritzy side. Most evenings.",
@@ -590,7 +590,7 @@ export const LISTINGS: SeedListing[] = [
     price: 12,
     deposit: 40,
     area: "peckham",
-    photos: p("skeletons"),
+    photos: p("skeletons", 3),
     featured: true,
     description:
       "Two poseable 1.6m skeletons. Sit them on the sofa, prop them in the window or leave them guarding the door. Comes with a set of purple fairy lights.",
@@ -606,7 +606,7 @@ export const LISTINGS: SeedListing[] = [
     price: 5,
     deposit: 15,
     area: "peckham",
-    photos: p("pumpkins"),
+    photos: p("pumpkins", 3),
     description:
       "Realistic carved-pumpkin lanterns with flickering LED candles. No carving, no mess and no mouldy pumpkin a week later. Batteries included.",
     pickupNotes: "Peckham Rye station, by the main entrance. Most evenings and Sunday afternoons.",
@@ -637,7 +637,7 @@ export const LISTINGS: SeedListing[] = [
     price: 3,
     deposit: 40,
     area: "stratford",
-    photos: p("xmas-tree"),
+    photos: p("xmas-tree", 3),
     featured: true,
     description:
       "A full, realistic artificial tree that comes already decorated in red and gold with warm-white lights. No needles in the carpet and nothing to store in January. Fits in a large car or an Uber XL.",
@@ -653,7 +653,7 @@ export const LISTINGS: SeedListing[] = [
     price: 4,
     deposit: 50,
     area: "stratford",
-    photos: p("white-tree"),
+    photos: p("white-tree", 3),
     description:
       "Snowy white pre-lit tree with silver and white baubles. A showstopper for a big living room or a Christmas party, and it folds into two boxes.",
     pickupNotes: "Stratford station, by the Westfield entrance. Weekends are easiest.",
@@ -701,7 +701,7 @@ export const LISTINGS: SeedListing[] = [
     price: 18,
     deposit: 120,
     area: "greenwich",
-    photos: p("snowboard"),
+    photos: p("snowboard", 2),
     description:
       "Burton all-mountain board with medium bindings, suits riders around 65–85 kg. Waxed and edges sharpened this season. Board bag included.",
     pickupNotes: "Cutty Sark DLR station. Evenings and weekends.",

@@ -32,34 +32,55 @@ All demo photos come from [Unsplash](https://unsplash.com) and are used under th
 | /seed/listings/fuji-x100v-1.jpg | https://images.unsplash.com/photo-1510127034890-ba27508e9f1c |
 | /seed/listings/fuji-x100v-2.jpg | https://images.unsplash.com/photo-1516724562728-afc824a36e84 |
 | /seed/listings/canon-80d-1.jpg | https://images.unsplash.com/photo-1495707902641-75cac588d2e9 |
+| /seed/listings/canon-80d-2.jpg | https://images.unsplash.com/photo-1495707902641-75cac588d2e9 (detail crop) |
+| /seed/listings/canon-80d-3.jpg | https://images.unsplash.com/photo-1495707902641-75cac588d2e9 (detail crop) |
 | /seed/listings/mavic-air-2-1.jpg | https://images.unsplash.com/photo-1527977966376-1c8408f9f108 |
 | /seed/listings/mavic-air-2-2.jpg | https://images.unsplash.com/photo-1507582020474-9a35b7d455d9 |
 | /seed/listings/polaroid-1.jpg | https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f |
+| /seed/listings/polaroid-2.jpg | https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f (detail crop) |
 | /seed/listings/fuji-xt3-1.jpg | https://images.unsplash.com/photo-1452780212940-6f5c0d14d848 |
+| /seed/listings/fuji-xt3-2.jpg | https://images.unsplash.com/photo-1452780212940-6f5c0d14d848 (detail crop) |
 | /seed/listings/nikon-d750-1.jpg | https://images.unsplash.com/photo-1564466809058-bf4114d55352 |
 | /seed/listings/nikon-d750-2.jpg | https://images.unsplash.com/photo-1520390138845-fd2d229dd553 |
 | /seed/listings/creator-kit-1.jpg | https://images.unsplash.com/photo-1526406915894-7bcd65f60845 |
+| /seed/listings/creator-kit-2.jpg | https://images.unsplash.com/photo-1526406915894-7bcd65f60845 (detail crop) |
+| /seed/listings/creator-kit-3.jpg | https://images.unsplash.com/photo-1526406915894-7bcd65f60845 (detail crop) |
 | /seed/listings/mh-4p-tent-1.jpg | https://images.unsplash.com/photo-1487730116645-74489c95b41b |
+| /seed/listings/mh-4p-tent-2.jpg | https://images.unsplash.com/photo-1487730116645-74489c95b41b (detail crop) |
 | /seed/listings/2p-tent-1.jpg | https://images.unsplash.com/photo-1445308394109-4ec2920981b1 |
+| /seed/listings/2p-tent-2.jpg | https://images.unsplash.com/photo-1445308394109-4ec2920981b1 (detail crop) |
 | /seed/listings/bell-tent-1.jpg | https://images.unsplash.com/photo-1525811902-f2342640856e |
+| /seed/listings/bell-tent-2.jpg | https://images.unsplash.com/photo-1525811902-f2342640856e (detail crop) |
 | /seed/listings/tipi-tent-1.jpg | https://images.unsplash.com/photo-1496080174650-637e3f22fa03 |
+| /seed/listings/tipi-tent-2.jpg | https://images.unsplash.com/photo-1496080174650-637e3f22fa03 (detail crop) |
 | /seed/listings/porch-tent-1.jpg | https://images.unsplash.com/photo-1504280390367-361c6d9f38f4 |
 | /seed/listings/porch-tent-2.jpg | https://images.unsplash.com/photo-1532339142463-fd0a8979791a |
 | /seed/listings/rucksack-1.jpg | https://images.unsplash.com/photo-1622260614153-03223fb72052 |
 | /seed/listings/rucksack-2.jpg | https://images.unsplash.com/photo-1551632811-561732d1e306 |
 | /seed/listings/festival-bundle-1.jpg | https://images.unsplash.com/photo-1533873984035-25970ab07461 |
+| /seed/listings/festival-bundle-2.jpg | https://images.unsplash.com/photo-1533873984035-25970ab07461 (detail crop) |
 | /seed/listings/fire-pit-1.jpg | https://images.unsplash.com/photo-1510672981848-a1c4f1cb5ccf |
+| /seed/listings/fire-pit-2.jpg | https://images.unsplash.com/photo-1510672981848-a1c4f1cb5ccf (detail crop) |
 | /seed/listings/skeletons-1.jpg | https://images.unsplash.com/photo-1509557965875-b88c97052f0e |
+| /seed/listings/skeletons-2.jpg | https://images.unsplash.com/photo-1509557965875-b88c97052f0e (detail crop) |
+| /seed/listings/skeletons-3.jpg | https://images.unsplash.com/photo-1509557965875-b88c97052f0e (detail crop) |
 | /seed/listings/pumpkins-1.jpg | https://images.unsplash.com/photo-1508361001413-7a9dca21d08a |
+| /seed/listings/pumpkins-2.jpg | https://images.unsplash.com/photo-1508361001413-7a9dca21d08a (detail crop) |
+| /seed/listings/pumpkins-3.jpg | https://images.unsplash.com/photo-1508361001413-7a9dca21d08a (detail crop) |
 | /seed/listings/clown-1.jpg | https://images.unsplash.com/photo-1509248961158-e54f6934749c |
 | /seed/listings/clown-2.jpg | https://images.unsplash.com/photo-1509248961158-e54f6934749c (detail crop) |
 | /seed/listings/xmas-tree-1.jpg | https://images.unsplash.com/photo-1543589077-47d81606c1bf |
+| /seed/listings/xmas-tree-2.jpg | https://images.unsplash.com/photo-1543589077-47d81606c1bf (detail crop) |
+| /seed/listings/xmas-tree-3.jpg | https://images.unsplash.com/photo-1543589077-47d81606c1bf (detail crop) |
 | /seed/listings/white-tree-1.jpg | https://images.unsplash.com/photo-1606830733744-0ad778449672 |
+| /seed/listings/white-tree-2.jpg | https://images.unsplash.com/photo-1606830733744-0ad778449672 (detail crop) |
+| /seed/listings/white-tree-3.jpg | https://images.unsplash.com/photo-1606830733744-0ad778449672 (detail crop) |
 | /seed/listings/xmas-decorations-1.jpg | https://images.unsplash.com/photo-1545048702-79362596cdc9 |
 | /seed/listings/xmas-decorations-2.jpg | https://images.unsplash.com/photo-1543258103-a62bdc069871 |
 | /seed/listings/ski-kit-1.jpg | https://images.unsplash.com/photo-1551524559-8af4e6624178 |
 | /seed/listings/ski-kit-2.jpg | https://images.unsplash.com/photo-1565992441121-4367c2967103 |
 | /seed/listings/snowboard-1.jpg | https://images.unsplash.com/photo-1478700485868-972b69dc3fc4 |
+| /seed/listings/snowboard-2.jpg | https://images.unsplash.com/photo-1478700485868-972b69dc3fc4 (detail crop) |
 | /seed/listings/explorer-watch-1.jpg | https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e |
 | /seed/listings/explorer-watch-2.jpg | https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e (detail crop) |
 | /seed/listings/explorer-watch-3.jpg | https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e (detail crop) |
