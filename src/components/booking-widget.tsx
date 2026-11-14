@@ -9,7 +9,8 @@ import { requestBooking, type RequestState } from "@/server/actions/bookings";
 import { checkRange, type Availability } from "@/lib/booking-rules";
 import { formatDay, formatRange, rentalDays, type ISODate } from "@/lib/dates";
 import { DEPOSIT_PROMISE, deliveryFee, formatGBP, handoverLabel, HANDOVER_METHODS, LOCKER_FEE, quote, type HandoverMethodId } from "@/lib/money";
-import { savingVsBuying, type BuyPrice } from "@/lib/market-price";
+import { savingVsBuying, type BuyLinks, type BuyPrice } from "@/lib/market-price";
+import { BuyPriceRunner } from "./buy-price-runner";
 import { getLocker, LOCKERS } from "@/lib/lockers";
 import { areasByRegion, REGIONS } from "@/lib/areas";
 import { cn, plural } from "@/lib/cn";
@@ -155,6 +156,10 @@ type TicketProps = {
   depositInfo: DepositInfo;
   /** What the item costs to buy new, when known. Drives the "you save" line. */
   buyPrice?: BuyPrice | null;
+  /** The stored buy price is missing or stale: look it up in the background. */
+  buyPricePending?: boolean;
+  /** Where to buy the item instead, with affiliate IDs when configured. */
+  buyLinks?: BuyLinks | null;
   ratingSum: number;
   ratingCount: number;
   ownerFirstName: string;
@@ -162,7 +167,7 @@ type TicketProps = {
   isOwner: boolean;
 };
 
-export function BookingTicket({ listingId, pricePerDay, deposit, depositInfo, buyPrice, ratingSum, ratingCount, ownerFirstName, signedIn, isOwner }: TicketProps) {
+export function BookingTicket({ listingId, pricePerDay, deposit, depositInfo, buyPrice, buyPricePending, buyLinks, ratingSum, ratingCount, ownerFirstName, signedIn, isOwner }: TicketProps) {
   const { start, end, rangeError, state, formAction, pending, handover } = useBooking();
   const [note, setNote] = useState(false);
   const days = start && end ? rentalDays(start, end) : 0;
@@ -184,26 +189,45 @@ export function BookingTicket({ listingId, pricePerDay, deposit, depositInfo, bu
         {buyPrice && (
           <p className="mt-1 text-sm text-ink-2" data-testid="buy-price">
             About <span className="font-semibold text-ink">{formatGBP(buyPrice.amount)}</span> to buy new
-            {buyPrice.source === "ebay" ? (
+            {buyPrice.source === "ebay" && buyPrice.url ? (
               <>
                 {" "}
-                {buyPrice.url ? (
-                  <a
-                    href={buyPrice.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline underline-offset-2 hover:text-ink"
-                    title={buyPrice.count ? `Typical price across ${plural(buyPrice.count, "new listing")} on eBay UK` : undefined}
-                  >
-                    on eBay
-                  </a>
-                ) : (
-                  "on eBay"
-                )}
+                <a
+                  href={buyPrice.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2 hover:text-ink"
+                  title={buyPrice.count ? `Typical price across ${plural(buyPrice.count, "new listing")} on eBay UK` : undefined}
+                >
+                  on eBay
+                </a>
               </>
             ) : (
-              <span className="text-muted"> (owner&apos;s estimate)</span>
+              <span className="text-muted">
+                {" "}
+                {buyPrice.source === "ebay"
+                  ? "on eBay"
+                  : buyPrice.source === "web"
+                    ? "(AI estimate from a web search of UK prices)"
+                    : buyPrice.source === "ai"
+                      ? "(AI estimate)"
+                      : "(owner's estimate)"}
+              </span>
             )}
+          </p>
+        )}
+        {buyPricePending && <BuyPriceRunner listingId={listingId} quiet={!!buyPrice} />}
+        {buyLinks && !isOwner && (
+          <p className="mt-1 text-xs text-muted" data-testid="buy-links">
+            Rather own it? See it on{" "}
+            <a href={buyLinks.amazon} target="_blank" rel="sponsored noopener noreferrer" className="font-medium text-ink-2 underline underline-offset-2 hover:text-ink">
+              Amazon
+            </a>{" "}
+            or{" "}
+            <a href={buyLinks.ebay} target="_blank" rel="sponsored noopener noreferrer" className="font-medium text-ink-2 underline underline-offset-2 hover:text-ink">
+              eBay
+            </a>
+            .{buyLinks.affiliate && " As an Amazon Associate and eBay partner, Just Once earns from qualifying purchases."}
           </p>
         )}
         <a href="#dates" className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center rounded-2xl border border-line-strong transition-colors hover:border-ink">

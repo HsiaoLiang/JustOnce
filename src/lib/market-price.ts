@@ -1,5 +1,5 @@
 // "What would it cost to buy?" The pure rules behind the rent-versus-buy line.
-// No imports, so it runs anywhere; the eBay calls live in src/server/market-price.ts.
+// No imports, so it runs anywhere; the eBay and AI calls live in src/server/market-price.ts.
 // All amounts are integer pence.
 
 /** Fewer prices than this is too thin to call a typical price. */
@@ -51,26 +51,36 @@ export function marketPriceIsStale(checkedAt: Date | null | undefined, hasPrice:
   return now.getTime() - checkedAt.getTime() > hours * 3_600_000;
 }
 
+/**
+ * Where a stored market price came from (Listing.marketPriceSource):
+ *   EBAY   median of live eBay listings
+ *   AI_WEB the AI model searched the web for current prices, then answered
+ *   AI     the AI model's own estimate, with no search behind it
+ */
+export type MarketPriceSource = "EBAY" | "AI_WEB" | "AI";
+
 /** What renters are shown as the price to buy the item new. */
 export interface BuyPrice {
   amount: number;
-  /** "ebay": median of live listings. "owner": the owner's replacement value. */
-  source: "ebay" | "owner";
-  /** How many listings the eBay figure came from. */
+  /** "ebay": median of live listings. "web": AI estimate backed by a web search. "ai": AI estimate. "owner": the owner's replacement value. */
+  source: "ebay" | "web" | "ai" | "owner";
+  /** How many listings (eBay) or web pages (AI with search) the figure came from. */
   count?: number;
   /** The search those listings came from, for renters who want to check. */
   url?: string;
 }
 
-/** The marketplace price when there is one, otherwise the owner's replacement value, otherwise nothing. */
+/** The looked-up price when there is one, otherwise the owner's replacement value, otherwise nothing. */
 export function buyPriceFor(listing: {
   marketPrice?: number | null;
   marketPriceCount?: number | null;
   marketPriceUrl?: string | null;
+  marketPriceSource?: string | null;
   replacementValue?: number | null;
 }): BuyPrice | null {
   if (listing.marketPrice && listing.marketPrice > 0) {
-    return { amount: listing.marketPrice, source: "ebay", count: listing.marketPriceCount ?? undefined, url: listing.marketPriceUrl ?? undefined };
+    const source = listing.marketPriceSource === "AI_WEB" ? "web" : listing.marketPriceSource === "AI" ? "ai" : "ebay";
+    return { amount: listing.marketPrice, source, count: listing.marketPriceCount ?? undefined, url: listing.marketPriceUrl ?? undefined };
   }
   if (listing.replacementValue && listing.replacementValue > 0) return { amount: listing.replacementValue, source: "owner" };
   return null;
@@ -86,4 +96,61 @@ export function savingVsBuying(buyPrice: number, rentTotal: number): { saving: n
   const saving = Math.floor((buyPrice - rentTotal) / 100) * 100;
   if (saving < 100) return null;
   return { saving, percent: Math.floor((saving / buyPrice) * 100) };
+}
+
+/** What the AI model is asked to return for "what does this cost to buy new?". */
+export interface BuyPriceEstimate {
+  /** Typical UK price to buy it new, in pounds. 0 when the model can't tell. */
+  priceGBP: number;
+  /** The product the model priced, so a wrong match is visible in the logs. */
+  matchedProduct: string;
+  confidence: "high" | "medium" | "low";
+}
+
+/**
+ * Turns the model's answer into pence, or null when it shouldn't be shown: not a
+ * sensible number, a low-confidence guess, or far from the owner's own estimate.
+ */
+export function buyPriceFromEstimate(estimate: unknown, ownerEstimate: number | null | undefined): number | null {
+  if (!estimate || typeof estimate !== "object") return null;
+  const { priceGBP, confidence } = estimate as Partial<BuyPriceEstimate>;
+  if (typeof priceGBP !== "number" || !Number.isFinite(priceGBP) || priceGBP < 1 || priceGBP > 50_000) return null;
+  if (confidence !== "high" && confidence !== "medium") return null;
+  const pence = Math.round(priceGBP) * 100;
+  return plausibleMarketPrice(pence, ownerEstimate) ? pence : null;
+}
+
+// ---------------------------------------------------------------- links to buy it instead
+
+/** Where a renter can go to buy the item, with our affiliate IDs on the links when they are set. */
+export interface BuyLinks {
+  amazon: string;
+  ebay: string;
+  /** True when at least one link carries an affiliate ID, so the commission notice is shown. */
+  affiliate: boolean;
+}
+
+/** eBay Partner Network rotation ID for ebay.co.uk. */
+const EBAY_UK_ROTATION = "710-53481-19255-0";
+
+/**
+ * Search links on amazon.co.uk and ebay.co.uk for a listing. `amazonTag` is an Amazon
+ * Associates tracking ID (e.g. "justonce-21"); `ebayCampaignId` is an eBay Partner
+ * Network campaign ID. Without them the links still work, they just earn nothing.
+ */
+export function buyLinks(listing: { title: string; brand?: string | null }, ids: { amazonTag?: string | null; ebayCampaignId?: string | null } = {}): BuyLinks {
+  const query = marketQuery(listing);
+  const amazonTag = ids.amazonTag?.trim();
+  const ebayCampaignId = ids.ebayCampaignId?.trim();
+  const amazon = new URLSearchParams({ k: query });
+  if (amazonTag) amazon.set("tag", amazonTag);
+  const ebay = new URLSearchParams({ _nkw: query, LH_BIN: "1" });
+  if (ebayCampaignId) {
+    for (const [key, value] of Object.entries({ mkcid: "1", mkrid: EBAY_UK_ROTATION, siteid: "3", campid: ebayCampaignId, toolid: "10001", mkevt: "1" })) ebay.set(key, value);
+  }
+  return {
+    amazon: `https://www.amazon.co.uk/s?${amazon}`,
+    ebay: `https://www.ebay.co.uk/sch/i.html?${ebay}`,
+    affiliate: Boolean(amazonTag || ebayCampaignId),
+  };
 }

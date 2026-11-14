@@ -13,8 +13,8 @@ import { DEPOSIT_PROMISE, depositFor, formatGBP, handoverLabel } from "@/lib/mon
 import { firstName, plural, shortName } from "@/lib/cn";
 import { getCurrentUser } from "@/server/auth";
 import { getListingDetail, getMoreFromOwner, getRenterTrust } from "@/server/queries";
-import { buyPriceFor } from "@/lib/market-price";
-import { ensureMarketPrice } from "@/server/market-price";
+import { buyLinks, buyPriceFor } from "@/lib/market-price";
+import { buyPriceLookupDue } from "@/server/market-price";
 import { AreaMapClient } from "@/components/map/area-map-client";
 import { areaCircle } from "@/lib/geo";
 
@@ -43,9 +43,12 @@ export default async function ItemPage({ params, searchParams }: Props) {
   const area = getArea(listing.area);
   const region = REGIONS.find((r) => r.id === area?.region);
   const condition = CONDITIONS.find((c) => c.id === listing.condition);
-  // What it costs to buy new: a cached eBay price when there is one, otherwise the owner's replacement value.
-  const [more, market] = await Promise.all([getMoreFromOwner(owner.id, listing.id), ensureMarketPrice(listing)]);
-  const buyPrice = buyPriceFor({ ...market, replacementValue: listing.replacementValue });
+  const more = await getMoreFromOwner(owner.id, listing.id);
+  // What it costs to buy new: the looked-up price stored on the listing, otherwise the owner's replacement value.
+  // When the stored price is missing or stale, the ticket asks for a fresh lookup in the background.
+  const buyPrice = buyPriceFor(listing);
+  const buyPricePending = buyPriceLookupDue(listing);
+  const whereToBuy = buyLinks(listing, { amazonTag: process.env.AMAZON_ASSOCIATE_TAG, ebayCampaignId: process.env.EBAY_CAMPAIGN_ID });
   const availability = {
     today,
     availableFrom: toISO(listing.availableFrom),
@@ -244,6 +247,8 @@ export default async function ItemPage({ params, searchParams }: Props) {
                 deposit={deposit}
                 depositInfo={depositInfo}
                 buyPrice={buyPrice}
+                buyPricePending={buyPricePending}
+                buyLinks={whereToBuy}
                 ratingSum={listing.ratingSum}
                 ratingCount={listing.ratingCount}
                 ownerFirstName={ownerFirst}

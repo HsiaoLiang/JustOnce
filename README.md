@@ -255,8 +255,9 @@ npm run test:e2e
 | `ANTHROPIC_API_KEY` | Optional | Same features using Anthropic's Claude (paid per call). Set one of the two keys; with neither, the AI features are hidden |
 | `AI_PROVIDER` | Optional | `anthropic` or `gemini`. Only matters when both keys are set; Anthropic is the default |
 | `AI_MODEL` | Optional | Model override. Defaults to `gemini-3.5-flash-lite` or `claude-haiku-5-5` depending on the provider; ignored if it names the other provider's model |
-| `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET` | Optional | Turn on live "to buy new" prices from eBay UK for the rent-versus-buy line on item pages. Without them the line uses the owner's replacement value. Server-side only |
+| `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET` | Optional | Live "to buy new" prices from eBay UK for the rent-versus-buy line on item pages. Without them the price is an AI estimate (web search first, when the AI key's plan includes it), and with no AI key either, the owner's replacement value. Server-side only |
 | `EBAY_ENV` | Optional | `production` (default) or `sandbox`, matching your eBay keys. Sandbox listings are made up |
+| `AMAZON_ASSOCIATE_TAG`, `EBAY_CAMPAIGN_ID` | Optional | Affiliate IDs added to the "Rather own it? See it on Amazon or eBay" links on item pages. Without them the links are plain search links |
 | `NEXT_PUBLIC_DEMO_MODE` | Optional | Set to `false` to hide the one-tap demo log-ins and account switcher (takes effect on the next build) |
 
 ## Limitations and next steps

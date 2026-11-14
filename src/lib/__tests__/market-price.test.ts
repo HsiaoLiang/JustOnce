@@ -1,7 +1,7 @@
 // Unit tests for the rent-versus-buy rules. Run with: npm test
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buyPriceFor, marketPriceIsStale, marketQuery, plausibleMarketPrice, savingVsBuying, typicalPrice } from "../market-price";
+import { buyLinks, buyPriceFor, buyPriceFromEstimate, marketPriceIsStale, marketQuery, plausibleMarketPrice, savingVsBuying, typicalPrice } from "../market-price";
 
 test("the marketplace search is the brand and title, tidied", () => {
   assert.equal(marketQuery({ title: "EOS R6 with 24-105mm lens", brand: "Canon" }), "Canon EOS R6 with 24-105mm lens");
@@ -53,4 +53,32 @@ test("the saving is in whole pounds and never shown as a loss", () => {
   assert.equal(savingVsBuying(5_000, 6_600), null);
   assert.equal(savingVsBuying(5_000, 4_950), null);
   assert.equal(savingVsBuying(0, 1_000), null);
+});
+
+test("the buy price says where it came from", () => {
+  assert.equal(buyPriceFor({ marketPrice: 50_000, marketPriceSource: "AI_WEB", marketPriceCount: 4 })?.source, "web");
+  assert.equal(buyPriceFor({ marketPrice: 50_000, marketPriceSource: "AI" })?.source, "ai");
+  assert.equal(buyPriceFor({ marketPrice: 50_000, marketPriceSource: "EBAY" })?.source, "ebay");
+});
+
+test("an AI estimate is only used when it is confident and believable", () => {
+  assert.equal(buyPriceFromEstimate({ priceGBP: 1149.5, matchedProduct: "Sony A7 III", confidence: "high" }, null), 115_000);
+  assert.equal(buyPriceFromEstimate({ priceGBP: 1150, matchedProduct: "Sony A7 III", confidence: "medium" }, 160_000), 115_000);
+  assert.equal(buyPriceFromEstimate({ priceGBP: 1150, matchedProduct: "?", confidence: "low" }, null), null);
+  assert.equal(buyPriceFromEstimate({ priceGBP: 20, matchedProduct: "lens cap", confidence: "high" }, 160_000), null);
+  assert.equal(buyPriceFromEstimate({ priceGBP: 0, matchedProduct: "", confidence: "high" }, null), null);
+  assert.equal(buyPriceFromEstimate({ priceGBP: "1150", confidence: "high" }, null), null);
+  assert.equal(buyPriceFromEstimate(null, null), null);
+});
+
+test("buy links search Amazon and eBay UK, with affiliate IDs only when set", () => {
+  const plain = buyLinks({ title: "A7 III with 28-70mm lens", brand: "Sony" });
+  assert.equal(plain.amazon, "https://www.amazon.co.uk/s?k=Sony+A7+III+with+28-70mm+lens");
+  assert.equal(plain.ebay, "https://www.ebay.co.uk/sch/i.html?_nkw=Sony+A7+III+with+28-70mm+lens&LH_BIN=1");
+  assert.equal(plain.affiliate, false);
+  const tagged = buyLinks({ title: "Sony A7 III" }, { amazonTag: " justonce-21 ", ebayCampaignId: "5330000000" });
+  assert.equal(tagged.amazon, "https://www.amazon.co.uk/s?k=Sony+A7+III&tag=justonce-21");
+  assert.ok(tagged.ebay.includes("campid=5330000000") && tagged.ebay.includes("mkrid=710-53481-19255-0") && tagged.ebay.includes("mkevt=1"));
+  assert.equal(tagged.affiliate, true);
+  assert.equal(buyLinks({ title: "Sony A7 III" }, { amazonTag: "", ebayCampaignId: null }).affiliate, false);
 });

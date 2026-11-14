@@ -79,10 +79,10 @@ interface AskOptions {
 
 const base64 = (image: AiImage) => Buffer.from(image.data).toString("base64");
 
-async function post(url: string, headers: Record<string, string>, body: unknown): Promise<unknown> {
+async function post(url: string, headers: Record<string, string>, body: unknown, timeoutMs = TIMEOUT_MS): Promise<unknown> {
   const response = await fetch(url, {
     method: "POST",
-    signal: AbortSignal.timeout(TIMEOUT_MS),
+    signal: AbortSignal.timeout(timeoutMs),
     headers: { "content-type": "application/json", ...headers },
     body: JSON.stringify(body),
   });
@@ -177,4 +177,81 @@ export async function askVisionModel(options: AskOptions): Promise<unknown> {
       throw new AiUnavailableError(second instanceof Error ? second.message : "AI call failed");
     }
   }
+}
+
+// ---------------------------------------------------------------- questions answered from a web search
+
+export interface WebSource {
+  title: string;
+  url: string;
+}
+
+export interface WebAnswer {
+  /** The structured answer, unvalidated, as with askVisionModel. */
+  answer: unknown;
+  /** Pages the model's web search returned. Empty when it answered without searching. */
+  sources: WebSource[];
+}
+
+// Searching takes longer than a plain answer, but the fallback below still has to fit in the route's time limit.
+const SEARCH_TIMEOUT_MS = 20_000;
+
+/** Models sometimes wrap JSON in a code fence or a sentence when a tool is in play. */
+function parseLooseJson(text: string): unknown {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start < 0 || end <= start) throw new AiUnavailableError("AI provider returned no structured answer");
+  try {
+    return JSON.parse(text.slice(start, end + 1));
+  } catch {
+    throw new AiUnavailableError("AI provider returned an answer that isn't valid JSON");
+  }
+}
+
+async function askGeminiWithSearch({ system, prompt, schema }: Omit<AskOptions, "images">): Promise<WebAnswer> {
+  const model = modelFor("gemini");
+  const body = (await post(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+    { "x-goog-api-key": process.env.GEMINI_API_KEY! },
+    {
+      system_instruction: { parts: [{ text: system }] },
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      // Grounding with Google Search: the model runs searches, reads the results, then answers.
+      tools: [{ google_search: {} }],
+      generationConfig: { responseMimeType: "application/json", responseJsonSchema: schema.json },
+    },
+    SEARCH_TIMEOUT_MS,
+  )) as {
+    candidates?: {
+      content?: { parts?: { text?: string }[] };
+      groundingMetadata?: { groundingChunks?: { web?: { uri?: string; title?: string } }[] };
+    }[];
+  };
+  const candidate = body.candidates?.[0];
+  const text = candidate?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
+  const sources = (candidate?.groundingMetadata?.groundingChunks ?? [])
+    .map((chunk) => ({ title: chunk.web?.title ?? "", url: chunk.web?.uri ?? "" }))
+    .filter((source) => source.url);
+  return { answer: parseLooseJson(text), sources };
+}
+
+/**
+ * A text question the model answers after searching the web (retrieve, then
+ * generate). Search is Gemini's "Grounding with Google Search". When that isn't
+ * available (Anthropic is the provider, the key's plan doesn't include search, or
+ * the search call fails), the same question is asked without it and `sources` is
+ * empty, so callers can say whether the answer had a search behind it.
+ * Throws AiUnavailableError like askVisionModel.
+ */
+export async function askWithWebSearch(options: Omit<AskOptions, "images">): Promise<WebAnswer> {
+  const provider = aiProvider();
+  if (!provider) throw new AiUnavailableError("No AI key set");
+  if (provider === "gemini") {
+    try {
+      return await askGeminiWithSearch(options);
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") console.warn("[ai] web search unavailable, asking without it:", error instanceof Error ? error.message.slice(0, 300) : error);
+    }
+  }
+  return { answer: await askVisionModel({ ...options, images: [] }), sources: [] };
 }

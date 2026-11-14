@@ -127,8 +127,9 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
     pricePerDay: price!,
     deposit: deposit!,
     replacementValue,
-    // The title or brand may have changed, so the cached eBay price is looked up again on the next item page view.
+    // The title or brand may have changed, so the cached buy price is looked up again on the next item page view.
     marketPrice: null,
+    marketPriceSource: null,
     marketPriceCount: null,
     marketPriceUrl: null,
     marketPriceCheckedAt: null,
