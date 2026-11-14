@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { devDetail } from "@/server/ai";
+import { aiFailureKind, devDetail } from "@/server/ai";
 import { buyPriceLookupEnabled, runBuyPriceLookup } from "@/server/market-price";
 
 // A web search plus the model's answer can take a while, and there is one fallback call.
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   if (result.status === "not-found") return NextResponse.json({ status: result.status }, { status: 404 });
   if (result.status === "failed") {
     console.error("buy-price: lookup failed", result.error);
-    return NextResponse.json({ status: result.status, detail: devDetail(result.error) }, { status: 502 });
+    return NextResponse.json({ status: result.status, reason: aiFailureKind(result.error), detail: devDetail(result.error) }, { status: 502 });
   }
   return NextResponse.json({ status: result.status });
 }

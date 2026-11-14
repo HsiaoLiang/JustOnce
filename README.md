@@ -153,6 +153,20 @@ The demo data's dates are relative to the day it was seeded, so **reset it on th
 
 Resetting logs everyone out. If you're showing the site on a phone, log in again afterwards.
 
+### If the AI features stop working
+
+When an AI call fails, people still get a working fallback (a keyword search, or filling a listing in by hand) along with a one-line reason. To find out which reason, open the "describe what you need" search on the live site, for example `/search/situation?text=black-tie%20wedding`. If the AI is failing, you land on a plain search whose address ends in `&ai=…`:
+
+| `ai=` | What it means | Fix |
+| --- | --- | --- |
+| `quota` | The key's limit is used up (Gemini free tier: per minute and per day; Anthropic: rate limit or credit) | Wait for the daily reset (midnight Pacific time for Gemini), or add billing to the key. Background buy-price lookups pause for 15 minutes after a quota error so they don't use up what's left |
+| `key` | The key is missing, wrong, revoked or not allowed to use the API | Create a new key (Google AI Studio or the Anthropic console), put it in `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` in Vercel, and redeploy |
+| `model` | The model in `AI_MODEL` (or the default) doesn't exist for this key | Set `AI_MODEL` to a current model name, or remove it to use the default, and redeploy |
+| `timeout`, `provider` | The provider was slow or had a problem | Try again in a minute |
+| `busy` | This server's own limit on AI searches per hour was reached | Try again later |
+
+If the search box doesn't offer "Or describe it" at all, no key is set for that deployment. The exact error from the provider is in Vercel → your project → **Logs**: search for `AI call failed` or `buy-price: lookup failed`.
+
 ## What's in the app
 
 | Page | What it does |

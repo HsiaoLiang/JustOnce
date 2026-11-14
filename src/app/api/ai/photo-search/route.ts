@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { CATEGORIES } from "@/lib/catalogue";
 import { sniffImageType } from "@/lib/image-type";
 import { PHOTO_SEARCH_JSON_SCHEMA, isEmptySearch, photoSearchSchema, photoToSearch, situationHref } from "@/lib/situation";
-import { askVisionModel, aiEnabled, devDetail } from "@/server/ai";
+import { aiFailureKind, aiProblemSentence, askVisionModel, aiEnabled, devDetail } from "@/server/ai";
 import { relaxKeywords } from "@/server/situation-search";
 
 export const maxDuration = 60;
@@ -65,6 +65,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ href: situationHref(await relaxKeywords(search), "photo"), item: answer.item });
   } catch (error) {
     console.error("photo-search: AI call failed", error);
-    return NextResponse.json({ error: UNAVAILABLE, detail: devDetail(error) }, { status: 502 });
+    const reason = aiFailureKind(error);
+    return NextResponse.json({ error: `${aiProblemSentence(reason)} Try the search box instead.`, reason, detail: devDetail(error) }, { status: 502 });
   }
 }

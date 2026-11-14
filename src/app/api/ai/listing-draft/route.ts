@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { CATEGORIES, CONDITIONS, categoryLabel, type CategoryId } from "@/lib/catalogue";
 import { MODEL_DRAFT_JSON_SCHEMA, modelDraftSchema, suggestPricing, type Comparable, type ListingDraftResponse } from "@/lib/listing-draft";
-import { askVisionModel, aiEnabled, devDetail } from "@/server/ai";
+import { aiFailureKind, aiProblemSentence, askVisionModel, aiEnabled, devDetail } from "@/server/ai";
 import { getCurrentUser } from "@/server/auth";
 import { db } from "@/server/db";
 
@@ -75,7 +75,8 @@ export async function POST(request: Request) {
     parsed = modelDraftSchema.safeParse(answer);
   } catch (error) {
     console.error("listing-draft: AI call failed", error);
-    return NextResponse.json({ error: UNAVAILABLE, detail: devDetail(error) }, { status: 502 });
+    const reason = aiFailureKind(error);
+    return NextResponse.json({ error: `${aiProblemSentence(reason)} Fill it in by hand.`, reason, detail: devDetail(error) }, { status: 502 });
   }
   if (!parsed.success) {
     console.error("listing-draft: unusable AI answer", parsed.error.message);

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { aiEnabled, devDetail } from "@/server/ai";
+import { aiEnabled, aiFailureKind, aiProblemSentence, devDetail } from "@/server/ai";
 import { getCurrentUser } from "@/server/auth";
 import { runPhotoComparison } from "@/server/photo-comparison";
 
@@ -41,7 +41,8 @@ export async function POST(request: Request) {
   if (result.status === "not-found") return NextResponse.json({ error: UNAVAILABLE }, { status: 404 });
   if (result.status === "failed") {
     console.error("photo-comparison: AI call failed", result.error);
-    return NextResponse.json({ error: UNAVAILABLE, detail: devDetail(result.error) }, { status: 502 });
+    const reason = aiFailureKind(result.error);
+    return NextResponse.json({ error: `${aiProblemSentence(reason)} Compare the photos yourself.`, reason, detail: devDetail(result.error) }, { status: 502 });
   }
   return NextResponse.json({ status: result.status });
 }

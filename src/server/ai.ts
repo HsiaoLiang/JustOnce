@@ -21,13 +21,60 @@ const DEFAULT_MODELS: Record<Provider, string> = {
 };
 const MODEL_PREFIX: Record<Provider, string> = { anthropic: "claude", gemini: "gemini" };
 
+/**
+ * Why an AI call failed, in terms someone can act on. Safe to show and to return from APIs:
+ * it never contains the key or the provider's raw message.
+ *   quota   the key's rate or daily limit is used up (or, on Anthropic, the credit balance)
+ *   key     the key is missing, wrong, revoked or not allowed to use this API
+ *   model   the configured model doesn't exist (any more) for this key
+ *   timeout the provider took too long
+ *   provider anything else: the provider had a problem or returned something unusable
+ */
+export type AiFailure = "quota" | "key" | "model" | "timeout" | "provider";
+
 export class AiUnavailableError extends Error {
   constructor(
     message: string,
     readonly retryable = false,
+    readonly kind: AiFailure = "provider",
   ) {
     super(message);
   }
+}
+
+/** Reads the provider's status code and error body into an AiFailure. */
+export function classifyAiFailure(status: number, detail: string): AiFailure {
+  if (status === 429 || /RESOURCE_EXHAUSTED|quota|rate.?limit|credit balance/i.test(detail)) return "quota";
+  if (status === 401 || status === 403 || /API_KEY_INVALID|API key not valid|API key expired|PERMISSION_DENIED|authentication_error|invalid x-api-key/i.test(detail)) return "key";
+  if (status === 404 || /is not found for API version|not supported for generateContent|not_found_error|model: /i.test(detail)) return "model";
+  return "provider";
+}
+
+export function aiFailureKind(error: unknown): AiFailure {
+  return error instanceof AiUnavailableError ? error.kind : "provider";
+}
+
+/** One plain sentence for people, by failure kind. Callers add what to do instead. */
+export function aiProblemSentence(kind: AiFailure): string {
+  switch (kind) {
+    case "quota":
+      return "The AI has used up its quota for now.";
+    case "key":
+    case "model":
+      return "The AI isn't set up correctly right now.";
+    case "timeout":
+      return "The AI took too long to answer.";
+    default:
+      return "The AI couldn't answer just now.";
+  }
+}
+
+// After a quota error, background lookups (buy prices) stand down for a while so the features people
+// are actively using get whatever quota is left. In memory, so it's per server instance: best effort.
+const QUOTA_PAUSE_MS = 15 * 60_000;
+let quotaPausedUntil = 0;
+export function aiQuotaPaused(): boolean {
+  return Date.now() < quotaPausedUntil;
 }
 
 /** Which provider is configured, or null when no usable key is set. */
@@ -90,7 +137,10 @@ async function post(url: string, headers: Record<string, string>, body: unknown,
     // 429 on a free tier usually means the per-minute or per-day quota is used up.
     const retryable = response.status >= 500;
     const detail = (await response.text().catch(() => "")).slice(0, 300);
-    throw new AiUnavailableError(`AI provider answered ${response.status}: ${detail}`, retryable);
+    const kind = classifyAiFailure(response.status, detail);
+    if (kind === "quota") quotaPausedUntil = Date.now() + QUOTA_PAUSE_MS;
+    // The status and the provider's own words go to the server log (Vercel → Logs), never to the browser in production.
+    throw new AiUnavailableError(`AI provider answered ${response.status}: ${detail}`, retryable, kind);
   }
   return response.json();
 }
@@ -158,7 +208,7 @@ async function askGemini({ system, prompt, images, schema }: AskOptions): Promis
  */
 export async function askVisionModel(options: AskOptions): Promise<unknown> {
   const provider = aiProvider();
-  if (!provider) throw new AiUnavailableError("No AI key set");
+  if (!provider) throw new AiUnavailableError("No AI key set", false, "key");
   const ask = provider === "gemini" ? askGemini : askAnthropic;
   try {
     return await ask(options);
@@ -168,7 +218,7 @@ export async function askVisionModel(options: AskOptions): Promise<unknown> {
     if (first instanceof AiUnavailableError && !first.retryable) throw first;
     const name = (first as { name?: string } | null)?.name;
     if (name === "TimeoutError" || name === "AbortError") {
-      throw new AiUnavailableError(`The AI provider took longer than ${TIMEOUT_MS / 1000} seconds to answer`);
+      throw new AiUnavailableError(`The AI provider took longer than ${TIMEOUT_MS / 1000} seconds to answer`, false, "timeout");
     }
     try {
       return await ask(options);
@@ -245,11 +295,15 @@ async function askGeminiWithSearch({ system, prompt, schema }: Omit<AskOptions, 
  */
 export async function askWithWebSearch(options: Omit<AskOptions, "images">): Promise<WebAnswer> {
   const provider = aiProvider();
-  if (!provider) throw new AiUnavailableError("No AI key set");
+  if (!provider) throw new AiUnavailableError("No AI key set", false, "key");
   if (provider === "gemini") {
     try {
       return await askGeminiWithSearch(options);
     } catch (error) {
+      // Asking again without search only helps when search itself was the problem. With the quota used up,
+      // a bad key or a missing model, the second call fails the same way and just uses up more quota.
+      const kind = aiFailureKind(error);
+      if (kind === "quota" || kind === "key" || kind === "model") throw error;
       if (process.env.NODE_ENV !== "production") console.warn("[ai] web search unavailable, asking without it:", error instanceof Error ? error.message.slice(0, 300) : error);
     }
   }

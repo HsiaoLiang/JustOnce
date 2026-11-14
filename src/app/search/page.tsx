@@ -24,6 +24,8 @@ export default async function SearchPage({ searchParams }: Props) {
   const raw = await searchParams;
   const filters = parseSearch(raw);
   const via = raw.via === "ai" || raw.via === "photo" ? raw.via : null;
+  // Set by /search/situation when the AI couldn't turn the description into filters.
+  const aiMissed = typeof raw.ai === "string" && ["quota", "key", "model", "timeout", "provider", "busy"].includes(raw.ai) ? raw.ai : null;
   const [communities, viewer] = await Promise.all([communityOptions(), getViewer()]);
   const community = communities.find((c) => c.slug === filters.community);
   const listings = await searchListings({
@@ -106,6 +108,19 @@ export default async function SearchPage({ searchParams }: Props) {
               ? "These are items like the one in your photo. We matched on the kind of item, not the exact model, so remove or change any filter above that we got wrong."
               : "We turned your description into the filters above. Remove or change any that we got wrong. Sizes aren't filtered yet, so check the size on each item."}
           </span>
+        </p>
+      )}
+
+      {aiMissed && (
+        <p role="status" className="mb-6 rounded-xl bg-surface px-4 py-3 text-sm text-ink-2">
+          {aiMissed === "quota"
+            ? "The AI has used up its quota for now, so this is a plain keyword search for what you typed."
+            : aiMissed === "busy"
+              ? "Lots of people are describing what they need right now, so this is a plain keyword search for what you typed."
+              : aiMissed === "key" || aiMissed === "model"
+                ? "The AI isn't set up correctly right now, so this is a plain keyword search for what you typed."
+                : "The AI couldn't read your description just now, so this is a plain keyword search for what you typed."}{" "}
+          Use the filters above to narrow it down.
         </p>
       )}
 

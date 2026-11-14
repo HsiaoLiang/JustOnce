@@ -3,7 +3,7 @@ import { AREAS, REGIONS } from "@/lib/areas";
 import { CATEGORIES } from "@/lib/catalogue";
 import { formatLongDay, todayInLondon } from "@/lib/dates";
 import { MAX_SITUATION_LENGTH, SITUATION_JSON_SCHEMA, isEmptySearch, situationHref, situationSchema, situationToSearch } from "@/lib/situation";
-import { askVisionModel, aiEnabled } from "@/server/ai";
+import { askVisionModel, aiEnabled, aiFailureKind } from "@/server/ai";
 import { relaxKeywords } from "@/server/situation-search";
 
 export const maxDuration = 60;
@@ -39,10 +39,12 @@ export async function GET(request: Request) {
   const text = (url.searchParams.get("text") ?? "").trim().slice(0, MAX_SITUATION_LENGTH);
   const to = (path: string) => NextResponse.redirect(new URL(path, url), 303);
   // Whatever goes wrong, the renter still lands on a working search for what they typed.
-  const plain = () => to(`/search?${new URLSearchParams({ q: text.slice(0, 80) })}`);
+  // `ai` says why the AI didn't fill in the filters, so the search page can say so (and so can a quick check from outside).
+  const plain = (ai?: string) => to(`/search?${new URLSearchParams({ q: text.slice(0, 80), ...(ai ? { ai } : {}) })}`);
 
   if (!text) return to("/search");
-  if (!aiEnabled() || overLimit()) return plain();
+  if (!aiEnabled()) return plain();
+  if (overLimit()) return plain("busy");
 
   try {
     const answer = await askVisionModel({
@@ -58,6 +60,6 @@ export async function GET(request: Request) {
     return to(situationHref(search));
   } catch (error) {
     console.error("situation search: AI call failed", error);
-    return plain();
+    return plain(aiFailureKind(error));
   }
 }

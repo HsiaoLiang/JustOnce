@@ -17,7 +17,7 @@
 
 import { categoryLabel } from "@/lib/catalogue";
 import { MARKET_PRICE_TTL_HOURS, buyPriceFromEstimate, isLuxuryBrand, marketPriceIsStale, marketQuery, plausibleMarketPrice, typicalPrice, type MarketPriceSource } from "@/lib/market-price";
-import { aiEnabled, askWithWebSearch } from "./ai";
+import { aiEnabled, aiQuotaPaused, askWithWebSearch } from "./ai";
 import { db } from "./db";
 
 const TIMEOUT_MS = 5_000;
@@ -158,6 +158,8 @@ export function buyPriceLookupEnabled(): boolean {
 
 /** True when the item page should ask for a lookup for this listing. */
 export function buyPriceLookupDue(listing: { marketPrice: number | null; marketPriceCheckedAt: Date | null }): boolean {
+  // Without eBay keys the lookup is an AI call; while the AI quota is used up, leave it for the features people are using.
+  if (!marketPricesEnabled() && aiQuotaPaused()) return false;
   return buyPriceLookupEnabled() && marketPriceIsStale(listing.marketPriceCheckedAt, !!listing.marketPrice);
 }
 
