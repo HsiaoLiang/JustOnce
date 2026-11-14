@@ -20,7 +20,7 @@ export function SiteFooter() {
         </div>
         <div>
           <p className="text-sm font-semibold">Rent</p>
-          <ul className="mt-3 space-y-2 text-sm text-muted">
+          <ul className="mt-3 columns-2 gap-6 text-sm text-muted [&>li]:mb-2">
             {CATEGORIES.map((c) => (
               <li key={c.id}>
                 <Link href={`/search?category=${c.slug}`} className="hover:text-ink">

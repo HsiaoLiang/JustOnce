@@ -49,7 +49,7 @@ export function SearchFilters({ filters, today, activeCount }: { filters: Parsed
       <div className={cn(open ? "mt-4 grid" : "hidden", "grid-cols-2 gap-3 md:mt-0 md:grid md:grid-cols-[1.4fr_1.1fr_0.9fr_0.9fr_0.8fr_1fr] md:items-end")}>
         <div className="col-span-2 hidden md:col-span-1 md:block">
           <Label htmlFor="f-q">Keywords</Label>
-          <Input id="f-q" name="q" defaultValue={filters.q} placeholder="Tuxedo, tent, drone…" />
+          <Input id="f-q" name="q" defaultValue={filters.q} placeholder="Tuxedo, handbag, tent…" />
         </div>
         <div className="col-span-2 md:col-span-1">
           <Label htmlFor="f-area">Area</Label>
