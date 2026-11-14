@@ -1334,6 +1334,45 @@
     "daniel": {
       "id": "1507003211169-0a1dd7228f2d",
       "position": "attention"
+    },
+    "zara": {
+      "id": "1531746020798-e6953c6e8e04",
+      "position": "attention"
+    },
+    "mei": {
+      "id": "1548142813-c348350df52b",
+      "extract": {
+        "left": 160,
+        "top": 340,
+        "width": 480,
+        "height": 480
+      }
+    },
+    "isla": {
+      "id": "1580489944761-15a19d654956",
+      "position": "attention"
+    },
+    "ruby": {
+      "id": "1567532939604-b6b5b0db2604",
+      "extract": {
+        "left": 150,
+        "top": 300,
+        "width": 480,
+        "height": 480
+      }
+    },
+    "kwame": {
+      "id": "1506277886164-e25aa3f4ef7f",
+      "extract": {
+        "left": 200,
+        "top": 230,
+        "width": 360,
+        "height": 360
+      }
+    },
+    "sam": {
+      "id": "1554151228-14d9def656e4",
+      "position": "attention"
     }
   }
 }
