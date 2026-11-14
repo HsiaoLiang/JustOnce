@@ -8,6 +8,10 @@ import { checkRange, dayState, type Availability } from "../booking-rules";
 import { nextStep, type FlowBooking } from "../booking-flow";
 import { isAllowedPhotoUrl } from "../photos";
 import { parseSearch } from "../search-params";
+import { median, modelDraftSchema, suggestPricing } from "../listing-draft";
+import { budgetToMaxPrice, isEmptySearch, photoSearchSchema, photoToSearch, situationHref, situationSchema, situationToSearch } from "../situation";
+import { sniffImageType } from "../image-type";
+import { aiEnabled, aiProvider } from "../../server/ai";
 
 const today = "2026-11-13";
 const availability: Availability = {
@@ -96,6 +100,49 @@ test("search params are cleaned up", () => {
   assert.equal(parsed.sort, "recommended");
 });
 
+test("AI draft: only catalogue categories and conditions are accepted", () => {
+  const draft = modelDraftSchema.parse({ title: "  Sony A7 III body  ", category: "CAMERAS", condition: "MINT", brand: null, size: "", description: "A camera.", questions: [] });
+  assert.equal(draft.title, "Sony A7 III body");
+  assert.equal(draft.category, "CAMERAS");
+  assert.equal(draft.condition, null);
+  assert.equal(draft.brand, "");
+  assert.equal(modelDraftSchema.parse({ category: "BOATS" }).category, null);
+});
+
+test("AI draft: questions for unknown fields are dropped, bad estimates ignored", () => {
+  const draft = modelDraftSchema.parse({ questions: [{ field: "password", question: "?" }], secondHandValuePounds: -5, pricePerDayPounds: "lots" });
+  assert.deepEqual(draft.questions, []);
+  assert.equal(draft.secondHandValuePounds, null);
+  assert.equal(draft.pricePerDayPounds, null);
+});
+
+test("AI draft: price and deposit come from comparable listings when there are enough", () => {
+  assert.equal(median([3000, 4500, 3800]), 3800);
+  assert.equal(median([1000, 2000]), 1500);
+  assert.equal(median([]), null);
+  const comparables = [
+    { pricePerDay: 3000, deposit: 40000 },
+    { pricePerDay: 3800, deposit: 45000 },
+    { pricePerDay: 4500, deposit: 50000 },
+  ];
+  const s = suggestPricing(comparables, "cameras listings", { secondHandValuePounds: 5, pricePerDayPounds: 999 });
+  assert.equal(s.fromComparables, true);
+  assert.equal(s.price.amount, 3800);
+  assert.equal(s.deposit.amount, 45000);
+  assert.match(s.price.reason, /3 similar cameras listings on Just Once rent for £30 to £45/);
+});
+
+test("AI draft: with few comparables it says so and falls back to the estimate", () => {
+  const s = suggestPricing([{ pricePerDay: 3000, deposit: 40000 }], "cameras listings", { secondHandValuePounds: 900, pricePerDayPounds: 38 });
+  assert.equal(s.fromComparables, false);
+  assert.equal(s.price.amount, 3800);
+  assert.equal(s.deposit.amount, 45000);
+  assert.match(s.price.reason, /Few similar items/);
+  const none = suggestPricing([], "listings", { secondHandValuePounds: null, pricePerDayPounds: null });
+  assert.equal(none.price.amount, null);
+  assert.equal(none.deposit.amount, null);
+});
+
 test("trusted renters pay half the deposit, everyone else pays it in full", () => {
   const trusted = { verified: true, completedRentals: 5, avgRating: 4.8, fullDepositOnly: false };
   assert.deepEqual(depositFor(50000, trusted), { amount: 25000, listed: 50000, reduced: true, reason: "trusted" });
@@ -137,6 +184,75 @@ test("deposit claims come before reviews in the next step", () => {
   // A clean return goes straight to reviews, as before.
   const clean = { ...done, checks: [{ stage: "RETURN" as const, party: "OWNER" as const, conditionOk: true }], depositStatus: "RELEASED" as const };
   assert.equal(nextStep(clean, "OWNER", "Sophie Clarke", today).label, "Rate Sophie");
+});
+
+test("situation search: the model's answer becomes ordinary, cleaned-up filters", () => {
+  const answer = situationSchema.parse({ keywords: "tuxedo black tie jacket", category: "formalwear", area: "narnia", from: "2099-06-06", to: "", maxPricePerDayPounds: 60 });
+  const search = situationToSearch(answer);
+  assert.equal(search.q, "tuxedo black");
+  assert.equal(search.category, "FORMALWEAR");
+  assert.equal(search.area, "");
+  assert.equal(search.from, "2099-06-06");
+  assert.equal(search.to, "2099-06-06");
+  assert.equal(search.max, 50);
+  assert.equal(situationHref(search), "/search?q=tuxedo+black&category=formalwear&from=2099-06-06&to=2099-06-06&max=50&via=ai");
+});
+
+test("situation search: budgets map to a filter that never exceeds them", () => {
+  assert.equal(budgetToMaxPrice(60), 50);
+  assert.equal(budgetToMaxPrice(25), 20);
+  assert.equal(budgetToMaxPrice(10), 10);
+  assert.equal(budgetToMaxPrice(5), undefined);
+  assert.equal(budgetToMaxPrice(null), undefined);
+  assert.equal(situationToSearch(situationSchema.parse({ category: "camping", maxPricePerDayPounds: 5 })).sort, "price-asc");
+});
+
+test("situation search: an answer with nothing usable falls back to plain search", () => {
+  assert.equal(isEmptySearch(situationToSearch(situationSchema.parse({ category: "boats", from: "soon" }))), true);
+  assert.equal(isEmptySearch(situationToSearch(situationSchema.parse({ area: "east" }))), false);
+});
+
+test("photo search: what the model saw becomes category and keyword filters only", () => {
+  const answer = photoSearchSchema.parse({ item: "two-person dome tent", keywords: "tent dome lightweight", category: "camping" });
+  const search = photoToSearch(answer);
+  assert.equal(search.q, "tent dome");
+  assert.equal(search.category, "CAMPING");
+  assert.equal(search.from, undefined);
+  assert.equal(situationHref(search, "photo"), "/search?q=tent+dome&category=camping&via=photo");
+  assert.equal(isEmptySearch(photoToSearch(photoSearchSchema.parse({ item: "", keywords: "", category: "pets" }))), true);
+});
+
+test("image types are recognised from their first bytes", () => {
+  assert.equal(sniffImageType(new Uint8Array([0xff, 0xd8, 0xff, 0xe0])), "image/jpeg");
+  assert.equal(sniffImageType(new Uint8Array([0x89, 0x50, 0x4e, 0x47])), "image/png");
+  assert.equal(sniffImageType(new TextEncoder().encode("RIFF0000WEBP")), "image/webp");
+  assert.equal(sniffImageType(new TextEncoder().encode("<svg></svg>")), null);
+});
+
+test("AI provider: picked from whichever key is set, hidden with none", () => {
+  const saved = { ...process.env };
+  const set = (env: Record<string, string>) => {
+    for (const key of ["ANTHROPIC_API_KEY", "GEMINI_API_KEY", "AI_PROVIDER"]) delete process.env[key];
+    Object.assign(process.env, env);
+  };
+  try {
+    set({});
+    assert.equal(aiProvider(), null);
+    assert.equal(aiEnabled(), false);
+    set({ GEMINI_API_KEY: "g" });
+    assert.equal(aiProvider(), "gemini");
+    set({ ANTHROPIC_API_KEY: "a" });
+    assert.equal(aiProvider(), "anthropic");
+    set({ ANTHROPIC_API_KEY: "a", GEMINI_API_KEY: "g" });
+    assert.equal(aiProvider(), "anthropic");
+    set({ ANTHROPIC_API_KEY: "a", GEMINI_API_KEY: "g", AI_PROVIDER: "gemini" });
+    assert.equal(aiProvider(), "gemini");
+    // Asking for a provider whose key is missing falls back to the one that is set.
+    set({ ANTHROPIC_API_KEY: "a", AI_PROVIDER: "gemini" });
+    assert.equal(aiProvider(), "anthropic");
+  } finally {
+    process.env = saved;
+  }
 });
 
 test("delivery is priced each way and charged both ways, never with the service fee", () => {

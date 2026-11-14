@@ -110,7 +110,7 @@ About 6 minutes. Use **two screens** so the judges watch both sides of the same 
 **Setup:** reset the demo data, log the laptop in as **Priya** (owner) and the phone in as **Sophie** (renter). Have one or two photos of a camera on the laptop.
 
 1. **The pitch (30 s), home page.** "Why buy it for one weekend?" Point out the three occasion tickets, the four categories and the search by item, area and dates.
-2. **An owner lists an item (75 s), laptop as Priya.** Click **List an item**. Upload a photo, title it *Canon EOS R6 body*, choose **Cameras** and **Like new**, set **£40 a day** and a **£500 deposit**, pickup area **Hackney**. In the calendar, tap two days to block them out. Watch the live preview on the right, then **Publish listing**. It's live straight away and appears in *Just listed* on the home page.
+2. **An owner lists an item (75 s), laptop as Priya.** Click **List an item**. Upload a photo of a camera and press **Fill in from photo**: within a few seconds the title, category, condition and description fill in, with a suggested price and deposit and the reason for each. Point out the *Suggested* marks, correct one field so its mark disappears, and choose pickup area **Hackney**. (No AI key set? Fill it in by hand: *Canon EOS R6 body*, **Cameras**, **Like new**, **£40 a day**, **£500 deposit**.) In the calendar, tap two days to block them out. Watch the live preview on the right, then **Publish listing**. It's live straight away and appears in *Just listed* on the home page.
 3. **A renter books it (60 s), phone as Sophie.** Search *Canon*, or tap Cameras and filter to East London, and open the new item. Tap a pickup day and a return day: the "return ticket" fills in with the out and back dates, £40 × days, the 10% service fee and, on the tear-off stub, the refundable deposit. Add a note and **Request to book**. Sophie sees *Waiting for Priya to respond* and hasn't been charged.
 4. **The owner accepts (30 s), laptop.** The *My listings* badge shows a new request. **Accept request**: the toast confirms Sophie has paid and the deposit is held (simulated). Those dates are now locked, and the phone flips to the pickup check on its own.
 5. **Pickup check (60 s), both screens.** On each screen add a photo (on the phone, take one with the camera, or tap *Use the listing photo (demo)*), confirm the item matches the listing and press **Confirm pickup**. Once both have confirmed, the ticket's stamp changes to **ON RENT**.
@@ -139,7 +139,7 @@ Resetting logs everyone out. If you're showing the site on a phone, log in again
 | Home `/` | Search (item, area, dates), categories with live counts, featured items, newest listings, how it works, an earnings pitch for owners |
 | Search `/search` | Filters for category, dates (only shows items free on those dates), area (a neighbourhood or a whole region such as East London), price, delivery available and sort; List / Map toggle with price pins and "Search this area"; "Near me" sorts by distance (location stays in the browser) |
 | Item `/items/[id]` | Large photo gallery, availability calendar (booked and blocked days crossed out), map of the pickup neighbourhood, handover choice (meet, courier or locker), price breakdown, deposit, owner profile and reviews |
-| List an item `/listings/new`, edit `/listings/[id]/edit` | Photos (resized in the browser), category, condition, price, deposit, pickup area and private pickup details, availability window plus days blocked out; pause, resume or remove a listing |
+| List an item `/listings/new`, edit `/listings/[id]/edit` | Photos (resized in the browser), **AI draft from a photo**, category, condition, price, deposit, pickup area and private pickup details, availability window plus days blocked out; pause, resume or remove a listing |
 | My rentals `/dashboard/rentals` | Renter view: what needs you, what's on rent, upcoming, past |
 | My listings `/dashboard/listings` | Owner view: requests to accept or decline in place, what needs you, earnings, your items, past bookings |
 | Booking `/bookings/[id]` | The whole rental on one page: progress, the next step, the return ticket, pickup and return checks with photos, deposit claims (claim, accept, contest, review), ratings, activity timeline |
@@ -150,7 +150,13 @@ Resetting logs everyone out. If you're showing the site on a phone, log in again
 
 **Deposits.** Refundable deposit: held when the owner accepts, returned in full when the item comes back complete and undamaged. If the owner reports a problem at the return check, the deposit stays held and they can claim up to the full amount (damaged, parts missing, not cleaned or returned late) within 48 hours. The renter accepts or contests; contested claims are reviewed (in demo mode, by whoever is presenting). If the owner never confirms the return, or doesn't claim within 48 hours, the deposit is released automatically. Trusted renters (ID-verified, 3+ completed rentals, 4.5+ average from owners, no claim against them still open) pay half the deposit, unless the owner ticks *Always take the full deposit*. Owners can enter a replacement value to get a suggested deposit (25%, at least £20).
 
-Payments, deposits and payouts are **simulated**: the app shows every amount and status change (paid, deposit held, deposit released, refunded, paid out) without a payment provider. ID verification is simulated too. There are no AI features in the product.
+Payments, deposits and payouts are **simulated**: the app shows every amount and status change (paid, deposit held, deposit released, refunded, paid out) without a payment provider. ID verification is simulated too.
+
+**AI: photo-to-listing.** On *List an item*, once a photo is uploaded, **Fill in from photo** drafts the title, category, condition, brand, size and description, and suggests a daily price and deposit. The price and deposit come from the median of similar active listings in the database, with the reason shown; with fewer than three similar listings it says so and uses an estimate instead. Every AI-filled field is marked *Suggested, check before publishing* until the owner edits or confirms it, and anything the photo doesn't settle is left empty with a question rather than a guess. It needs an AI key (`GEMINI_API_KEY` or `ANTHROPIC_API_KEY`); without one the button is hidden and listing works as before.
+
+**AI: describe what you need.** Under the home page search, a renter can type a sentence such as *"black-tie wedding on Saturday, under £50 a day"*. AI turns it into the ordinary search filters (category, area, dates, price) and the normal search page shows the results, so every item, price and free date comes from the database, never from the model. The filters appear as removable chips, so a wrong guess is one tap to fix. If the AI call fails, or there is no key, it falls back to a plain keyword search.
+
+**AI: search with a photo.** Also under the home page search, a renter can upload or take a photo of the thing they need. AI names the kind of item ("two-person dome tent") and picks a category and keywords, and the normal search page shows similar items to rent. It matches the kind of item, not the exact model. The photo is shrunk in the browser, used for that one question and not stored.
 
 ## How it works
 
@@ -240,6 +246,10 @@ npm run test:e2e
 | `DATABASE_URL` | Yes | Postgres connection string (the pooled one on Neon) |
 | `DATABASE_URL_UNPOOLED` | Optional | Direct connection for migrations; falls back to `DATABASE_URL` |
 | `DEMO_RESET_KEY` | Optional | Turns on `/demo/reset` and `POST /api/demo/reset` |
+| `GEMINI_API_KEY` | Optional | Turns on the AI features (photo-to-listing, describe-what-you-need search and photo search) using Google Gemini, which has a free tier. Server-side only |
+| `ANTHROPIC_API_KEY` | Optional | Same features using Anthropic's Claude (paid per call). Set one of the two keys; with neither, the AI features are hidden |
+| `AI_PROVIDER` | Optional | `anthropic` or `gemini`. Only matters when both keys are set; Anthropic is the default |
+| `AI_MODEL` | Optional | Model override. Defaults to `gemini-3.5-flash-lite` or `claude-haiku-5-5` depending on the provider; ignored if it names the other provider's model |
 | `NEXT_PUBLIC_DEMO_MODE` | Optional | Set to `false` to hide the one-tap demo log-ins and account switcher (takes effect on the next build) |
 
 ## Limitations and next steps
@@ -248,6 +258,9 @@ This is a competition demo, so some things are deliberately simulated or left ou
 
 - **Payments:** simulated. In production this would be Stripe Connect, with the deposit held as an uncaptured authorisation and released after the return check.
 - **ID verification:** simulated. A real version would hand off to a provider such as Stripe Identity.
+- **AI drafts are suggestions:** photo-to-listing can misread an item, so nothing is published until the owner has checked it. The photos used for a draft are sent to the AI provider (Google or Anthropic, whichever key is set). On Gemini's free tier, Google may use what is sent to improve its products, so use a paid key for anything beyond a demo. Drafts aren't logged yet, and there is no saved fallback response for a demo with bad wifi.
+- **Photo search** matches on category and keywords, not on how the item looks, so results are "the same kind of thing" and not visual lookalikes. The photo is sent to the AI provider.
+- **Describe-what-you-need search** picks filters only: it doesn't filter by size, suggest bundles or post "wanted" requests yet, and budgets map to the nearest price filter at or below what was asked.
 - **Delivery:** couriers and lockers are simulated, with demo prices and timeline steps. A real version would call a courier API and a locker network.
 - **Maps:** OpenStreetMap tiles are fine for a demo; switch to a tile provider with a usage plan for real traffic.
 - **Not built yet:** in-app messages, a real support team for contested deposit claims, email and push notifications, and the swap option described above.

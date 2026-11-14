@@ -3,6 +3,7 @@ import { ListingForm } from "@/components/listing-form";
 import { Container } from "@/components/ui";
 import { emptyListingValues } from "@/lib/listing-form-values";
 import { todayInLondon } from "@/lib/dates";
+import { aiEnabled } from "@/server/ai";
 import { requireUser } from "@/server/auth";
 
 export const metadata: Metadata = { title: "List an item" };
@@ -17,7 +18,7 @@ export default async function NewListingPage() {
         <h1 className="mt-1 text-3xl font-semibold sm:text-4xl">List an item</h1>
         <p className="mt-2 text-muted">It takes about two minutes. You choose who rents it, and it&apos;s yours again after every rental.</p>
       </div>
-      <ListingForm mode="create" today={today} initial={emptyListingValues(today, user.area)} />
+      <ListingForm mode="create" today={today} aiEnabled={aiEnabled()} initial={emptyListingValues(today, user.area)} />
     </Container>
   );
 }
