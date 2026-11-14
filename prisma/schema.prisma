@@ -162,6 +162,15 @@ model Listing {
   deposit       Int
   /// What it would cost to replace, in pence. Used to suggest a fair deposit.
   replacementValue Int?
+  /// Typical price to buy it new, in pence: the median of live eBay listings. Cached by src/server/market-price.ts.
+  /// Renters see this next to the rental price; replacementValue is the fallback.
+  marketPrice          Int?
+  /// How many listings that median came from.
+  marketPriceCount     Int?
+  /// The eBay search the price came from, so renters can check it.
+  marketPriceUrl       String?
+  /// Last lookup, hit or miss, so a miss isn't retried on every page view.
+  marketPriceCheckedAt DateTime?
   /// Opt out of the reduced deposit for trusted renters.
   fullDepositOnly Boolean @default(false)
   /// Neighbourhood slug from src/lib/areas.ts, e.g. "hackney".

@@ -13,6 +13,8 @@ import { DEPOSIT_PROMISE, depositFor, formatGBP, handoverLabel } from "@/lib/mon
 import { firstName, plural, shortName } from "@/lib/cn";
 import { getCurrentUser } from "@/server/auth";
 import { getListingDetail, getMoreFromOwner, getRenterTrust } from "@/server/queries";
+import { buyPriceFor } from "@/lib/market-price";
+import { ensureMarketPrice } from "@/server/market-price";
 import { AreaMapClient } from "@/components/map/area-map-client";
 import { areaCircle } from "@/lib/geo";
 
@@ -41,7 +43,9 @@ export default async function ItemPage({ params, searchParams }: Props) {
   const area = getArea(listing.area);
   const region = REGIONS.find((r) => r.id === area?.region);
   const condition = CONDITIONS.find((c) => c.id === listing.condition);
-  const more = await getMoreFromOwner(owner.id, listing.id);
+  // What it costs to buy new: a cached eBay price when there is one, otherwise the owner's replacement value.
+  const [more, market] = await Promise.all([getMoreFromOwner(owner.id, listing.id), ensureMarketPrice(listing)]);
+  const buyPrice = buyPriceFor({ ...market, replacementValue: listing.replacementValue });
   const availability = {
     today,
     availableFrom: toISO(listing.availableFrom),
@@ -239,6 +243,7 @@ export default async function ItemPage({ params, searchParams }: Props) {
                 pricePerDay={listing.pricePerDay}
                 deposit={deposit}
                 depositInfo={depositInfo}
+                buyPrice={buyPrice}
                 ratingSum={listing.ratingSum}
                 ratingCount={listing.ratingCount}
                 ownerFirstName={ownerFirst}

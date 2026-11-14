@@ -9,6 +9,7 @@ import { requestBooking, type RequestState } from "@/server/actions/bookings";
 import { checkRange, type Availability } from "@/lib/booking-rules";
 import { formatDay, formatRange, rentalDays, type ISODate } from "@/lib/dates";
 import { DEPOSIT_PROMISE, deliveryFee, formatGBP, handoverLabel, HANDOVER_METHODS, LOCKER_FEE, quote, type HandoverMethodId } from "@/lib/money";
+import { savingVsBuying, type BuyPrice } from "@/lib/market-price";
 import { getLocker, LOCKERS } from "@/lib/lockers";
 import { areasByRegion, REGIONS } from "@/lib/areas";
 import { cn, plural } from "@/lib/cn";
@@ -152,6 +153,8 @@ type TicketProps = {
   /** What this viewer would pay. */
   deposit: number;
   depositInfo: DepositInfo;
+  /** What the item costs to buy new, when known. Drives the "you save" line. */
+  buyPrice?: BuyPrice | null;
   ratingSum: number;
   ratingCount: number;
   ownerFirstName: string;
@@ -159,11 +162,13 @@ type TicketProps = {
   isOwner: boolean;
 };
 
-export function BookingTicket({ listingId, pricePerDay, deposit, depositInfo, ratingSum, ratingCount, ownerFirstName, signedIn, isOwner }: TicketProps) {
+export function BookingTicket({ listingId, pricePerDay, deposit, depositInfo, buyPrice, ratingSum, ratingCount, ownerFirstName, signedIn, isOwner }: TicketProps) {
   const { start, end, rangeError, state, formAction, pending, handover } = useBooking();
   const [note, setNote] = useState(false);
   const days = start && end ? rentalDays(start, end) : 0;
   const q = days ? quote(pricePerDay, deposit, days, handover.fee) : null;
+  // Rental, service fee and delivery against buying it new. The deposit comes back, so it isn't counted.
+  const saving = q && buyPrice ? savingVsBuying(buyPrice.amount, q.total) : null;
   const loginHref = `/login?next=${encodeURIComponent(`/items/${listingId}${start && end ? `?start=${start}&end=${end}` : ""}`)}`;
 
   return (
@@ -176,6 +181,31 @@ export function BookingTicket({ listingId, pricePerDay, deposit, depositInfo, ra
           </p>
           <Rating sum={ratingSum} count={ratingCount} />
         </div>
+        {buyPrice && (
+          <p className="mt-1 text-sm text-ink-2" data-testid="buy-price">
+            About <span className="font-semibold text-ink">{formatGBP(buyPrice.amount)}</span> to buy new
+            {buyPrice.source === "ebay" ? (
+              <>
+                {" "}
+                {buyPrice.url ? (
+                  <a
+                    href={buyPrice.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-2 hover:text-ink"
+                    title={buyPrice.count ? `Typical price across ${plural(buyPrice.count, "new listing")} on eBay UK` : undefined}
+                  >
+                    on eBay
+                  </a>
+                ) : (
+                  "on eBay"
+                )}
+              </>
+            ) : (
+              <span className="text-muted"> (owner&apos;s estimate)</span>
+            )}
+          </p>
+        )}
         <a href="#dates" className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center rounded-2xl border border-line-strong transition-colors hover:border-ink">
           <span className="px-4 py-3">
             <span className="block font-mono text-[0.65rem] tracking-[0.14em] text-muted uppercase">Out</span>
@@ -225,6 +255,12 @@ export function BookingTicket({ listingId, pricePerDay, deposit, depositInfo, ra
             ) : (
               <p className="flex items-center gap-2 text-sm text-muted">
                 <CalendarDays className="size-4" aria-hidden /> Pick dates to see the total.
+              </p>
+            )}
+
+            {saving && (
+              <p className="rounded-xl bg-accent-soft px-3 py-2 text-sm font-semibold text-accent-ink" data-testid="buy-saving">
+                You save {formatGBP(saving.saving)} compared with buying it new ({saving.percent}% less)
               </p>
             )}
 
