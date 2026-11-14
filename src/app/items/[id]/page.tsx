@@ -9,10 +9,12 @@ import { Avatar, Container, LinkButton, Rating, Stars, VerifiedBadge } from "@/c
 import { areaName, getArea, REGIONS } from "@/lib/areas";
 import { categoryInfo, CONDITIONS } from "@/lib/catalogue";
 import { formatMonthYear, isISODate, toISO } from "@/lib/dates";
-import { DEPOSIT_PROMISE, depositFor, formatGBP } from "@/lib/money";
+import { DEPOSIT_PROMISE, depositFor, formatGBP, handoverLabel } from "@/lib/money";
 import { firstName, plural, shortName } from "@/lib/cn";
 import { getCurrentUser } from "@/server/auth";
 import { getListingDetail, getMoreFromOwner, getRenterTrust } from "@/server/queries";
+import { AreaMapClient } from "@/components/map/area-map-client";
+import { areaCircle } from "@/lib/geo";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -101,8 +103,10 @@ export default async function ItemPage({ params, searchParams }: Props) {
         </p>
       )}
 
-      <BookingProvider availability={availability} initialStart={isISODate(sp.start) ? sp.start : undefined} initialEnd={isISODate(sp.end) ? sp.end : undefined}>
-        <div className="mt-6 grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_auto_auto_auto_auto_1fr] xl:grid-cols-[minmax(0,1fr)_400px]">
+      <BookingProvider
+        handoverOptions={{ methods: listing.handoverMethods, ownerArea: listing.area, renterArea: user?.area ?? null }}
+        availability={availability} initialStart={isISODate(sp.start) ? sp.start : undefined} initialEnd={isISODate(sp.end) ? sp.end : undefined}>
+        <div className="mt-6 grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_auto_auto_auto_auto_auto_1fr] xl:grid-cols-[minmax(0,1fr)_400px]">
           <div className="min-w-0 lg:col-start-1">
             <PhotoGallery photos={listing.photos} title={listing.title} />
             <Link href={`/users/${owner.id}`} className="group mt-6 flex items-center gap-4 rounded-2xl border border-line p-4 hover:border-ink">
@@ -130,8 +134,24 @@ export default async function ItemPage({ params, searchParams }: Props) {
               {listing.size && <Detail label="Size" value={listing.size} />}
               <Detail label="Category" value={category?.label ?? ""} />
               <Detail label="Pickup area" value={`${areaName(listing.area)} (${area?.postcode})`} />
+              <Detail label="Handover" value={listing.handoverMethods.map((m) => handoverLabel(m)).join(" · ")} />
               <Detail label="Deposit" value={`${formatGBP(listing.deposit)}, refundable`} hint={listing.fullDepositOnly ? "Full deposit for everyone" : "Half for trusted renters"} />
             </dl>
+          </section>
+
+          <section aria-labelledby="where" className="min-w-0 lg:col-start-1">
+            <h2 id="where" className="text-2xl font-semibold">
+              Where it&apos;s collected
+            </h2>
+            <p className="mt-1 text-ink-2">
+              {areaName(listing.area)}, {region?.label} ({area?.postcode})
+            </p>
+            <AreaMapClient
+              circles={areaCircle(listing.area)}
+              label={`Map showing the ${areaName(listing.area)} area`}
+              className="mt-4 h-60 w-full max-w-2xl overflow-hidden rounded-2xl border border-line bg-surface"
+            />
+            <p className="mt-2 text-sm text-muted">Exact pickup point shared once the owner accepts.</p>
           </section>
 
           <div className="min-w-0 lg:col-start-1">
@@ -210,7 +230,7 @@ export default async function ItemPage({ params, searchParams }: Props) {
             </div>
           </section>
 
-          <aside className="lg:sticky lg:top-24 lg:col-start-2 lg:row-span-6 lg:row-start-1 lg:self-start" aria-label="Booking">
+          <aside className="lg:sticky lg:top-24 lg:col-start-2 lg:row-span-7 lg:row-start-1 lg:self-start" aria-label="Booking">
             {paused && !isOwner ? (
               <div className="ticket p-6 text-sm text-muted">This item is paused by its owner. Check back soon.</div>
             ) : (

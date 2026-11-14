@@ -64,6 +64,23 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
     fieldErrors.replacementValue = "Enter a replacement value between £1 and £20,000, or leave it blank.";
   }
   const fullDepositOnly = formData.get("fullDepositOnly") === "on";
+  const handoverMethods = [...new Set(formData.getAll("handoverMethods").map(String))].filter((m): m is "MEET" | "COURIER" | "LOCKER" => m === "MEET" || m === "COURIER" || m === "LOCKER");
+  if (handoverMethods.length === 0) fieldErrors.handoverMethods = "Choose at least one way to hand it over.";
+
+  const latRaw = String(formData.get("pickupLat") ?? "").trim();
+  const lngRaw = String(formData.get("pickupLng") ?? "").trim();
+  let pickupLat: number | null = null;
+  let pickupLng: number | null = null;
+  if (latRaw || lngRaw) {
+    const lat = Number(latRaw);
+    const lng = Number(lngRaw);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < 51.25 || lat > 51.72 || lng < -0.6 || lng > 0.35) {
+      fieldErrors.pickupPoint = "Put the pickup pin somewhere in London, or remove it.";
+    } else {
+      pickupLat = Math.round(lat * 1e5) / 1e5;
+      pickupLng = Math.round(lng * 1e5) / 1e5;
+    }
+  }
 
   const today = todayInLondon();
   const from = String(formData.get("availableFrom") ?? "");
@@ -111,6 +128,9 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
     deposit: deposit!,
     replacementValue,
     fullDepositOnly,
+    pickupLat,
+    pickupLng,
+    handoverMethods,
     photos: photos as string[],
     availableFrom: toDate(from),
     availableTo: toDate(to),

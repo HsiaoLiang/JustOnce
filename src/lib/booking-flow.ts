@@ -16,6 +16,14 @@ export interface FlowBooking {
   reviews: { authorRole: PartyId }[];
   depositStatus?: DepositStatusId;
   claim?: { status: ClaimStatusId } | null;
+  handoverMethod?: "MEET" | "COURIER" | "LOCKER";
+}
+
+/** What each side does at a delivered handover, instead of meeting. */
+function deliveryAction(method: "COURIER" | "LOCKER", stage: "PICKUP" | "RETURN", viewer: PartyId): string {
+  const sender = stage === "PICKUP" ? "OWNER" : "RENTER";
+  if (method === "COURIER") return viewer === sender ? "Hand the parcel to the courier and add a photo" : "Add a photo when the parcel arrives";
+  return viewer === sender ? "Drop it at the locker and add a photo" : "Collect from the locker and add a photo";
 }
 
 export interface NextStep {
@@ -71,12 +79,14 @@ export function nextStep(b: FlowBooking, viewer: PartyId, otherName: string, tod
     case "ACCEPTED": {
       if (hasCheck(b, "PICKUP", viewer)) return { label: `Waiting for ${other} to confirm pickup`, needsYou: false };
       const soon = b.startDate <= addDays(today, 1) || hasCheck(b, "PICKUP", otherParty(viewer));
+      if (b.handoverMethod && b.handoverMethod !== "MEET") return { label: deliveryAction(b.handoverMethod, "PICKUP", viewer), needsYou: soon };
       const when = b.startDate === today ? "today" : b.startDate < today ? "now" : formatDay(b.startDate);
       return { label: `Pickup check ${b.startDate <= today ? "due" : "on"} ${when}`, needsYou: soon };
     }
     case "ACTIVE": {
       if (hasCheck(b, "RETURN", viewer)) return { label: `Waiting for ${other} to confirm the return`, needsYou: false };
       const soon = b.endDate <= addDays(today, 1) || hasCheck(b, "RETURN", otherParty(viewer));
+      if (b.handoverMethod && b.handoverMethod !== "MEET") return { label: deliveryAction(b.handoverMethod, "RETURN", viewer), needsYou: soon };
       const days = diffDays(today, b.endDate);
       const when = days < 0 ? "overdue" : days === 0 ? "due today" : days === 1 ? "due tomorrow" : `due ${formatDay(b.endDate)}`;
       return { label: `Return ${when}`, needsYou: soon };

@@ -6,6 +6,7 @@ import { BLOCKING_STATUSES, type BookingStatusId } from "@/lib/booking-rules";
 import { nextStep, type ClaimStatusId, type FlowBooking } from "@/lib/booking-flow";
 import { addDays, toDate, todayInLondon, toISO, type ISODate } from "@/lib/dates";
 import { areaFilterSlugs } from "@/lib/areas";
+import { areasInBbox, type Bbox } from "@/lib/geo";
 import type { CategoryId } from "@/lib/catalogue";
 
 export const listingCardSelect = {
@@ -68,6 +69,8 @@ export interface SearchFilters {
   to?: ISODate;
   maxPrice?: number;
   sort?: SortKey;
+  bbox?: Bbox;
+  delivery?: boolean;
 }
 
 // Typing "camera" or "halloween" should find the category even when titles don't say so.
@@ -97,9 +100,14 @@ export async function searchListings(filters: SearchFilters) {
   const where: Prisma.ListingWhereInput = { status: "ACTIVE" };
   const and: Prisma.ListingWhereInput[] = [];
   if (filters.category) where.category = filters.category;
-  const areas = areaFilterSlugs(filters.area);
+  let areas = areaFilterSlugs(filters.area);
+  if (filters.bbox) {
+    const inBox = areasInBbox(filters.bbox);
+    areas = areas ? areas.filter((a) => inBox.includes(a)) : inBox;
+  }
   if (areas) where.area = { in: areas };
   if (filters.maxPrice) where.pricePerDay = { lte: filters.maxPrice };
+  if (filters.delivery) where.handoverMethods = { hasSome: ["COURIER", "LOCKER"] };
   if (filters.q?.trim()) {
     for (const term of filters.q.trim().split(/\s+/).slice(0, 6)) and.push(termCondition(term));
   }
@@ -132,6 +140,8 @@ export async function getListingDetail(id: string) {
   const today = todayInLondon();
   const listing = await db.listing.findUnique({
     where: { id },
+    // Private until a booking is accepted: never part of the public item page.
+    omit: { pickupNotes: true, pickupLat: true, pickupLng: true },
     include: {
       owner: {
         select: { id: true, name: true, avatarUrl: true, verifiedAt: true, bio: true, area: true, createdAt: true, ratingCount: true, ratingSum: true },
@@ -201,6 +211,8 @@ export const bookingRowSelect = {
   reviews: { select: { authorRole: true } },
   depositReduced: true,
   depositKept: true,
+  handoverMethod: true,
+  deliveryFee: true,
   claim: { select: { status: true, amount: true } },
 } satisfies Prisma.BookingSelect;
 
@@ -215,6 +227,7 @@ export function toFlow(b: {
   reviews: { authorRole: "OWNER" | "RENTER" }[];
   depositStatus?: FlowBooking["depositStatus"];
   claim?: { status: ClaimStatusId } | null;
+  handoverMethod?: FlowBooking["handoverMethod"];
 }): FlowBooking {
   return {
     status: b.status as BookingStatusId,
@@ -225,6 +238,7 @@ export function toFlow(b: {
     reviews: b.reviews,
     depositStatus: b.depositStatus,
     claim: b.claim ?? null,
+    handoverMethod: b.handoverMethod,
   };
 }
 
@@ -268,6 +282,7 @@ export async function getAttentionCounts(userId: string) {
       endDate: true,
       returnedAt: true,
       depositStatus: true,
+      handoverMethod: true,
       checks: { select: { stage: true, party: true, conditionOk: true } },
       reviews: { select: { authorRole: true } },
       claim: { select: { status: true } },
@@ -287,7 +302,7 @@ export async function getBookingDetail(id: string) {
   return db.booking.findUnique({
     where: { id },
     include: {
-      listing: { select: { id: true, title: true, photos: true, area: true, category: true, condition: true, pickupNotes: true, ownerId: true, deposit: true } },
+      listing: { select: { id: true, title: true, photos: true, area: true, category: true, condition: true, ownerId: true, deposit: true } },
       owner: { select: { id: true, name: true, avatarUrl: true, verifiedAt: true, ratingSum: true, ratingCount: true, createdAt: true } },
       renter: { select: { id: true, name: true, avatarUrl: true, verifiedAt: true, ratingSum: true, ratingCount: true, createdAt: true } },
       checks: { orderBy: { createdAt: "asc" } },
@@ -299,6 +314,15 @@ export async function getBookingDetail(id: string) {
 }
 
 export type BookingDetail = NonNullable<Awaited<ReturnType<typeof getBookingDetail>>>;
+
+/**
+ * The owner's exact pickup point and notes. Only call this for a booking the viewer
+ * is part of and that has been accepted; it's deliberately kept out of every other query.
+ */
+export async function getPickupDetails(booking: Pick<BookingDetail, "status" | "listingId">) {
+  if (booking.status !== "ACCEPTED" && booking.status !== "ACTIVE") return null;
+  return db.listing.findUnique({ where: { id: booking.listingId }, select: { pickupNotes: true, pickupLat: true, pickupLng: true } });
+}
 
 // ---------------------------------------------------------------- profiles
 

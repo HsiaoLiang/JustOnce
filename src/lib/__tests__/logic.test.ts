@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { addDays, formatRange, isISODate, rangesOverlap, rentalDays } from "../dates";
-import { depositFor, formatGBP, parsePounds, quote, suggestedDeposit } from "../money";
+import { deliveryFee, depositFor, formatGBP, parsePounds, quote, suggestedDeposit } from "../money";
 import { checkRange, dayState, type Availability } from "../booking-rules";
 import { nextStep, type FlowBooking } from "../booking-flow";
 import { isAllowedPhotoUrl } from "../photos";
@@ -43,7 +43,7 @@ test("dates are formatted the British way", () => {
 });
 
 test("quotes add a 10% service fee and keep the deposit separate", () => {
-  assert.deepEqual(quote(3500, 40000, 3), { days: 3, pricePerDay: 3500, subtotal: 10500, serviceFee: 1050, total: 11550, deposit: 40000 });
+  assert.deepEqual(quote(3500, 40000, 3), { days: 3, pricePerDay: 3500, subtotal: 10500, serviceFee: 1050, delivery: 0, total: 11550, deposit: 40000 });
 });
 
 test("pounds are parsed into pence", () => {
@@ -137,4 +137,25 @@ test("deposit claims come before reviews in the next step", () => {
   // A clean return goes straight to reviews, as before.
   const clean = { ...done, checks: [{ stage: "RETURN" as const, party: "OWNER" as const, conditionOk: true }], depositStatus: "RELEASED" as const };
   assert.equal(nextStep(clean, "OWNER", "Sophie Clarke", today).label, "Rate Sophie");
+});
+
+test("delivery is priced each way and charged both ways, never with the service fee", () => {
+  assert.equal(deliveryFee("MEET", "hackney", "brixton"), 0);
+  assert.equal(deliveryFee("LOCKER", "hackney", "brixton"), 600);
+  assert.equal(deliveryFee("COURIER", "hackney", "dalston"), 1200); // both East London
+  assert.equal(deliveryFee("COURIER", "hackney", "islington"), 1800); // East → North
+  assert.equal(deliveryFee("COURIER", "hackney", undefined), 1800);
+  const q = quote(2000, 15000, 2, 1800);
+  assert.equal(q.serviceFee, 400); // 10% of £40 only
+  assert.equal(q.total, 4000 + 400 + 1800);
+});
+
+test("delivered handovers get their own next steps", () => {
+  const accepted: FlowBooking = { status: "ACCEPTED", startDate: today, endDate: "2026-11-15", checks: [], reviews: [], handoverMethod: "COURIER" };
+  assert.equal(nextStep(accepted, "OWNER", "Sophie Clarke", today).label, "Hand the parcel to the courier and add a photo");
+  assert.equal(nextStep(accepted, "RENTER", "Priya Shah", today).label, "Add a photo when the parcel arrives");
+  const back: FlowBooking = { ...accepted, status: "ACTIVE", handoverMethod: "LOCKER" };
+  assert.equal(nextStep(back, "RENTER", "Priya Shah", today).label, "Drop it at the locker and add a photo");
+  assert.equal(nextStep(back, "OWNER", "Sophie Clarke", today).label, "Collect from the locker and add a photo");
+  assert.equal(nextStep({ ...accepted, handoverMethod: "MEET" }, "RENTER", "Priya Shah", today).label, "Pickup check due today");
 });

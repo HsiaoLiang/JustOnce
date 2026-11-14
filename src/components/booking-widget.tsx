@@ -8,7 +8,9 @@ import { Button, FormAlert, LinkButton, Rating, buttonClass } from "./ui";
 import { requestBooking, type RequestState } from "@/server/actions/bookings";
 import { checkRange, type Availability } from "@/lib/booking-rules";
 import { formatDay, formatRange, rentalDays, type ISODate } from "@/lib/dates";
-import { DEPOSIT_PROMISE, formatGBP, quote } from "@/lib/money";
+import { DEPOSIT_PROMISE, deliveryFee, formatGBP, handoverLabel, HANDOVER_METHODS, LOCKER_FEE, quote, type HandoverMethodId } from "@/lib/money";
+import { getLocker, LOCKERS } from "@/lib/lockers";
+import { areasByRegion, REGIONS } from "@/lib/areas";
 import { cn, plural } from "@/lib/cn";
 
 type BookingCtx = {
@@ -20,7 +22,28 @@ type BookingCtx = {
   state: RequestState;
   formAction: (formData: FormData) => void;
   pending: boolean;
+  handover: HandoverState;
 };
+
+export interface HandoverOptions {
+  methods: HandoverMethodId[];
+  ownerArea: string;
+  /** The renter's own area, used as the default delivery area. */
+  renterArea: string | null;
+}
+
+interface HandoverState extends HandoverOptions {
+  method: HandoverMethodId;
+  setMethod: (m: HandoverMethodId) => void;
+  deliveryArea: string;
+  setDeliveryArea: (a: string) => void;
+  address: string;
+  setAddress: (a: string) => void;
+  lockerId: string;
+  setLockerId: (id: string) => void;
+  /** Estimate shown while choosing; the server recalculates it when the request is sent. */
+  fee: number;
+}
 
 const Ctx = createContext<BookingCtx | null>(null);
 const useBooking = () => {
@@ -33,13 +56,22 @@ export function BookingProvider({
   availability,
   initialStart,
   initialEnd,
+  handoverOptions,
   children,
 }: {
   availability: Availability;
   initialStart?: ISODate;
   initialEnd?: ISODate;
+  handoverOptions: HandoverOptions;
   children: ReactNode;
 }) {
+  const [method, setMethod] = useState<HandoverMethodId>(handoverOptions.methods.includes("MEET") ? "MEET" : (handoverOptions.methods[0] ?? "MEET"));
+  const [deliveryArea, setDeliveryArea] = useState(handoverOptions.renterArea ?? "");
+  const [address, setAddress] = useState("");
+  const [lockerId, setLockerId] = useState("");
+  const locker = getLocker(lockerId);
+  const fee = method === "COURIER" ? deliveryFee(method, handoverOptions.ownerArea, deliveryArea || undefined) : method === "LOCKER" ? deliveryFee(method, handoverOptions.ownerArea, locker?.area) : 0;
+  const handover: HandoverState = { ...handoverOptions, method, setMethod, deliveryArea, setDeliveryArea, address, setAddress, lockerId, setLockerId, fee };
   const valid = initialStart && initialEnd && !checkRange(initialStart, initialEnd, availability);
   const [start, setStart] = useState<ISODate | null>(valid ? initialStart! : null);
   const [end, setEnd] = useState<ISODate | null>(valid ? initialEnd! : null);
@@ -58,8 +90,10 @@ export function BookingProvider({
       state,
       formAction,
       pending,
+      handover,
     }),
-    [start, end, availability, rangeError, state, formAction, pending],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [start, end, availability, rangeError, state, formAction, pending, method, deliveryArea, address, lockerId, fee],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
@@ -126,10 +160,10 @@ type TicketProps = {
 };
 
 export function BookingTicket({ listingId, pricePerDay, deposit, depositInfo, ratingSum, ratingCount, ownerFirstName, signedIn, isOwner }: TicketProps) {
-  const { start, end, rangeError, state, formAction, pending } = useBooking();
+  const { start, end, rangeError, state, formAction, pending, handover } = useBooking();
   const [note, setNote] = useState(false);
   const days = start && end ? rentalDays(start, end) : 0;
-  const q = days ? quote(pricePerDay, deposit, days) : null;
+  const q = days ? quote(pricePerDay, deposit, days, handover.fee) : null;
   const loginHref = `/login?next=${encodeURIComponent(`/items/${listingId}${start && end ? `?start=${start}&end=${end}` : ""}`)}`;
 
   return (
@@ -176,10 +210,14 @@ export function BookingTicket({ listingId, pricePerDay, deposit, depositInfo, ra
             <input type="hidden" name="listingId" value={listingId} />
             <input type="hidden" name="start" value={start ?? ""} />
             <input type="hidden" name="end" value={end ?? ""} />
+            <HandoverChooser />
             {q ? (
               <dl className="space-y-2 text-[0.95rem]">
                 <Line label={`${formatGBP(pricePerDay)} × ${plural(q.days, "day")}`} value={formatGBP(q.subtotal, { alwaysShowPence: true })} />
                 <Line label="Service fee" value={formatGBP(q.serviceFee, { alwaysShowPence: true })} hint="10% of the rental. Covers payments, deposit protection and support." />
+                {handover.method !== "MEET" && (
+                  <Line label={`Delivery (${handoverLabel(handover.method).toLowerCase()}, both ways)`} value={formatGBP(q.delivery, { alwaysShowPence: true })} />
+                )}
                 <div className="border-t border-line pt-2">
                   <Line label="Total" value={formatGBP(q.total, { alwaysShowPence: true })} strong />
                 </div>
@@ -272,10 +310,10 @@ function Line({ label, value, strong, hint }: { label: string; value: string; st
 
 /** Sticky bar on phones so the price and the next action are always in reach. */
 export function MobileBookingBar({ pricePerDay, deposit, listingId, signedIn, isOwner }: { pricePerDay: number; deposit: number; listingId: string; signedIn: boolean; isOwner: boolean }) {
-  const { start, end, rangeError, pending } = useBooking();
+  const { start, end, rangeError, pending, handover } = useBooking();
   if (isOwner) return null;
   const days = start && end ? rentalDays(start, end) : 0;
-  const q = days ? quote(pricePerDay, deposit, days) : null;
+  const q = days ? quote(pricePerDay, deposit, days, handover.fee) : null;
   const loginHref = `/login?next=${encodeURIComponent(`/items/${listingId}${start && end ? `?start=${start}&end=${end}` : ""}`)}`;
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
@@ -312,5 +350,110 @@ export function MobileBookingBar({ pricePerDay, deposit, listingId, signedIn, is
         )}
       </div>
     </div>
+  );
+}
+
+/** How the item changes hands. Only methods the owner offers are shown. */
+function HandoverChooser() {
+  const { handover } = useBooking();
+  const { methods, method } = handover;
+  const options = HANDOVER_METHODS.filter((m) => methods.includes(m.id));
+  return (
+    <fieldset className="space-y-3">
+      <input type="hidden" name="handoverMethod" value={method} />
+      {options.length > 1 ? (
+        <>
+          <legend className="mb-2 text-sm font-semibold">How do you want it?</legend>
+          <div className="grid gap-2" role="radiogroup">
+            {options.map((m) => {
+              const each = m.id === "MEET" ? 0 : m.id === "LOCKER" ? LOCKER_FEE : null;
+              return (
+                <label
+                  key={m.id}
+                  className={cn(
+                    "flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-sm has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink",
+                    method === m.id ? "border-ink bg-surface shadow-[inset_0_0_0_1px_var(--color-ink)]" : "border-line-strong hover:border-ink",
+                  )}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <input type="radio" name="handoverPick" checked={method === m.id} onChange={() => handover.setMethod(m.id)} className="size-4 accent-[var(--color-ink)]" />
+                    <span>
+                      <span className="block font-semibold">{m.label}</span>
+                      <span className="block text-xs text-muted">{m.hint}</span>
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-xs font-semibold text-ink-2">{each === 0 ? "Free" : each ? `${formatGBP(each)} each way` : "£6–£9 each way"}</span>
+                </label>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <p className="text-sm text-muted">Handover: {HANDOVER_METHODS.find((m) => m.id === method)?.label.toLowerCase()}.</p>
+      )}
+      {method === "COURIER" && (
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold" htmlFor="delivery-area">
+            Delivery area
+          </label>
+          <select
+            id="delivery-area"
+            name="deliveryArea"
+            value={handover.deliveryArea}
+            onChange={(e) => handover.setDeliveryArea(e.target.value)}
+            className="block h-10 w-full rounded-xl border border-line-strong bg-paper px-3 text-sm focus:border-ink focus:outline-none"
+          >
+            <option value="">Choose an area</option>
+            {areasByRegion().map(({ region, areas }) => (
+              <optgroup key={region.id} label={region.label}>
+                {areas.map((a) => (
+                  <option key={a.slug} value={a.slug}>
+                    {a.name}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <label className="block text-sm font-semibold" htmlFor="delivery-address">
+            Address
+          </label>
+          <input
+            id="delivery-address"
+            name="deliveryAddress"
+            value={handover.address}
+            onChange={(e) => handover.setAddress(e.target.value)}
+            autoComplete="street-address"
+            placeholder="Flat, street and postcode"
+            className="block h-10 w-full rounded-xl border border-line-strong bg-paper px-3 text-sm focus:border-ink focus:outline-none"
+          />
+          <p className="text-xs text-muted">Only shared with the owner once they accept. £6 each way within the same part of London, £9 across.</p>
+        </div>
+      )}
+      {method === "LOCKER" && (
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold" htmlFor="locker">
+            Parcel locker
+          </label>
+          <select
+            id="locker"
+            name="lockerId"
+            value={handover.lockerId}
+            onChange={(e) => handover.setLockerId(e.target.value)}
+            className="block h-10 w-full rounded-xl border border-line-strong bg-paper px-3 text-sm focus:border-ink focus:outline-none"
+          >
+            <option value="">Choose a locker</option>
+            {REGIONS.map((r) => (
+              <optgroup key={r.id} label={r.label}>
+                {LOCKERS.filter((l) => l.region === r.id).map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.name}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+      )}
+    </fieldset>
   );
 }

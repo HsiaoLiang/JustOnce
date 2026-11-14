@@ -44,6 +44,13 @@ enum ExchangeType {
   SWAP
 }
 
+/// How an item gets from the owner to the renter (and back).
+enum HandoverMethod {
+  MEET
+  COURIER
+  LOCKER
+}
+
 enum BookingStatus {
   REQUESTED // renter has asked, owner hasn't answered
   ACCEPTED  // owner accepted, payment taken, waiting for pickup
@@ -154,11 +161,15 @@ model Listing {
   area          String
   /// Shared with the renter only once a booking is accepted.
   pickupNotes   String?
+  /// Optional exact pickup point. Like pickupNotes, only ever sent to a renter with an accepted booking.
+  pickupLat     Float?
+  pickupLng     Float?
   /// Ordered photo URLs; the first one is the cover.
   photos        String[]
   availableFrom DateTime       @db.Date
   availableTo   DateTime       @db.Date
   exchangeTypes ExchangeType[] @default([RENTAL])
+  handoverMethods HandoverMethod[] @default([MEET])
   status        ListingStatus  @default(ACTIVE)
   featured      Boolean        @default(false)
   ratingCount   Int            @default(0)
@@ -208,6 +219,12 @@ model Booking {
   depositReduced   Boolean       @default(false)
   /// Part of the deposit kept by the owner after a claim.
   depositKept      Int           @default(0)
+  handoverMethod   HandoverMethod @default(MEET)
+  /// Simulated delivery cost for both ways, included in `total`.
+  deliveryFee      Int           @default(0)
+  /// Courier address; shown to the owner only once the booking is accepted.
+  deliveryAddress  String?
+  lockerName       String?
   message          String?
   status           BookingStatus @default(REQUESTED)
   paymentStatus    PaymentStatus @default(UNPAID)

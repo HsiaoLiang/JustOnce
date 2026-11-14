@@ -71,6 +71,8 @@ export default async function EditListingPage({ params }: { params: Promise<{ id
           fullDepositOnly: listing.fullDepositOnly,
           area: listing.area,
           pickupNotes: listing.pickupNotes ?? "",
+          handoverMethods: listing.handoverMethods,
+          pickupPoint: listing.pickupLat !== null && listing.pickupLng !== null ? { lat: listing.pickupLat, lng: listing.pickupLng } : null,
           photos: listing.photos,
           availableFrom: toISO(listing.availableFrom) < today ? today : toISO(listing.availableFrom),
           availableTo: toISO(listing.availableTo),
