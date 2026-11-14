@@ -95,13 +95,13 @@ Every demo account uses the password **`justonce`**. In demo mode the log-in pag
 
 | Person | Email | Role | Waiting for them after a fresh seed |
 | --- | --- | --- | --- |
-| **Sophie Clarke** | `sophie@example.com` | Renter, Islington | A camera on rent to return (Fujifilm X100V, due tomorrow), a ski kit booked for next month, a gown request waiting on Amara, past rentals with reviews |
+| **Sophie Clarke** | `sophie@example.com` | Renter, Islington | A camera on rent to return (Fujifilm X100V, due tomorrow), an open deposit claim from Sam to accept or contest, a ski kit booked for next month, a gown request waiting on Amara, past rentals with reviews |
 | **Priya Shah** | `priya@example.com` | Owner, Hackney | Two *overlapping* requests for her Sony A7 III, a Polaroid pickup due today, a content-creator kit return to confirm, a review to write |
 | Amara Okafor | `amara@example.com` | Owner, Peckham | Sophie's request for the plum evening gown; Halloween props |
 | Leo Martins | `leo@example.com` | Renter and owner, Brixton | Waiting on Priya's answer about the Sony; a tuxedo booked for a black-tie party |
 | Tom Hughes | `tom@example.com` | Owner, Walthamstow | Tents and camping kit; a bell-tent booking next week |
 
-Also seeded: `hannah@`, `callum@`, `oliver@`, `daniel@`, `zara@`, `mei@` and `sam@example.com` (Sam isn't ID-verified, so you can show the unverified state). In total: 12 people, 32 listings across the four categories, 34 bookings in every state and 45 reviews. All dates are relative to the day you seed, so the demo always looks current.
+Also seeded: `hannah@`, `callum@`, `oliver@`, `daniel@`, `zara@`, `mei@` and `sam@example.com` (Sam isn't ID-verified, so you can show the unverified state and the "Verify your ID to halve deposits" prompt). Leo qualifies as a trusted renter, so he's quoted half deposits. Daniel's Fujifilm X-T3 rental shows a settled claim (£25 kept for a missing lens hood). In total: 12 people, 32 listings across the four categories, 35 bookings in every state and 45 reviews. All dates are relative to the day you seed, so the demo always looks current.
 
 ## Suggested demo script
 
@@ -115,7 +115,8 @@ About 6 minutes. Use **two screens** so the judges watch both sides of the same 
 4. **The owner accepts (30 s), laptop.** The *My listings* badge shows a new request. **Accept request**: the toast confirms Sophie has paid and the deposit is held (simulated). Those dates are now locked, and the phone flips to the pickup check on its own.
 5. **Pickup check (60 s), both screens.** On each screen add a photo (on the phone, take one with the camera, or tap *Use the listing photo (demo)*), confirm the item matches the listing and press **Confirm pickup**. Once both have confirmed, the ticket's stamp changes to **ON RENT**.
 6. **Return, deposit and ratings (60 s).** Both press **Confirm return** with a photo. The deposit stub turns green: *released to Sophie*, and Priya's payout is marked paid. Each rates the other with stars and a comment, and the reviews appear on both profiles.
-7. **Double booking can't happen (30 s), laptop.** Open Priya's Sony A7 III request from Leo. The page warns that one other request overlaps. Accept it: Daniel's overlapping request is declined automatically and he isn't charged, and the dates are crossed out on the calendar. Mention that this is also enforced by the database itself, not just the screen.
+7. **When something comes back damaged (optional, 60 s).** At the return check, the owner picks *Something's changed*, adds a note and confirms. The deposit stays on hold, and the owner claims part of it with a reason. The renter sees the pickup and return photos side by side and can accept (the rest comes back straight away) or contest. A contested claim shows a *Resolve claim (demo)* control so you can play the support team. To show it without acting it out, log in as Sophie and open her Christmas decorations rental: Sam's claim is waiting for her.
+8. **Double booking can't happen (30 s), laptop.** Open Priya's Sony A7 III request from Leo. The page warns that one other request overlaps. Accept it: Daniel's overlapping request is declined automatically and he isn't charged, and the dates are crossed out on the calendar. Mention that this is also enforced by the database itself, not just the screen.
 
 **Short on time?** Skip steps 2 to 4 and use the seeded bookings: as Sophie, return the Fujifilm X100V; as Priya, confirm the content-creator kit return (the renter has already confirmed, so Priya's confirmation completes it) and rate Callum.
 
@@ -141,10 +142,12 @@ Resetting logs everyone out. If you're showing the site on a phone, log in again
 | List an item `/listings/new`, edit `/listings/[id]/edit` | Photos (resized in the browser), category, condition, price, deposit, pickup area and private pickup details, availability window plus days blocked out; pause, resume or remove a listing |
 | My rentals `/dashboard/rentals` | Renter view: what needs you, what's on rent, upcoming, past |
 | My listings `/dashboard/listings` | Owner view: requests to accept or decline in place, what needs you, earnings, your items, past bookings |
-| Booking `/bookings/[id]` | The whole rental on one page: progress, the next step, the return ticket, pickup and return checks with photos, ratings, activity timeline |
+| Booking `/bookings/[id]` | The whole rental on one page: progress, the next step, the return ticket, pickup and return checks with photos, deposit claims (claim, accept, contest, review), ratings, activity timeline |
 | Profile `/users/[id]` | Verified badge, rating, items, reviews from renters and from owners |
 | Account `/account` | Edit profile and photo, simulated ID verification, log out |
 | Log in, sign up | Email and password; one-tap demo accounts in demo mode |
+
+**Deposits.** Refundable deposit: held when the owner accepts, returned in full when the item comes back complete and undamaged. If the owner reports a problem at the return check, the deposit stays held and they can claim up to the full amount (damaged, parts missing, not cleaned or returned late) within 48 hours. The renter accepts or contests; contested claims are reviewed (in demo mode, by whoever is presenting). If the owner never confirms the return, or doesn't claim within 48 hours, the deposit is released automatically. Trusted renters (ID-verified, 3+ completed rentals, 4.5+ average from owners, no claim against them still open) pay half the deposit, unless the owner ticks *Always take the full deposit*. Owners can enter a replacement value to get a suggested deposit (25%, at least £20).
 
 Payments, deposits and payouts are **simulated**: the app shows every amount and status change (paid, deposit held, deposit released, refunded, paid out) without a payment provider. ID verification is simulated too. There are no AI features in the product.
 
@@ -192,7 +195,7 @@ e2e/                 Playwright end-to-end tests
 
 ## Data model and the future swap option
 
-Main tables: `User`, `Session`, `Listing`, `BlockedDate`, `Booking`, `HandoverCheck` (one per side per stage, with photos), `Review`, `BookingEvent` (the timeline) and `ImageBlob` (uploaded photos). Money is stored in pence; rental dates are Postgres `date` values.
+Main tables: `User`, `Session`, `Listing`, `BlockedDate`, `Booking`, `HandoverCheck` (one per side per stage, with photos), `DepositClaim`, `Review`, `BookingEvent` (the timeline) and `ImageBlob` (uploaded photos). Money is stored in pence; rental dates are Postgres `date` values.
 
 Swaps aren't built, but the model is ready for them:
 
@@ -216,8 +219,8 @@ npm test
 npm run test:e2e
 ```
 
-- `npm test` runs unit tests for the pricing, date and booking rules (`src/lib/__tests__`).
-- `npm run test:e2e` drives the real app with Playwright through the whole journey in two browsers: an owner signs up and lists an item with a photo upload, a renter searches and books, the owner accepts, both confirm pickup and return, the deposit is released, both leave reviews, and overlapping requests are declined automatically. A second test checks the phone layout. It starts `npm run dev` if nothing is running; to test another server, set `E2E_BASE_URL`. First-time setup: `npx playwright install chromium`. **The tests create data, so run `npm run db:seed` afterwards.**
+- `npm test` runs unit tests for the pricing, deposit, date and booking rules (`src/lib/__tests__`).
+- `npm run test:e2e` drives the real app with Playwright through the whole journey in two browsers: an owner signs up and lists an item with a photo upload, a renter searches and books, the owner accepts, both confirm pickup and return, the deposit is released, both leave reviews, and overlapping requests are declined automatically. `e2e/deposits.spec.ts` covers damage claims (claim → accept, claim → contest → resolve) and half deposits for trusted renters. A last test checks the phone layout. It starts `npm run dev` if nothing is running; to test another server, set `E2E_BASE_URL`. First-time setup: `npx playwright install chromium`. **The tests create data, so run `npm run db:seed` afterwards.**
 
 ## Scripts and environment variables
 
@@ -244,7 +247,7 @@ This is a competition demo, so some things are deliberately simulated or left ou
 
 - **Payments:** simulated. In production this would be Stripe Connect, with the deposit held as an uncaptured authorisation and released after the return check.
 - **ID verification:** simulated. A real version would hand off to a provider such as Stripe Identity.
-- **Not built yet:** in-app messages, damage claims against the deposit, email and push notifications, map search, and the swap option described above.
+- **Not built yet:** in-app messages, a real support team for contested deposit claims, email and push notifications, map search, and the swap option described above.
 - **Demo mode** publishes the demo password and adds one-tap log-ins. Set `NEXT_PUBLIC_DEMO_MODE=false` for anything beyond a demo.
 
 Photos come from [Unsplash](https://unsplash.com) under the Unsplash License (details in [`public/seed/CREDITS.md`](public/seed/CREDITS.md)). The people, listings and reviews are made up.

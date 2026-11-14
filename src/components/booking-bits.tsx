@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Check, CircleDot } from "lucide-react";
-import { STATUS_STAMP, statusChip } from "@/lib/booking-flow";
+import { STATUS_STAMP, statusChip, type DepositStatusId } from "@/lib/booking-flow";
 import type { BookingStatusId, PartyId } from "@/lib/booking-rules";
 import { formatDay, todayInLondon, toISO } from "@/lib/dates";
 import { formatGBP } from "@/lib/money";
@@ -88,11 +88,14 @@ export function BookingTicketSummary({
     serviceFee: number;
     total: number;
     deposit: number;
+    depositKept: number;
+    depositReduced: boolean;
     paymentStatus: "UNPAID" | "PAID" | "REFUNDED";
-    depositStatus: "NONE" | "HELD" | "RELEASED";
+    depositStatus: DepositStatusId;
     payoutStatus: "NONE" | "SCHEDULED" | "PAID";
     owner: { name: string };
     renter: { name: string };
+    claim?: { amount: number; status: string } | null;
   };
   viewer: PartyId;
 }) {
@@ -114,16 +117,32 @@ export function BookingTicketSummary({
         ? { label: "After return", tone: "neutral" as const }
         : { label: closed ? "None" : "After return", tone: "muted" as const };
 
-  const depositLine =
-    booking.depositStatus === "RELEASED"
-      ? closed
-        ? `Released back to ${viewer === "RENTER" ? "you" : renterFirst}.`
-        : `Released to ${viewer === "RENTER" ? "you" : renterFirst} after the return check.`
-      : booking.depositStatus === "HELD"
-        ? "Held safely until you both confirm the return."
-        : closed
-          ? "Never taken."
-          : `Held when ${viewer === "OWNER" ? "you accept" : `${ownerFirst} accepts`}, released after the return.`;
+  const you = viewer === "RENTER" ? "you" : renterFirst;
+  const returned = booking.deposit - booking.depositKept;
+  const deposit: { line: string; tone: "success" | "warning" | "accent" | "muted"; headline?: string } = (() => {
+    switch (booking.depositStatus) {
+      case "RELEASED":
+        return { tone: "success", line: closed ? `Released back to ${you}.` : `Returned in full to ${you} after the return check.` };
+      case "PART_RELEASED":
+        return { tone: "warning", headline: `${formatGBP(returned)} returned · ${formatGBP(booking.depositKept)} kept`, line: `${formatGBP(booking.depositKept)} went to ${viewer === "OWNER" ? "you" : ownerFirst} after a claim.` };
+      case "KEPT":
+        return { tone: "warning", headline: `${formatGBP(booking.deposit)} kept`, line: `The deposit went to ${viewer === "OWNER" ? "you" : ownerFirst} after a claim.` };
+      case "IN_REVIEW":
+        return {
+          tone: "warning",
+          headline: booking.claim ? `${formatGBP(booking.claim.amount)} of ${formatGBP(booking.deposit)} under review` : "Under review",
+          line: booking.claim?.status === "CONTESTED" ? "Contested: Just Once is reviewing both sides." : `Waiting for ${viewer === "RENTER" ? "you" : renterFirst} to accept or contest the claim.`,
+        };
+      case "HELD":
+        if (booking.status === "COMPLETED") return { tone: "warning", headline: "Held", line: `${viewer === "OWNER" ? "You" : ownerFirst} reported a problem at the return.` };
+        return { tone: "accent", line: "Held safely until you both confirm the return." };
+      default:
+        return {
+          tone: "muted",
+          line: closed ? "Never taken." : `Held when ${viewer === "OWNER" ? "you accept" : `${ownerFirst} accepts`}, returned in full when the item comes back complete and undamaged.`,
+        };
+    }
+  })();
 
   return (
     <div className="ticket relative shadow-card">
@@ -172,12 +191,18 @@ export function BookingTicketSummary({
 
       <div className="ticket-perf" />
 
-      <div className={cn("rounded-b-[1.2rem] p-5", booking.depositStatus === "RELEASED" ? "bg-success-soft" : booking.depositStatus === "HELD" ? "bg-accent-soft" : "bg-surface")}>
+      <div
+        className={cn(
+          "rounded-b-[1.2rem] p-5",
+          deposit.tone === "success" ? "bg-success-soft" : deposit.tone === "warning" ? "bg-warning-soft" : deposit.tone === "accent" ? "bg-accent-soft" : "bg-surface",
+        )}
+      >
         <div className="flex items-baseline justify-between gap-3">
-          <p className="font-semibold">Deposit</p>
+          <p className="font-semibold">{booking.depositReduced ? "Deposit (half, trusted renter)" : "Deposit"}</p>
           <p className="font-semibold tabular-nums">{formatGBP(booking.deposit)}</p>
         </div>
-        <p className="mt-1 text-sm text-ink-2">{depositLine}</p>
+        {deposit.headline && <p className={cn("mt-1 font-semibold", deposit.tone === "warning" && "text-warning")}>{deposit.headline}</p>}
+        <p className="mt-1 text-sm text-ink-2">{deposit.line}</p>
       </div>
     </div>
   );

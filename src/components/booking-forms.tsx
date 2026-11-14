@@ -6,9 +6,11 @@ import { Star } from "lucide-react";
 import { acceptBooking, cancelBooking, declineBooking, submitCheck, submitReview, type FormState } from "@/server/actions/bookings";
 import { CONDITIONS, type ConditionId } from "@/lib/catalogue";
 import { MAX_CHECK_PHOTOS } from "@/lib/photos";
+import { CLAIM_REASONS } from "@/lib/money";
+import { fileDepositClaim, respondToClaim } from "@/server/actions/deposits";
 import { cn } from "@/lib/cn";
 import { PhotoUploader } from "./photo-uploader";
-import { Button, FormAlert, Textarea } from "./ui";
+import { Button, FormAlert, Select, Textarea, inputClass } from "./ui";
 
 function Submit({ children, variant = "primary", size = "md", className, pendingText, disabled }: { children: React.ReactNode; variant?: "primary" | "dark" | "secondary" | "danger"; size?: "sm" | "md" | "lg"; className?: string; pendingText?: string; disabled?: boolean }) {
   const { pending } = useFormStatus();
@@ -207,6 +209,113 @@ export function ReviewForm({ bookingId, subjectFirstName, asRenter }: { bookingI
       <Submit pendingText="Posting…" disabled={!rating}>
         Post review
       </Submit>
+    </form>
+  );
+}
+
+export function ClaimForm({ bookingId, deposit, defaultNote }: { bookingId: string; deposit: number; defaultNote: string }) {
+  const [state, action] = useActionState<FormState, FormData>(fileDepositClaim, undefined);
+  const [amount, setAmount] = useState("");
+  const max = deposit / 100;
+  return (
+    <form action={action} className="space-y-4" data-dirty={amount ? "true" : "false"}>
+      <input type="hidden" name="bookingId" value={bookingId} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="claim-amount" className="mb-1.5 block text-sm font-semibold">
+            Amount to claim <span className="font-normal text-muted">(up to £{max})</span>
+          </label>
+          <div className="relative">
+            <span className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-2">£</span>
+            <input
+              id="claim-amount"
+              name="amount"
+              inputMode="decimal"
+              autoComplete="off"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))}
+              className={cn(inputClass, "h-11 pl-8")}
+              placeholder={String(Math.round(max / 4))}
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="claim-reason" className="mb-1.5 block text-sm font-semibold">
+            Reason
+          </label>
+          <Select id="claim-reason" name="reason" defaultValue="DAMAGED">
+            {CLAIM_REASONS.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </div>
+      <div>
+        <label htmlFor="claim-note" className="mb-1.5 block text-sm font-semibold">
+          What&apos;s wrong
+        </label>
+        <Textarea id="claim-note" name="note" rows={2} maxLength={600} defaultValue={defaultNote} className="min-h-0" />
+        <p className="mt-1 text-xs text-muted">Your return photos are attached automatically, next to the pickup photos.</p>
+      </div>
+      <FormAlert>{state?.error}</FormAlert>
+      <Submit pendingText="Sending claim…" disabled={!amount}>
+        Claim from the deposit
+      </Submit>
+    </form>
+  );
+}
+
+export function ClaimResponseForm({ bookingId, amount, ownerFirstName }: { bookingId: string; amount: string; ownerFirstName: string }) {
+  const [state, action] = useActionState<FormState, FormData>(respondToClaim, undefined);
+  const [mode, setMode] = useState<"choose" | "contest">("choose");
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  if (mode === "choose") {
+    return (
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-2">
+          <form action={action}>
+            <input type="hidden" name="bookingId" value={bookingId} />
+            <input type="hidden" name="decision" value="accept" />
+            <Submit variant="dark" pendingText="Accepting…">
+              Accept: {ownerFirstName} keeps {amount}
+            </Submit>
+          </form>
+          <Button type="button" variant="secondary" onClick={() => setMode("contest")}>
+            Contest the claim
+          </Button>
+        </div>
+        <FormAlert>{state?.error}</FormAlert>
+      </div>
+    );
+  }
+  return (
+    <form action={action} className="space-y-4" data-dirty="true">
+      <input type="hidden" name="bookingId" value={bookingId} />
+      <input type="hidden" name="decision" value="contest" />
+      <div>
+        <label htmlFor="contest-note" className="mb-1.5 block text-sm font-semibold">
+          Why don&apos;t you agree?
+        </label>
+        <Textarea id="contest-note" name="note" rows={3} maxLength={600} placeholder="e.g. The scuff was already there at pickup: you can see it in the second photo." autoFocus />
+      </div>
+      <div>
+        <p className="mb-2 text-sm font-semibold">
+          Your photos <span className="font-normal text-muted">(optional)</span>
+        </p>
+        <PhotoUploader name="photos" max={MAX_CHECK_PHOTOS} showCover={false} label="Add photos" onChange={(urls, b) => (setPhotos(urls), setBusy(b))} />
+      </div>
+      <FormAlert>{state?.error}</FormAlert>
+      <div className="flex gap-2">
+        <Submit pendingText="Sending…" disabled={busy}>
+          {busy ? "Waiting for photos…" : photos.length ? "Contest with photos" : "Contest the claim"}
+        </Submit>
+        <Button type="button" variant="ghost" onClick={() => setMode("choose")}>
+          Back
+        </Button>
+      </div>
     </form>
   );
 }

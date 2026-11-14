@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { addDays, formatRange, isISODate, rangesOverlap, rentalDays } from "../dates";
-import { formatGBP, parsePounds, quote } from "../money";
+import { depositFor, formatGBP, parsePounds, quote, suggestedDeposit } from "../money";
 import { checkRange, dayState, type Availability } from "../booking-rules";
 import { nextStep, type FlowBooking } from "../booking-flow";
 import { isAllowedPhotoUrl } from "../photos";
@@ -94,4 +94,47 @@ test("search params are cleaned up", () => {
   assert.equal(parsed.to, "2099-01-05");
   assert.equal(parsed.max, undefined);
   assert.equal(parsed.sort, "recommended");
+});
+
+test("trusted renters pay half the deposit, everyone else pays it in full", () => {
+  const trusted = { verified: true, completedRentals: 5, avgRating: 4.8, fullDepositOnly: false };
+  assert.deepEqual(depositFor(50000, trusted), { amount: 25000, listed: 50000, reduced: true, reason: "trusted" });
+  assert.equal(depositFor(50000, { ...trusted, verified: false }).reason, "unverified");
+  assert.equal(depositFor(50000, { ...trusted, completedRentals: 2 }).reason, "building-history");
+  assert.equal(depositFor(50000, { ...trusted, avgRating: 4.4 }).reason, "building-history");
+  assert.equal(depositFor(50000, { ...trusted, avgRating: null }).amount, 50000);
+  assert.equal(depositFor(50000, { ...trusted, openClaims: 1 }).reason, "open-claim");
+  assert.deepEqual(depositFor(50000, { ...trusted, fullDepositOnly: true }), { amount: 50000, listed: 50000, reduced: false, reason: "full-only" });
+});
+
+test("suggested deposits are 25% of replacement value, at least £20", () => {
+  assert.equal(suggestedDeposit(160000), 40000);
+  assert.equal(suggestedDeposit(4000), 2000);
+  assert.equal(suggestedDeposit(12345), 3100);
+});
+
+test("deposit claims come before reviews in the next step", () => {
+  const done: FlowBooking = {
+    status: "COMPLETED",
+    startDate: "2026-11-01",
+    endDate: "2026-11-03",
+    returnedAt: new Date(),
+    checks: [
+      { stage: "RETURN", party: "RENTER", conditionOk: true },
+      { stage: "RETURN", party: "OWNER", conditionOk: false },
+    ],
+    reviews: [],
+    depositStatus: "HELD",
+  };
+  assert.deepEqual(nextStep(done, "OWNER", "Sophie Clarke", today), { label: "Claim from the deposit or release it", needsYou: true });
+  assert.equal(nextStep(done, "RENTER", "Priya Shah", today).label, "Waiting for Priya to decide on the deposit");
+  const open = { ...done, depositStatus: "IN_REVIEW" as const, claim: { status: "OPEN" as const } };
+  assert.deepEqual(nextStep(open, "RENTER", "Priya Shah", today), { label: "Respond to Priya's deposit claim", needsYou: true });
+  assert.equal(nextStep(open, "OWNER", "Sophie Clarke", today).label, "Waiting for Sophie to respond to your claim");
+  assert.equal(nextStep({ ...open, claim: { status: "CONTESTED" } }, "OWNER", "Sophie Clarke", today).label, "Claim under review");
+  const settled = { ...open, depositStatus: "PART_RELEASED" as const, claim: { status: "ACCEPTED" as const } };
+  assert.equal(nextStep(settled, "RENTER", "Priya Shah", today).label, "Rate Priya");
+  // A clean return goes straight to reviews, as before.
+  const clean = { ...done, checks: [{ stage: "RETURN" as const, party: "OWNER" as const, conditionOk: true }], depositStatus: "RELEASED" as const };
+  assert.equal(nextStep(clean, "OWNER", "Sophie Clarke", today).label, "Rate Sophie");
 });

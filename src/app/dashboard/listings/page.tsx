@@ -12,6 +12,7 @@ import { todayInLondon, toISO } from "@/lib/dates";
 import { formatGBP } from "@/lib/money";
 import { cn, formatRating, plural } from "@/lib/cn";
 import { requireUser } from "@/server/auth";
+import { settleOverdueDeposits } from "@/server/deposits";
 import { setListingStatus } from "@/server/actions/listings";
 import { getOwnerDashboard, toFlow, type BookingRow } from "@/server/queries";
 import { db } from "@/server/db";
@@ -20,6 +21,7 @@ export const metadata: Metadata = { title: "My listings" };
 
 export default async function ListingsDashboard() {
   const user = await requireUser("/dashboard/listings");
+  await settleOverdueDeposits({ ownerId: user.id });
   const [{ bookings, listings, earned, upcoming }, me] = await Promise.all([
     getOwnerDashboard(user.id),
     db.user.findUnique({ where: { id: user.id }, select: { ratingSum: true, ratingCount: true } }),

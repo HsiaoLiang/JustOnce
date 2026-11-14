@@ -23,6 +23,11 @@
 
   --color-success: #17803d;
   --color-success-soft: #edfbf2;
+  /* Amber: money on hold while a deposit claim is open. */
+  --color-warning: #8a5300;
+  --color-warning-soft: #fff6db;
+  --color-warning-line: #f1d38b;
+
   --color-danger: #b42318;
   --color-danger-soft: #fef3f2;
 
