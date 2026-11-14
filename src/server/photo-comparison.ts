@@ -5,6 +5,8 @@
 // is all this file ever writes. It never touches a booking's status or deposit:
 // the owner's own tick at the return check is still what decides those.
 
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import type { Prisma } from "@prisma/client";
 import { firstName } from "@/lib/cn";
 import { sniffImageType } from "@/lib/image-type";
@@ -63,10 +65,15 @@ async function loadPhoto(src: string, origin: string): Promise<AiImage> {
     if (!image) throw new Error("Photo no longer exists");
     return image;
   }
-  // Seed photos are static files. Fetching them from our own origin works the same locally and on Vercel.
-  const response = await fetch(new URL(src, origin), { signal: AbortSignal.timeout(8_000) });
-  if (!response.ok) throw new Error(`Couldn't read ${src}`);
-  const data = new Uint8Array(await response.arrayBuffer());
+  // Seed photos are static files in public/. Read them from disk when they are there (local runs);
+  // on hosts that serve public/ separately from the server code, fetch them from our own origin.
+  const data = await readFile(path.join(process.cwd(), "public", ...src.split("/").filter(Boolean)))
+    .then((file) => new Uint8Array(file))
+    .catch(async () => {
+      const response = await fetch(new URL(src, origin), { signal: AbortSignal.timeout(8_000) });
+      if (!response.ok) throw new Error(`Couldn't read ${src} (HTTP ${response.status})`);
+      return new Uint8Array(await response.arrayBuffer());
+    });
   const mimeType = sniffImageType(data);
   if (!mimeType || data.byteLength > MAX_IMAGE_BYTES) throw new Error(`${src} isn't a usable photo`);
   return { mimeType, data };
