@@ -164,7 +164,8 @@ export async function askVisionModel(options: AskOptions): Promise<unknown> {
     // Server hiccups and dropped connections are worth one more go. A rejected request is not,
     // and neither is a timeout: a second 25 seconds would outlast the page waiting for us.
     if (first instanceof AiUnavailableError && !first.retryable) throw first;
-    if (first instanceof Error && (first.name === "TimeoutError" || first.name === "AbortError")) {
+    const name = (first as { name?: string } | null)?.name;
+    if (name === "TimeoutError" || name === "AbortError") {
       throw new AiUnavailableError(`The AI provider took longer than ${TIMEOUT_MS / 1000} seconds to answer`);
     }
     try {
