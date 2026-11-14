@@ -155,6 +155,9 @@ export interface SeedListing {
   pickupNotes: string;
   /** Day offsets the owner has blocked out. */
   blocked?: [number, number][];
+  /** Pounds. */
+  replacementValue?: number;
+  fullDepositOnly?: boolean;
 }
 
 const p = (slug: string, count = 1) => Array.from({ length: count }, (_, i) => `/seed/listings/${slug}-${i + 1}.jpg`);
@@ -163,6 +166,7 @@ export const LISTINGS: SeedListing[] = [
   // Formalwear
   {
     id: "black-tuxedo-satin-lapels",
+    replacementValue: 450,
     owner: "oliver-bennett",
     title: "Black tuxedo with satin lapels",
     category: "FORMALWEAR",
@@ -277,6 +281,8 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "quilted-leather-crossbody-bag",
+    replacementValue: 1500,
+    fullDepositOnly: true,
     owner: "zara-ahmed",
     title: "Gucci GG Marmont quilted crossbody bag",
     category: "FORMALWEAR",
@@ -295,6 +301,7 @@ export const LISTINGS: SeedListing[] = [
   // Cameras
   {
     id: "sony-a7-iii-28-70mm",
+    replacementValue: 1600,
     owner: "priya-shah",
     title: "Sony A7 III with 28–70mm lens",
     category: "CAMERAS",
@@ -312,6 +319,7 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "fujifilm-x100v",
+    replacementValue: 1400,
     owner: "mei-chen",
     title: "Fujifilm X100V",
     category: "CAMERAS",
@@ -374,6 +382,7 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "fujifilm-x-t3-18-55mm",
+    replacementValue: 1100,
     owner: "mei-chen",
     title: "Fujifilm X-T3 with 18–55mm lens",
     category: "CAMERAS",
@@ -421,6 +430,7 @@ export const LISTINGS: SeedListing[] = [
   // Camping
   {
     id: "mountain-hardwear-4-person-tent",
+    replacementValue: 400,
     owner: "tom-hughes",
     title: "Mountain Hardwear 4-person tent",
     category: "CAMPING",
@@ -454,6 +464,7 @@ export const LISTINGS: SeedListing[] = [
   },
   {
     id: "canvas-bell-tent-5m",
+    replacementValue: 800,
     owner: "tom-hughes",
     title: "5m canvas bell tent",
     category: "CAMPING",
@@ -695,6 +706,15 @@ export interface SeedBooking {
   pickupDone?: ("OWNER" | "RENTER")[];
   returnDone?: ("OWNER" | "RENTER")[];
   declineReason?: string;
+  /** A deposit claim after the owner flagged a problem at the return check. */
+  claim?: {
+    /** Pounds. */
+    amount: number;
+    reason: "DAMAGED" | "MISSING_PARTS" | "NOT_CLEANED" | "RETURNED_LATE";
+    returnIssue: string;
+    ownerNote: string;
+    status: "OPEN" | "ACCEPTED";
+  };
 }
 
 export const BOOKINGS: SeedBooking[] = [
@@ -769,6 +789,22 @@ export const BOOKINGS: SeedBooking[] = [
     end: -29,
     status: "CANCELLED",
     message: "For a garden birthday party, if the weather holds!",
+  },
+
+  {
+    listing: "christmas-decorations-box",
+    renter: "sophie-clarke",
+    start: -6,
+    end: -2,
+    status: "COMPLETED",
+    message: "Decorating early for a flat party. I'll take good care of everything!",
+    claim: {
+      amount: 8,
+      reason: "DAMAGED",
+      returnIssue: "Two baubles smashed and one set of fairy lights doesn't light any more.",
+      ownerNote: "Two glass baubles broke and one string of lights is dead. £8 covers replacing them.",
+      status: "OPEN",
+    },
   },
 
   // Priya (main demo owner)
@@ -946,7 +982,14 @@ export const BOOKINGS: SeedBooking[] = [
     end: -18,
     status: "COMPLETED",
     renterReview: { rating: 5, comment: "Lovely camera, clearly well looked after. Mei was quick to reply and flexible on the handover time." },
-    ownerReview: { rating: 5, comment: "Great renter. Everything came back exactly as it went out." },
+    ownerReview: { rating: 4, comment: "The lens hood didn't make it back, but Daniel accepted the claim straight away with no fuss. Otherwise a great renter." },
+    claim: {
+      amount: 25,
+      reason: "MISSING_PARTS",
+      returnIssue: "Lens hood missing from the bag.",
+      ownerNote: "The lens hood is missing. A replacement costs £25.",
+      status: "ACCEPTED",
+    },
   },
   {
     listing: "nikon-d750-50mm",

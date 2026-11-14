@@ -58,6 +58,13 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
   if (deposit === null) fieldErrors.deposit = "Enter the deposit in pounds, e.g. 50.";
   else if (deposit > 200_000) fieldErrors.deposit = "Deposits can be up to £2,000.";
 
+  const replacementRaw = String(formData.get("replacementValue") ?? "").trim();
+  const replacementValue = replacementRaw ? parsePounds(replacementRaw) : null;
+  if (replacementRaw && (replacementValue === null || replacementValue < 100 || replacementValue > 2_000_000)) {
+    fieldErrors.replacementValue = "Enter a replacement value between £1 and £20,000, or leave it blank.";
+  }
+  const fullDepositOnly = formData.get("fullDepositOnly") === "on";
+
   const today = todayInLondon();
   const from = String(formData.get("availableFrom") ?? "");
   const to = String(formData.get("availableTo") ?? "");
@@ -102,6 +109,8 @@ export async function saveListing(_prev: ListingFormState, formData: FormData): 
     pickupNotes: v.pickupNotes || null,
     pricePerDay: price!,
     deposit: deposit!,
+    replacementValue,
+    fullDepositOnly,
     photos: photos as string[],
     availableFrom: toDate(from),
     availableTo: toDate(to),

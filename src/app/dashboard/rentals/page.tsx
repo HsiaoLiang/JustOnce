@@ -6,12 +6,14 @@ import { Container, EmptyState, LinkButton } from "@/components/ui";
 import { nextStep } from "@/lib/booking-flow";
 import { todayInLondon, toISO } from "@/lib/dates";
 import { requireUser } from "@/server/auth";
+import { settleOverdueDeposits } from "@/server/deposits";
 import { getRenterBookings, toFlow, type BookingRow } from "@/server/queries";
 
 export const metadata: Metadata = { title: "My rentals" };
 
 export default async function RentalsPage() {
   const user = await requireUser("/dashboard/rentals");
+  await settleOverdueDeposits({ renterId: user.id });
   const bookings = await getRenterBookings(user.id);
   const today = todayInLondon();
   const withStep = bookings.map((b) => ({ b, step: nextStep(toFlow(b), "RENTER", b.owner.name, today) }));

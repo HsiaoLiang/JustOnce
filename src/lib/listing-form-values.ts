@@ -12,6 +12,8 @@ export interface ListingFormValues {
   size: string;
   price: string;
   deposit: string;
+  replacementValue: string;
+  fullDepositOnly: boolean;
   area: string;
   pickupNotes: string;
   photos: string[];
@@ -30,6 +32,8 @@ export function emptyListingValues(today: ISODate, area: string | null): Listing
     size: "",
     price: "",
     deposit: "",
+    replacementValue: "",
+    fullDepositOnly: false,
     area: area ?? "",
     pickupNotes: "",
     photos: [],

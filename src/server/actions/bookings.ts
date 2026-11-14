@@ -8,10 +8,11 @@ import { requireUser } from "../auth";
 import { setFlash } from "../flash";
 import { BLOCKING_STATUSES, checkRange } from "@/lib/booking-rules";
 import { formatDay, isISODate, rentalDays, todayInLondon, toDate, toISO } from "@/lib/dates";
-import { formatGBP, quote } from "@/lib/money";
+import { depositFor, formatGBP, quote } from "@/lib/money";
 import { isConditionId } from "@/lib/catalogue";
 import { firstName } from "@/lib/cn";
 import { isAllowedPhotoUrl } from "@/lib/photos";
+import { getRenterTrust } from "../queries";
 
 export type RequestState = { error?: string } | undefined;
 export type FormState = { error?: string; ok?: boolean } | undefined;
@@ -62,7 +63,10 @@ export async function requestBooking(_prev: RequestState, formData: FormData): P
   });
   if (problem) return { error: problem };
 
-  const q = quote(listing.pricePerDay, listing.deposit, rentalDays(start, end));
+  // The deposit is always worked out here, never taken from the browser.
+  const trust = await getRenterTrust(user.id);
+  const deposit = depositFor(listing.deposit, { ...trust, fullDepositOnly: listing.fullDepositOnly });
+  const q = quote(listing.pricePerDay, deposit.amount, rentalDays(start, end));
   const booking = await db.booking.create({
     data: {
       listingId,
@@ -76,6 +80,7 @@ export async function requestBooking(_prev: RequestState, formData: FormData): P
       serviceFee: q.serviceFee,
       total: q.total,
       deposit: q.deposit,
+      depositReduced: deposit.reduced,
       message,
       events: { create: { type: "requested", actorId: user.id, note: message } },
     },
@@ -225,6 +230,7 @@ export async function submitCheck(_prev: FormState, formData: FormData): Promise
 
   const other = party === "OWNER" ? b.renter.name : b.owner.name;
   let finished = false;
+  let flaggedReturn = false;
   try {
     finished = await db.$transaction(async (tx) => {
       await tx.handoverCheck.create({
@@ -239,19 +245,31 @@ export async function submitCheck(_prev: FormState, formData: FormData): Promise
         const moved = await tx.booking.updateMany({ where: { id, status: "ACCEPTED" }, data: { status: "ACTIVE", pickedUpAt: new Date() } });
         if (moved.count) await tx.bookingEvent.create({ data: { bookingId: id, type: "picked_up" } });
       } else {
+        // A problem flagged by the owner keeps the deposit held until it's claimed or released.
+        const ownerCheck = await tx.handoverCheck.findUnique({ where: { bookingId_stage_party: { bookingId: id, stage: "RETURN", party: "OWNER" } } });
+        const flagged = ownerCheck?.conditionOk === false;
+        const claim = flagged ? await tx.depositClaim.findUnique({ where: { bookingId: id }, select: { id: true } }) : null;
         const moved = await tx.booking.updateMany({
           where: { id, status: "ACTIVE" },
-          data: { status: "COMPLETED", returnedAt: new Date(), depositStatus: "RELEASED", payoutStatus: "PAID" },
+          data: {
+            status: "COMPLETED",
+            returnedAt: new Date(),
+            payoutStatus: "PAID",
+            depositStatus: flagged ? (claim ? "IN_REVIEW" : "HELD") : "RELEASED",
+          },
         });
         if (moved.count) {
           await tx.bookingEvent.create({
             data: {
               bookingId: id,
               type: "completed",
-              note: `${money(b.deposit)} deposit released to ${firstName(b.renter.name)} · ${money(b.subtotal)} paid out to ${firstName(b.owner.name)}`,
+              note: flagged
+                ? `${money(b.subtotal)} paid out to ${firstName(b.owner.name)} · ${money(b.deposit)} deposit held: ${firstName(b.owner.name)} reported a problem`
+                : `${money(b.deposit)} deposit released to ${firstName(b.renter.name)} · ${money(b.subtotal)} paid out to ${firstName(b.owner.name)}`,
             },
           });
         }
+        flaggedReturn = flagged;
       }
       return true;
     });
@@ -264,9 +282,13 @@ export async function submitCheck(_prev: FormState, formData: FormData): Promise
     await setFlash(finished ? `Pickup confirmed by you both. Enjoy it! It's due back ${formatDay(toISO(b.endDate))}.` : `Pickup check saved. Waiting for ${firstName(other)} to confirm.`);
   } else {
     await setFlash(
-      finished
-        ? `Return confirmed. The ${money(b.deposit)} deposit has been released to ${firstName(b.renter.name)}.`
-        : `Return check saved. Waiting for ${firstName(other)} to confirm.`,
+      !finished
+        ? `Return check saved. Waiting for ${firstName(other)} to confirm.`
+        : flaggedReturn
+          ? party === "OWNER"
+            ? "Return confirmed. Now decide whether to claim from the deposit."
+            : `Return confirmed. ${firstName(b.owner.name)} reported a problem, so the deposit is held for now.`
+          : `Return confirmed. The ${money(b.deposit)} deposit has been released to ${firstName(b.renter.name)}.`,
     );
   }
   refreshBookingViews(id);

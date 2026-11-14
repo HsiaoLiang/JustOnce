@@ -67,6 +67,8 @@ export default async function EditListingPage({ params }: { params: Promise<{ id
           size: listing.size ?? "",
           price: penceToPoundsInput(listing.pricePerDay),
           deposit: penceToPoundsInput(listing.deposit),
+          replacementValue: listing.replacementValue ? penceToPoundsInput(listing.replacementValue) : "",
+          fullDepositOnly: listing.fullDepositOnly,
           area: listing.area,
           pickupNotes: listing.pickupNotes ?? "",
           photos: listing.photos,

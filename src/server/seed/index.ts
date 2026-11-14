@@ -4,7 +4,7 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { addDays, toDate, todayInLondon, type ISODate } from "../../lib/dates";
-import { formatGBP, quote } from "../../lib/money";
+import { claimReasonLabel, formatGBP, quote } from "../../lib/money";
 import { BOOKINGS, CHECK_NOTES, DEMO_PASSWORD, LISTINGS, USERS, type SeedBooking } from "./data";
 
 export interface SeedSummary {
@@ -45,7 +45,7 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
   const later = (date: Date, minutes: number) => new Date(Math.min(date.getTime() + minutes * 60_000, now - 5 * 60_000));
 
   await prisma.$executeRawUnsafe(
-    `TRUNCATE TABLE "BookingEvent", "Review", "HandoverCheck", "Booking", "BlockedDate", "Listing", "Session", "ImageBlob", "User" CASCADE`,
+    `TRUNCATE TABLE "DepositClaim", "BookingEvent", "Review", "HandoverCheck", "Booking", "BlockedDate", "Listing", "Session", "ImageBlob", "User" CASCADE`,
   );
 
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
@@ -84,6 +84,8 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
       availableFrom: toDate(day(-180)),
       availableTo: toDate(day(180)),
       featured: Boolean(l.featured),
+      replacementValue: l.replacementValue ? l.replacementValue * 100 : null,
+      fullDepositOnly: Boolean(l.fullDepositOnly),
       createdAt: at(-170 + i, "12:00"),
     })),
   });
@@ -134,13 +136,14 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
     const photosFor = (party: "OWNER" | "RENTER") => [party === "OWNER" ? listing.photos[0] : (listing.photos[1] ?? listing.photos[0])];
     const addCheck = (stage: "PICKUP" | "RETURN", party: "OWNER" | "RENTER", createdAt: Date) => {
       const notes = CHECK_NOTES[`${stage === "PICKUP" ? "pickup" : "return"}${party === "OWNER" ? "Owner" : "Renter"}` as keyof typeof CHECK_NOTES];
+      const flagged = Boolean(b.claim) && stage === "RETURN" && party === "OWNER";
       checks.push({
         stage,
         party,
         userId: party === "OWNER" ? owner.id : renter.id,
         condition: listing.condition,
-        conditionOk: true,
-        notes: pick(notes, index),
+        conditionOk: !flagged,
+        notes: flagged ? b.claim!.returnIssue : pick(notes, index),
         photos: photosFor(party),
         createdAt,
       });
@@ -162,7 +165,19 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
       addCheck("RETURN", "RENTER", at(b.end, "19:30"));
       addCheck("RETURN", "OWNER", at(b.end, "19:34"));
       returnedAt = at(b.end, "19:35");
-      event("completed", returnedAt, null, `${formatGBP(q.deposit)} deposit released to ${firstName(renter.name)} · ${formatGBP(q.subtotal)} paid out to ${firstName(owner.name)}`);
+      if (b.claim) {
+        const kept = b.claim.amount * 100;
+        event("completed", returnedAt, null, `${formatGBP(q.subtotal)} paid out to ${firstName(owner.name)} · ${formatGBP(q.deposit)} deposit held: ${firstName(owner.name)} reported a problem`);
+        const claimedAt = at(b.end, "20:05");
+        event("deposit_claimed", claimedAt, owner.id, `${formatGBP(kept)} of the ${formatGBP(q.deposit)} deposit claimed: ${claimReasonLabel(b.claim.reason)}. “${b.claim.ownerNote}”`);
+        if (b.claim.status === "ACCEPTED") {
+          const acceptedAt = at(b.end + 1, "09:20");
+          event("deposit_claim_accepted", acceptedAt, renter.id, `${formatGBP(kept)} claim accepted`);
+          event("deposit_part_released", later(acceptedAt, 1), null, `${formatGBP(kept)} kept by ${firstName(owner.name)} · ${formatGBP(q.deposit - kept)} returned to ${firstName(renter.name)}`);
+        }
+      } else {
+        event("completed", returnedAt, null, `${formatGBP(q.deposit)} deposit released to ${firstName(renter.name)} · ${formatGBP(q.subtotal)} paid out to ${firstName(owner.name)}`);
+      }
       if (b.renterReview) {
         const createdAt = at(b.end + 1, "12:10");
         reviewRows.push({ authorId: renter.id, subjectId: owner.id, authorRole: "RENTER", ...b.renterReview, createdAt });
@@ -191,7 +206,33 @@ export async function seedDatabase(prisma: PrismaClient, options: { today?: ISOD
         message: b.message ?? null,
         status: b.status,
         paymentStatus: confirmed ? "PAID" : "UNPAID",
-        depositStatus: b.status === "COMPLETED" ? "RELEASED" : confirmed ? "HELD" : "NONE",
+        depositStatus: b.claim
+          ? b.claim.status === "ACCEPTED"
+            ? b.claim.amount * 100 >= q.deposit
+              ? "KEPT"
+              : "PART_RELEASED"
+            : "IN_REVIEW"
+          : b.status === "COMPLETED"
+            ? "RELEASED"
+            : confirmed
+              ? "HELD"
+              : "NONE",
+        depositKept: b.claim?.status === "ACCEPTED" ? b.claim.amount * 100 : 0,
+        claim: b.claim
+          ? {
+              create: {
+                amount: b.claim.amount * 100,
+                reason: b.claim.reason,
+                ownerNote: b.claim.ownerNote,
+                photos: [listing.photos[0]],
+                status: b.claim.status,
+                resolvedAmount: b.claim.status === "ACCEPTED" ? b.claim.amount * 100 : null,
+                createdAt: at(b.end, "20:05"),
+                respondedAt: b.claim.status === "ACCEPTED" ? at(b.end + 1, "09:20") : null,
+                resolvedAt: b.claim.status === "ACCEPTED" ? at(b.end + 1, "09:20") : null,
+              },
+            }
+          : undefined,
         payoutStatus: b.status === "COMPLETED" ? "PAID" : confirmed ? "SCHEDULED" : "NONE",
         declineReason: b.declineReason ?? null,
         cancelledById: b.status === "CANCELLED" ? renter.id : null,

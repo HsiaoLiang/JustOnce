@@ -9,7 +9,7 @@ import { CATEGORIES, CONDITIONS, conditionLabel, type CategoryId } from "@/lib/c
 import type { ISODate } from "@/lib/dates";
 import type { DraftField, ListingDraftResponse } from "@/lib/listing-draft";
 import type { ListingFormValues } from "@/lib/listing-form-values";
-import { formatGBP, parsePounds, penceToPoundsInput } from "@/lib/money";
+import { DEPOSIT_PROMISE, formatGBP, parsePounds, penceToPoundsInput, suggestedDeposit } from "@/lib/money";
 import { MAX_LISTING_PHOTOS } from "@/lib/photos";
 import { cn, plural } from "@/lib/cn";
 import { Calendar } from "./calendar";
@@ -45,14 +45,14 @@ export function ListingForm({
   const [uploading, setUploading] = useState(false);
   const errors = state?.fieldErrors ?? {};
   // AI draft: which fields still hold an unreviewed suggestion, and what the model couldn't tell.
-  const [suggested, setSuggested] = useState<ReadonlySet<SuggestibleField>>(new Set());
+  const [aiFilled, setAiFilled] = useState<ReadonlySet<SuggestibleField>>(new Set());
   const [questions, setQuestions] = useState<Partial<Record<DraftField, string>>>({});
   const [reasons, setReasons] = useState<{ price?: string; deposit?: string }>({});
   const [drafting, setDrafting] = useState(false);
   const [draftMessage, setDraftMessage] = useState<{ tone: "info" | "danger"; text: string } | null>(null);
 
   const confirm = (key: SuggestibleField) =>
-    setSuggested((prev) => {
+    setAiFilled((prev) => {
       if (!prev.has(key)) return prev;
       const next = new Set(prev);
       next.delete(key);
@@ -64,7 +64,7 @@ export function ListingForm({
     confirm(key as SuggestibleField);
     if (value) setQuestions((prev) => (key in prev ? { ...prev, [key]: undefined } : prev));
   };
-  const mark = (key: SuggestibleField) => suggested.has(key) && <SuggestedMark onConfirm={() => confirm(key)} />;
+  const mark = (key: SuggestibleField) => aiFilled.has(key) && <SuggestedMark onConfirm={() => confirm(key)} />;
 
   const draftPhotos = photos.filter((url) => url.startsWith("/api/images/"));
 
@@ -85,7 +85,7 @@ export function ListingForm({
       const next = { ...v };
       // Never overwrite something the owner typed: only empty fields, or ones still holding an earlier suggestion.
       const fill = <K extends SuggestibleField>(key: K, value: ListingFormValues[K] | null | undefined) => {
-        if (!value || (v[key] && !suggested.has(key))) return;
+        if (!value || (v[key] && !aiFilled.has(key))) return;
         next[key] = value;
         filled.add(key);
       };
@@ -99,7 +99,7 @@ export function ListingForm({
       fill("deposit", pricing.deposit.amount ? penceToPoundsInput(pricing.deposit.amount) : null);
 
       setV(next);
-      setSuggested(filled);
+      setAiFilled(filled);
       setQuestions(Object.fromEntries(draft.questions.filter((q) => !next[q.field]).map((q) => [q.field, q.question])));
       setReasons({ price: pricing.price.reason, deposit: pricing.deposit.reason });
       setDraftMessage(
@@ -117,6 +117,8 @@ export function ListingForm({
   const blocked = useMemo(() => new Set(v.blockedDates.filter((d) => d >= v.availableFrom && d <= v.availableTo)), [v.blockedDates, v.availableFrom, v.availableTo]);
   const lockedSet = useMemo(() => new Set(locked), [locked]);
   const pricePence = parsePounds(v.price);
+  const replacementPence = parsePounds(v.replacementValue);
+  const suggested = replacementPence ? suggestedDeposit(replacementPence) : null;
   const windowValid = v.availableFrom && v.availableTo && v.availableTo >= v.availableFrom;
 
   const toggleDay = (day: ISODate) => set("blockedDates", blocked.has(day) ? v.blockedDates.filter((d) => d !== day) : [...v.blockedDates, day]);
@@ -253,15 +255,34 @@ export function ListingForm({
               <FieldError>{errors.price}</FieldError>
             </div>
             <div>
+              <Label htmlFor="replacementValue" hint="Optional">
+                What would it cost to replace?
+              </Label>
+              <MoneyInput id="replacementValue" name="replacementValue" value={v.replacementValue} onChange={(x) => set("replacementValue", x)} invalid={!!errors.replacementValue} />
+              <FieldError>{errors.replacementValue}</FieldError>
+            </div>
+            <div>
               <Label htmlFor="deposit">Refundable deposit {mark("deposit")}</Label>
               <MoneyInput id="deposit" name="deposit" value={v.deposit} onChange={(x) => set("deposit", x)} invalid={!!errors.deposit} />
+              {suggested !== null && v.deposit !== penceToPoundsInput(suggested) && (
+                <button type="button" onClick={() => set("deposit", penceToPoundsInput(suggested))} className="mt-1.5 text-sm font-semibold underline decoration-accent decoration-2 underline-offset-4">
+                  Use the suggested {formatGBP(suggested)} (25% of replacement)
+                </button>
+              )}
               {reasons.deposit && <p className="mt-1.5 text-sm text-ink-2">{reasons.deposit}</p>}
               <FieldError>{errors.deposit}</FieldError>
             </div>
+            <label className="flex cursor-pointer items-start gap-3 self-end rounded-2xl border border-line-strong p-3.5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink">
+              <input type="checkbox" name="fullDepositOnly" checked={v.fullDepositOnly} onChange={(e) => set("fullDepositOnly", e.target.checked)} className="mt-0.5 size-4 accent-[var(--color-ink)]" />
+              <span>
+                <span className="block text-sm font-semibold">Always take the full deposit</span>
+                <span className="block text-xs text-muted">By default, verified renters with 3+ good reviews pay half.</span>
+              </span>
+            </label>
           </div>
           <p className="mt-3 rounded-xl bg-surface px-4 py-3 text-sm text-ink-2">
             {pricePence
-              ? <>A weekend rental (3 days) earns you <strong className="text-ink">{formatGBP(pricePence * 3)}</strong>. Most owners set the deposit at 10–30% of what it would cost to replace.</>
+              ? <>A weekend rental (3 days) earns you <strong className="text-ink">{formatGBP(pricePence * 3)}</strong>. {DEPOSIT_PROMISE}</>
               : "Tip: look at similar items in search to pick a price that gets booked."}
           </p>
         </Section>

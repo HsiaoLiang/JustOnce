@@ -8,7 +8,7 @@ import { Button, FormAlert, LinkButton, Rating, buttonClass } from "./ui";
 import { requestBooking, type RequestState } from "@/server/actions/bookings";
 import { checkRange, type Availability } from "@/lib/booking-rules";
 import { formatDay, formatRange, rentalDays, type ISODate } from "@/lib/dates";
-import { formatGBP, quote } from "@/lib/money";
+import { DEPOSIT_PROMISE, formatGBP, quote } from "@/lib/money";
 import { cn, plural } from "@/lib/cn";
 
 type BookingCtx = {
@@ -102,10 +102,22 @@ export function DatesSection({ ownerFirstName }: { ownerFirstName: string }) {
   );
 }
 
+export type DepositInfo = {
+  /** The listing's own deposit. */
+  listed: number;
+  reduced: boolean;
+  /** Why this renter pays what they pay, if there's something to say. */
+  message: string | null;
+  /** Show the "verify your ID to halve deposits" nudge. */
+  verifyNudge: boolean;
+};
+
 type TicketProps = {
   listingId: string;
   pricePerDay: number;
+  /** What this viewer would pay. */
   deposit: number;
+  depositInfo: DepositInfo;
   ratingSum: number;
   ratingCount: number;
   ownerFirstName: string;
@@ -113,7 +125,7 @@ type TicketProps = {
   isOwner: boolean;
 };
 
-export function BookingTicket({ listingId, pricePerDay, deposit, ratingSum, ratingCount, ownerFirstName, signedIn, isOwner }: TicketProps) {
+export function BookingTicket({ listingId, pricePerDay, deposit, depositInfo, ratingSum, ratingCount, ownerFirstName, signedIn, isOwner }: TicketProps) {
   const { start, end, rangeError, state, formAction, pending } = useBooking();
   const [note, setNote] = useState(false);
   const days = start && end ? rentalDays(start, end) : 0;
@@ -220,8 +232,22 @@ export function BookingTicket({ listingId, pricePerDay, deposit, ratingSum, rati
           <RotateCcw className="size-4" strokeWidth={2.4} aria-hidden />
         </span>
         <div>
-          <p className="font-semibold">{formatGBP(deposit)} refundable deposit</p>
-          <p className="mt-0.5 text-sm text-ink-2">Held when {ownerFirstName} accepts, and released once you both confirm the return.</p>
+          <p className="font-semibold">
+            {depositInfo.reduced ? (
+              <>
+                Your deposit: {formatGBP(deposit)} <span className="font-normal text-muted line-through">{formatGBP(depositInfo.listed)}</span>
+              </>
+            ) : (
+              `${formatGBP(deposit)} refundable deposit`
+            )}
+          </p>
+          {depositInfo.message && <p className="mt-0.5 text-sm font-medium text-ink">{depositInfo.message}</p>}
+          <p className="mt-0.5 text-sm text-ink-2">{DEPOSIT_PROMISE}</p>
+          {depositInfo.verifyNudge && (
+            <Link href="/account" className="mt-2 inline-block text-sm font-semibold underline decoration-accent decoration-2 underline-offset-4">
+              Verify your ID to halve deposits
+            </Link>
+          )}
         </div>
       </div>
     </div>
