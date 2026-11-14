@@ -65,7 +65,29 @@ export function isEmptySearch(s: ParsedSearch): boolean {
   return !s.q && !s.category && !s.area && !s.from && !s.max;
 }
 
-export function situationHref(search: ParsedSearch): string {
+export function situationHref(search: ParsedSearch, via: "ai" | "photo" = "ai"): string {
   const href = searchHref(search, {});
-  return `${href}${href.includes("?") ? "&" : "?"}via=ai`;
+  return `${href}${href.includes("?") ? "&" : "?"}via=${via}`;
+}
+
+/** Photo search: what the model saw in the borrower's photo, as search filters. */
+export const photoSearchSchema = z.object({
+  /** A few words naming the item, shown back to the borrower. Empty when nothing rentable is visible. */
+  item: text.transform((s) => s.slice(0, 60)),
+  keywords: text,
+  category: text,
+});
+
+export const PHOTO_SEARCH_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    item: { type: "string", description: "What the main item is, in two to five plain words, e.g. 'black dinner jacket' or 'two-person dome tent'. Empty if no rentable item is visible or the photo is unreadable." },
+    keywords: { type: "string", description: "One or two plain words someone would type to find this kind of item, most general first, e.g. 'tent' or 'tuxedo'. No brand unless it is clearly visible." },
+    category: SITUATION_JSON_SCHEMA.properties.category,
+  },
+  required: ["item", "keywords", "category"],
+} as const;
+
+export function photoToSearch(answer: z.infer<typeof photoSearchSchema>): ParsedSearch {
+  return situationToSearch({ keywords: answer.keywords, category: answer.category, area: "", from: "", to: "", maxPricePerDayPounds: null });
 }

@@ -9,7 +9,8 @@ import { nextStep, type FlowBooking } from "../booking-flow";
 import { isAllowedPhotoUrl } from "../photos";
 import { parseSearch } from "../search-params";
 import { median, modelDraftSchema, suggestPricing } from "../listing-draft";
-import { budgetToMaxPrice, isEmptySearch, situationHref, situationSchema, situationToSearch } from "../situation";
+import { budgetToMaxPrice, isEmptySearch, photoSearchSchema, photoToSearch, situationHref, situationSchema, situationToSearch } from "../situation";
+import { sniffImageType } from "../image-type";
 
 const today = "2026-11-13";
 const availability: Availability = {
@@ -208,4 +209,21 @@ test("situation search: budgets map to a filter that never exceeds them", () => 
 test("situation search: an answer with nothing usable falls back to plain search", () => {
   assert.equal(isEmptySearch(situationToSearch(situationSchema.parse({ category: "boats", from: "soon" }))), true);
   assert.equal(isEmptySearch(situationToSearch(situationSchema.parse({ area: "east" }))), false);
+});
+
+test("photo search: what the model saw becomes category and keyword filters only", () => {
+  const answer = photoSearchSchema.parse({ item: "two-person dome tent", keywords: "tent dome lightweight", category: "camping" });
+  const search = photoToSearch(answer);
+  assert.equal(search.q, "tent dome");
+  assert.equal(search.category, "CAMPING");
+  assert.equal(search.from, undefined);
+  assert.equal(situationHref(search, "photo"), "/search?q=tent+dome&category=camping&via=photo");
+  assert.equal(isEmptySearch(photoToSearch(photoSearchSchema.parse({ item: "", keywords: "", category: "pets" }))), true);
+});
+
+test("image types are recognised from their first bytes", () => {
+  assert.equal(sniffImageType(new Uint8Array([0xff, 0xd8, 0xff, 0xe0])), "image/jpeg");
+  assert.equal(sniffImageType(new Uint8Array([0x89, 0x50, 0x4e, 0x47])), "image/png");
+  assert.equal(sniffImageType(new TextEncoder().encode("RIFF0000WEBP")), "image/webp");
+  assert.equal(sniffImageType(new TextEncoder().encode("<svg></svg>")), null);
 });

@@ -4,7 +4,7 @@ import { CATEGORIES } from "@/lib/catalogue";
 import { formatLongDay, todayInLondon } from "@/lib/dates";
 import { MAX_SITUATION_LENGTH, SITUATION_JSON_SCHEMA, isEmptySearch, situationHref, situationSchema, situationToSearch } from "@/lib/situation";
 import { askVisionModel, aiEnabled } from "@/server/ai";
-import { searchListings } from "@/server/queries";
+import { relaxKeywords } from "@/server/situation-search";
 
 export const maxDuration = 30;
 
@@ -54,11 +54,7 @@ export async function GET(request: Request) {
     let search = situationToSearch(situationSchema.parse(answer));
     if (isEmptySearch(search)) return plain();
 
-    // Keywords are the riskiest guess: if they leave nothing, keep the rest of the filters and drop them.
-    if (search.q) {
-      const hits = await searchListings({ q: search.q, category: search.category, area: search.area, from: search.from, to: search.to, maxPrice: search.max ? search.max * 100 : undefined });
-      if (hits.length === 0 && (search.category || search.area || search.from)) search = { ...search, q: "" };
-    }
+    search = await relaxKeywords(search);
     return to(situationHref(search));
   } catch (error) {
     console.error("situation search: AI call failed", error);
