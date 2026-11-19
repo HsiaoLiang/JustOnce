@@ -9,3 +9,6 @@ next-env.d.ts
 playwright-report
 test-results
 .DS_Store
+
+# Static demo: copied from /public at build time
+/demo/public

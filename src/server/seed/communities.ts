@@ -103,7 +103,7 @@ type SeedCommunityListing = {
 
 const ph = (slug: string, n: number) => Array.from({ length: n }, (_, i) => `/seed/listings/${slug}-${i + 1}.jpg`);
 
-const COMMUNITY_LISTINGS: SeedCommunityListing[] = [
+export const COMMUNITY_LISTINGS: SeedCommunityListing[] = [
   // LBS
   { id: "lbs-interview-navy-suit", community: "lbs", owner: "oliver-bennett", title: "Navy interview suit for recruiting season", category: "FORMALWEAR", condition: "LIKE_NEW", brand: "Hugo Boss", size: "40R jacket, 32R trousers", price: 12, deposit: 60, photos: ph("navy-suit", 2), description: "My spare slim navy two-piece from recruiting season. Freshly pressed, comes with a garment bag. Perfect for MBB and banking interviews.", pickupNotes: "Sammy Ofer Centre reception, weekdays 12–2pm.", membersOnly: true },
   { id: "lbs-gala-tuxedo", community: "lbs", owner: "oliver-bennett", title: "Black tie tuxedo for the LBS Gala", category: "FORMALWEAR", condition: "LIKE_NEW", brand: "Moss", size: "40R jacket, 34R trousers", price: 20, deposit: 90, photos: ph("tuxedo", 3), description: "Dinner suit with satin lapels and a silk bow tie. Ideal for the Gala, club dinners and Sloan balls.", pickupNotes: "Sussex Place entrance, evenings after 6pm.", membersOnly: false },
@@ -140,7 +140,7 @@ type SeedPost = {
   comments?: { author: string; body: string; hoursLater: number }[];
 };
 
-const COMMUNITY_POSTS: SeedPost[] = [
+export const COMMUNITY_POSTS: SeedPost[] = [
   // LBS
   { id: "lbs-post-ba-ii-plus", community: "lbs", author: "mei-chen", type: "REQUEST", title: "Need a TI BA II Plus for the Corporate Finance midterm", body: "Mine died this morning. Need it Thursday 9am–12pm, happy to pay £5 or buy you a coffee at the Hub.", neededIn: 3, price: 5, daysAgo: 0, comments: [{ author: "sophie-clarke", body: "I have a spare one! I'm at Sussex Place until 5pm today.", hoursLater: 2 }] },
   { id: "lbs-post-garment-steamer", community: "lbs", author: "oliver-bennett", type: "REQUEST", title: "Garment steamer before consulting interviews", body: "Anyone in Marylebone or Baker Street with a steamer I can borrow tomorrow afternoon? Final rounds on Friday.", neededIn: 1, daysAgo: 1 },
