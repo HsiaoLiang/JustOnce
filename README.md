@@ -6,7 +6,7 @@ Students and staff can also **borrow within their school or office**: verify wit
 
 Built for AI Cup, Track B (Creativity & Commerce). The core journey works end to end: list → search → book → accept → pickup check → return check → deposit back → ratings.
 
-**Try it:** [hsiaoliang.github.io/AI-CUP](https://hsiaoliang.github.io/AI-CUP/) is a static version with the demo data, so you can browse items, search by community and click through a booking without signing up. Accounts, bookings and posts are switched off there; [run it locally](#run-it-locally) for the full app.
+**Try it:** [hsiaoliang.github.io/JustOnce](https://hsiaoliang.github.io/JustOnce/) is a static version with the demo data, so you can browse items, search by community and click through a booking without signing up. Accounts, bookings and posts are switched off there; [run it locally](#run-it-locally) for the full app.
 
 | Home | Item page | Booking request (owner) |
 | --- | --- | --- |
@@ -136,6 +136,14 @@ Your app is now live at `https://<project-name>.vercel.app`. Share that link wit
 | --- | --- |
 | `npm run demo:dev` | Run the demo at http://localhost:3100 |
 | `npm run demo:build` | Build it into `demo/out`. Set `DEMO_BASE_PATH=/<repo-name>` for a GitHub Pages project site |
+
+**Showing it (about 3 minutes).** It follows the story above, so the site tells it for you.
+
+1. **The problem, home page.** Start on "Why buy it for one weekend?", then click **Our story**: borrowing from strangers is hard, and trust comes from what people share.
+2. **The difference, browse.** Click **Browse**. Search *tuxedo* across *Everyone in London*, then tap **LBS only**: the same search now shows only items from verified London Business School members.
+3. **A rental, item page.** Open the *Black tuxedo with satin lapels*. Show the photos, the map and the deposit, then tap two dates: the ticket adds up the price, the service fee and the saving against buying it new. **Request to book** explains that this is a demo.
+4. **Trust inside a community.** Open **Communities → LBS**. The exchange board has real-looking requests from verified members, and some items are hidden from anyone who isn't one. Open [a members-only item](https://hsiaoliang.github.io/JustOnce/items/lbs-interview-navy-suit/) to show what outsiders see.
+5. **How it grows.** Back on the story: start with one school's exchange board, then the next campus and the next office. Mention that the full app, with accounts, bookings, deposits and handover checks, is in this repository.
 
 `.github/workflows/pages.yml` builds and publishes it on every push to `main`. To turn it on once: make the repository public (GitHub Pages needs a paid plan for private repositories), then in **Settings → Pages** set **Source** to **GitHub Actions**, and re-run the workflow from the **Actions** tab.
 
