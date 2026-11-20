@@ -6,6 +6,8 @@ Students and staff can also **borrow within their school or office**: verify wit
 
 Built for AI Cup, Track B (Creativity & Commerce). The core journey works end to end: list → search → book → accept → pickup check → return check → deposit back → ratings.
 
+**Try it:** [hsiaoliang.github.io/AI-CUP](https://hsiaoliang.github.io/AI-CUP/) is a static version with the demo data, so you can browse items, search by community and click through a booking without signing up. Accounts, bookings and posts are switched off there; [run it locally](#run-it-locally) for the full app.
+
 | Home | Item page | Booking request (owner) |
 | --- | --- | --- |
 | ![Home page](docs/screenshots/home.jpg) | ![Item page with dates picked](docs/screenshots/item.jpg) | ![Owner deciding on a request](docs/screenshots/booking-request.jpg) |
@@ -16,10 +18,41 @@ Built for AI Cup, Track B (Creativity & Commerce). The core journey works end to
 
 ---
 
+## Why we built it
+
+**There's no easy way to borrow everyday things from people nearby.** The rental platforms we looked at were mostly built around insurance, contracts and paperwork. That makes sense for a car or a flat, but it's far too heavy for a suit you need for one wedding or a tent for one festival.
+
+**We think the missing piece is trust, and trust comes from what people share.** Someone from the same school, the same company or the same club is much easier to trust, and much more willing to lend. So instead of replacing trust with insurance, we wanted to build on the trust a community already has.
+
+**That's what makes Just Once different: you can filter to your community.** Verify once with your school or work email, then search only your people, list items that only your members can see, and ask for what you need on your community's exchange board.
+
+**It also gives us a way to grow.** We'd start with one school. Its exchange board is where people already ask "does anyone have a…?", so it's where the first users come from. Once one campus works, we move to the next campus and the next office, one small community at a time.
+
+The business model isn't finished yet. But we believe the trust inside a community is the right starting point for a rental platform like this.
+
+<details>
+<summary>中文版</summary>
+
+**現在缺少一個讓大家可以輕鬆互相租借的平台。** 我們看到的租借平台大多以保險、合約和各種手續為基礎。這對租車、租房很合理，但如果只是想借一套參加婚禮的西裝、或一頂參加音樂祭的帳篷，就顯得太繁重了。
+
+**我們認為缺的是信任，而信任來自人與人之間的共通點。** 同一所學校、同一間公司、或有共同興趣的人，比較容易相信彼此，也更願意把東西借出去。所以我們不想用保險取代信任，而是想建立在社群本來就有的信任之上。
+
+**這就是 Just Once 最特別的地方：租借可以篩選 community。** 用學校或公司信箱驗證一次之後，就能只搜尋自己社群的人、刊登只有成員看得到的物品，也能在社群的交流版上發文詢問需要的東西。
+
+**這也是我們擴大的方式。** 我們會從一所學校開始。學校的交流版本來就是大家會問「有沒有人有⋯⋯？」的地方，所以它可以成為第一批用戶的來源。一個校園做起來之後，再擴展到下一所學校、下一間公司，從一個一個小社群開始，慢慢把生意做大。
+
+整個商業模式還不完善，但我們相信，社群提供的信任支持，可以是這種租借平台的起點。
+
+</details>
+
+---
+
 ## Contents
 
+- [Why we built it](#why-we-built-it)
 - [Run it locally](#run-it-locally)
 - [Put it on a public URL (Vercel + Neon)](#put-it-on-a-public-url-vercel--neon)
+- [Static demo on GitHub Pages](#static-demo-on-github-pages)
 - [Demo accounts](#demo-accounts)
 - [Suggested demo script](#suggested-demo-script)
 - [Before you present](#before-you-present)
@@ -73,7 +106,7 @@ To try it on your phone over Wi-Fi, open the "Network" address that `npm run dev
 
 ## Put it on a public URL (Vercel + Neon)
 
-Both have free plans and need no credit card. Allow about 10 minutes.
+The original Vercel deployment has been taken down, and the [static demo](#static-demo-on-github-pages) is now the public version. These steps still work if you want the full app online. Both have free plans and need no credit card. Allow about 10 minutes.
 
 1. Push this repository to GitHub (it already is if you're reading this there).
 2. Go to [vercel.com/new](https://vercel.com/new), sign in with GitHub and **import** the repository. Leave the framework as Next.js and every build setting as it is: `vercel.json` already tells Vercel to run `npm run vercel-build`.
@@ -91,6 +124,20 @@ Your app is now live at `https://<project-name>.vercel.app`. Share that link wit
 
 - *"DATABASE_URL is not set"* in the build log: the Neon database isn't connected to this project, or not for the Production environment. Connect it, then redeploy.
 - *"prepared statement already exists"* at runtime: add `&pgbouncer=true` to the end of `DATABASE_URL` in the project settings and redeploy.
+
+## Static demo on GitHub Pages
+
+[`demo/`](demo) is a second, backend-free build of the site for GitHub Pages. It reuses the app's own components, styles and seed data (`src/server/seed`), so it looks the same, but every page is generated at build time and there is no database or server:
+
+- **Works:** the home page (with the story above), browsing and search, filtering by community, item pages with photos, the map, the calendar and the price quote, community pages with their exchange boards, and the Policies page.
+- **Switched off:** sign-up and log-in, sending a booking request (the button explains it's a demo), listing items, dashboards, posting on boards and the AI features. Members-only items stay hidden, as they would for a signed-out visitor.
+
+| Script | What it does |
+| --- | --- |
+| `npm run demo:dev` | Run the demo at http://localhost:3100 |
+| `npm run demo:build` | Build it into `demo/out`. Set `DEMO_BASE_PATH=/<repo-name>` for a GitHub Pages project site |
+
+`.github/workflows/pages.yml` builds and publishes it on every push to `main`. To turn it on once: make the repository public (GitHub Pages needs a paid plan for private repositories), then in **Settings → Pages** set **Source** to **GitHub Actions**, and re-run the workflow from the **Actions** tab.
 
 ## Demo accounts
 
@@ -285,6 +332,7 @@ npm run test:e2e
 | `npm run db:seed` | Wipe the database and reload the demo data (dates relative to today) |
 | `npm run build` / `npm start` | Production build and server |
 | `npm run vercel-build` | What Vercel runs: migrate, seed only if the database is empty, build |
+| `npm run demo:dev` / `npm run demo:build` | Run or build the [static demo](#static-demo-on-github-pages) |
 | `npm test`, `npm run test:e2e`, `npm run typecheck` | Unit tests, end-to-end tests, type checks |
 
 | Variable | Required | Purpose |

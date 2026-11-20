@@ -18,6 +18,8 @@
     "db:reset": "node scripts/prisma.mjs migrate deploy && tsx prisma/seed.ts",
     "setup": "node scripts/prisma.mjs migrate deploy && tsx prisma/seed.ts",
     "vercel-build": "node scripts/prisma.mjs migrate deploy && tsx prisma/seed.ts --if-empty && next build",
+    "demo:dev": "node scripts/demo.mjs dev",
+    "demo:build": "node scripts/demo.mjs build",
     "postinstall": "prisma generate"
   },
   "dependencies": {

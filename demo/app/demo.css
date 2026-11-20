@@ -1,0 +1,4 @@
+/* The real app's styles, plus the shared components and pages Tailwind needs to scan. */
+@import "../../src/app/globals.css";
+@source "../../src";
+@source "..";
